@@ -1,0 +1,77 @@
+var jobManager = require('nSlurm');
+var events = require('events');
+var Random = require("random-js")
+var bean, probeMax;
+
+
+
+
+
+
+
+var slurmTest = function () {
+    var emitter = new events.EventEmitter();
+    var r = new Random(Random.engines.mt19937().seedWithArray([0x12345678, 0x90abcdef]));
+    var n = bean.scriptVariables.probeList.length;
+    bean.scriptVariables.probeList.forEach(function(probe, i, array) {
+        if (i >= probeMax) return;
+        var jName = "test_probe_" + (i + 1);
+        console.log(n + ' , ' + i + ' ' + jName);
+        var sleepTime = r.integer(2, n);
+        var j = jobManager.push({'script' : bean.scriptVariables.BIN_DIR + '/run_ar_dock_DVL.sh', 'id' : jName,
+                'gid' : 'ws_users', 'uid' : 'ws_ardock',
+                'exportVar' : { // List of variables which will be exported in the sbatch
+                    'sleepTime' : sleepTime,
+                    'target' : "dummyPdb",
+                    'probeNumber' : (i + 1),
+                    'residueHitsDir' : bean.scriptVariables.TEST_DIR + '/residue_hits'
+                    }
+                });
+        j.on('completed', function(stdout, stderr, jobObject){
+
+            /* We may have to apply buf.toString in end/close event ot eht stdout stream*/
+            if(stderr) {
+                console.log("ERROR log:");
+                stderr.on('data', function(buf){ console.log(buf.toString()); });
+            }
+            var results = '';
+            stdout.on('data', function(buf){
+                results += buf.toString();
+            });
+            stdout.on('end', function (){
+                    var jsonRes = JSON.parse(results);
+                    emitter.emit('jobCompletion', jsonRes);
+                });
+
+            jobManager.jobsView();
+        })
+        .on('error',function(e, j){
+            console.log("job " + j.id + " : " + e);
+        });
+    });
+    return emitter;
+}
+
+var slurmStart = function(bLocal) {
+    var emitter = new events.EventEmitter();
+
+    jobManager.start(bean.managerSettings);
+    if(bLocal)
+        jobManager.emulate();
+    jobManager.on('exhausted', function(){
+        emitter.emit("done");
+        console.log("All jobs processed");
+    });
+    jobManager.on("ready", function() {
+        emitter.emit('ready');
+    });
+    return emitter;
+}
+
+
+module.exports = {
+    slurmTest : slurmTest,
+    slurmStart : slurmStart,
+    jobManager : function() {return jobManager;},
+    configure : function (data) { probeMax = data.probeMax; bean = data.bean;}
+};

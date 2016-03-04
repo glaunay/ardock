@@ -1,0 +1,14 @@
+{
+  "name": "omg-particle",
+  "version": "1.0.0",
+  "description": "A package inspired from http://bl.ocks.org/mbostock/9539958 to test d3 browserification",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "GL",
+  "license": "ISC",
+  "dependencies": {
+    "d3": "^3.5.14"
+  }
+}
