@@ -16,6 +16,8 @@
     "jsonfile": "^2.2.3",
     "mkdirp": "^0.5.1",
     "nSlurm": "^0.0.0",
+    "nslurm": "0.0.0",
+    "pdb-lib": "^1.0.0",
     "random-js": "^1.0.8",
     "socket.io": "^1.4.5",
     "socket.io-client": "^1.4.5",
