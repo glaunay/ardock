@@ -6,9 +6,9 @@
         "rootDir" : "/data/www_dev/ardock"
         },
     "scriptVariables" : {
-        "TEST_DIR" : "/data/www_dev/ardock/scripts/test",
-        "DATA_DIR" : "/data/www_dev/ardock/scripts/data",
-        "BIN_DIR" : "/data/www_dev/ardock/scripts/bin",
+        "TEST_DIR" : "/data/www_dev/ardock/lib/scripts/test",
+        "DATA_DIR" : "/data/www_dev/ardock/lib/scripts/data",
+        "BIN_DIR" : "/data/www_dev/ardock/lib/scripts/bin",
         "probeList" : ["2.10.270",
                         "2.30.18",
                         "2.30.170",
