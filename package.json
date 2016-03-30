@@ -29,7 +29,7 @@
     "jquery": "^2.2.0"
   },
   "scripts": {
-    "test": "node index.js --conf /data/dev/ardock/scriptPackage/package.json --test --http"
+    "test": "node index.js --conf scripts/package.json --test --http"
   },
   "author": "GL",
   "license": "ISC"
