@@ -2,7 +2,8 @@ window.$ = window.jQuery = require('jquery')
 var Backbone = require('backbone');
 Backbone.$ = $;
 var io = require('socket.io-client/socket.io.js');
-var socket = io.connect('http://ardock.ibcp.fr');
+//var socket = io.connect('http://ardock.ibcp.fr');
+var socket = io.connect('http://server-A7V:3000');
 
 
 //var ss = require('socket.io-stream');
