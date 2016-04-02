@@ -47,7 +47,7 @@ var httpStart = function(bean, bIo, bTest, bRest) {
 
     var emitter = new events.EventEmitter();
     if (bIo) ioActivate();
-    var staticPath = bean.httpVariables.rootDir + '/lib';
+    var staticPath = bean.httpVariables.rootDir;
     console.log("Configuring route end points");
     console.log("Serving at " + staticPath);
 
