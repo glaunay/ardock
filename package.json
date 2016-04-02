@@ -15,6 +15,7 @@
     "jsdom": "^8.0.2",
     "jsonfile": "^2.2.3",
     "mkdirp": "^0.5.1",
+    "node-uuid" : "^1.4.7",
     "nslurm": "0.0.0",
     "pdb-lib": "^1.0.0",
     "random-js": "^1.0.8",
