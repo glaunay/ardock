@@ -8,7 +8,7 @@ if [ $1 = "--httpStart" ];then
         echo 'node http process already running'
         exit 0
     fi
-    nohup node index.js --conf /data/dev/ardock/scriptPackage/package.json --http --slurm --rest -p 3 > ./httpServer.log &
+    nohup node index.js --conf /data/www_dev/ardock/lib/scripts/package.json --http --slurm --rest -p 3 > ./httpServer.log &
     echo "Http server started"
 elif [ "$1" = "--httpStop" ];then
     id=`ps aux | grep "node index\.js" | awk '{print $2}'`

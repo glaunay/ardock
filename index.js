@@ -67,7 +67,7 @@ See result at http://ardock.ibcp.fr/test
 
 
 var restCallBack = function (ans, data) {
-    // Process data -> pdbLoad-> slurm -> return content through  ans
+    // Process data -> pdbLoad-> slurm -> return content through ans
 
     var cnt = probeMax;
     PDB_Lib.pdbLoad(bTest, {'restFull' : data, 'chain' : pdbChainList})
@@ -176,7 +176,7 @@ if (bHttp || bIo || bRest) {
         }
     });
 } else if (bSlurm) { // No http asked test case or HPC only run for a particular pdb file
-    HPC_Lib.slurmStart().on('ready', function(){
+    HPC_Lib.slurmStart(bLocal).on('ready', function(){
         if (bPdb) {
             PDB_Lib.pdbLoad(bTest, {'file' : fPdb, 'chain' : pdbChainList}).on('pdbLoad', function (pdbObj) {
                 pdbObj.model(1).bFactor(0);
@@ -210,9 +210,8 @@ if (bHttp || bIo || bRest) {
     };
     if (!fPdb && !bTest)
         throw 'If you set up pdb service alone, you must provide a file or call for a test';
-    if (fPdb) {
+    if (fPdb)
         PDB_Lib.pdbLoad(bTest, {'file' : fPdb, 'chain' : pdbChainList}).on('pdbLoad', claimSuccess);
-    }
     else
         PDB_Lib.pdbLoad(bTest).on('pdbLoad', claimSuccess);
 }
