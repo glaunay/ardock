@@ -14,7 +14,7 @@ var pdbLib = require("pdb-lib");
 var stream = require('stream');
 var events = require('events');
 var widgets = require('./widgets');
-var oParticule = require('omg-particle')
+var oParticule = require('./js/omg-particle')
 
 //var d3=require('d3');
 
