@@ -15,7 +15,7 @@ var pdbLib = require("pdb-lib");
 var stream = require('stream');
 var events = require('events');
 var widgets = require('./widgets');
-var oParticule = require('./js/omg-particle')
+var oParticule = require('./js/omg-particle');
 
 //var d3=require('d3');
 
@@ -55,6 +55,7 @@ socket.on('arDockChunck', function(data) {
     pdbLib.parse({ 'rStream' : s })
         .on('end', function(pdbObjInp) {
             console.log('this is ardock  chunk ' + pdbObjInp.model(1).selecSize());
+            console.log(pdbObjInp.model(1).dump());
         });
 });
 socket.on("arDockStart", function(data) {
