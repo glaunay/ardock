@@ -3,3 +3,15 @@ body {
     background-color: #99ff66;
 }
 
+#tabs {
+	position: relative;
+}
+.glyphicon-remove-circle{
+	position: absolute;
+	right: 3px;
+	top: 1px;
+}
+.glyphicon-remove-circle:hover{
+	cursor: auto;
+}
+

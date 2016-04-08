@@ -29,7 +29,7 @@ var bootstrap = require('bootstrap');
 //bootstrap.jQuery = $;
 
 
-
+//////////////////////////////////////////////////////////////////  SEVER REQUEST ///////////////////////////////////////////////////////////////////////////
 socket.on('news', function (data) {
     console.log(data);
     socket.emit('my other event', { my: 'data' });
@@ -62,37 +62,55 @@ socket.on("arDockStart", function(data) {
     console.log('starting ardock task ' + data.id + ' over ' + data.total + ' probes');
 });
 
-$('body').append('<div class="btn btn-primary">PUSH me JS</div>\n');
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$('div').button('toggle').addClass('fat')
-        .on("click", function(){oParticule.display();});
+//$('body').append('<div class="btn btn-primary">PUSH me JS</div>\n');
 
-var upload = function(input, widget) {
-    var reader = new FileReader();
+/*$('div').button('toggle').addClass('fat')
+        .on("click", function(){oParticule.display();});*/
 
-    $(reader).on('load', function() {
-        //console.log('Contenu du fichier "' + input.files[0].name + '" :\n\n' + reader.result);
-        var s = stream.Readable();
-        s.push(reader.result, 'utf-8');
-        s.push(null);
-        var pdbParse = pdbLib.parse({ 'rStream' : s })
-        .on('end', function(pdbObjInp) {
-            var pS = widgets.pdbSummary({fileName : input.files[0].name, pdbObj : pdbObjInp});
-            pS.display();
-            pS.on('submit', send);
+//Upload Change
+$(function(){
+
+    var upload = function(input, widget) {
+    
+        var reader = new FileReader();
+
+        $(reader).on('load', function() {
+                //console.log('Contenu du fichier "' + input.files[0].name + '" :\n\n' + reader.result);
+                var s = stream.Readable();
+                s.push(reader.result, 'utf-8');
+                s.push(null);
+
+                var pdbParse = pdbLib.parse({ 'rStream' : s })
+                    .on('end', function(pdbObjInp) {
+                        //Implementation DISPLAY TABS////////////////////////////////////////////////////////////////////////////////////////////////
+                        var navDT = displayTabs.addTab({fileName : input.files[0].name, pdbObj : pdbObjInp});
+        
+                        var pS = widgets.pdbSummary({fileName : input.files[0].name, pdbObj : pdbObjInp, root: $('#' + navDT.name)});
+                        pS.display();
+                        pS.on('submit', send);
+                     });
         });
+        reader.readAsText(input.files[0]);
+    };
+
+
+    
+
+    //Tabs Display//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    var displayTabs = widgets.displayTabs();
+
+    //Upload Display
+    var uploadBox = widgets.uploadBox({root: $('#divAddFile')});
+    uploadBox.on('change', upload);
+    
+    //Submit
+    var send = function(pdbObj) {
+        socket.emit('ardockPdbSubmit', pdbObj.dump());
+    }
+
     });
-
-    reader.readAsText(input.files[0]);
-};
-
-var uploadBox = widgets.uploadBox();
-uploadBox.on('change', upload);
-
-var send = function(pdbObj) {
-    socket.emit('ardockPdbSubmit', pdbObj.dump());
-}
-
 
 
     /*socket.on('news', function (data) {
@@ -101,10 +119,6 @@ var send = function(pdbObj) {
         socket.emit('ardock openStream', {"data" : "ardock openStream"});
     });*/
 
-/*
-var data = [1, 2, 2, 3, 4, 5, 5, 5, 6];
-console.log(data);
-*/
 
 
 
