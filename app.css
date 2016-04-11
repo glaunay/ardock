@@ -6,6 +6,8 @@ body {
 #tabs {
 	position: relative;
 }
+#divAddFile{
+}
 .glyphicon-remove-circle{
 	position: absolute;
 	right: 3px;
@@ -14,4 +16,13 @@ body {
 .glyphicon-remove-circle:hover{
 	cursor: auto;
 }
-
+.dropzone{
+	height:400px;
+	width:100%;
+	padding-top: 22%;
+	padding-bottom: 5px;
+	background:#efefef;
+	border:2px dashed #3f3f3f;
+	text-align:center;
+	font-style:italic;
+}

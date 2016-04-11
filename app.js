@@ -69,11 +69,19 @@ socket.on("arDockStart", function(data) {
 /*$('div').button('toggle').addClass('fat')
         .on("click", function(){oParticule.display();});*/
 
-//Upload Change
-$(function(){
 
+$(function(){
+    //Upload Change
     var upload = function(input, widget) {
-    
+
+        var file;
+        
+        if(input.files){//Si le fichier ne provient pas d'un input
+            file = input.files[0];
+        } else{
+            file = input;
+        }   
+
         var reader = new FileReader();
 
         $(reader).on('load', function() {
@@ -85,14 +93,15 @@ $(function(){
                 var pdbParse = pdbLib.parse({ 'rStream' : s })
                     .on('end', function(pdbObjInp) {
                         //Implementation DISPLAY TABS////////////////////////////////////////////////////////////////////////////////////////////////
-                        var navDT = displayTabs.addTab({fileName : input.files[0].name, pdbObj : pdbObjInp});
+                        var navDT = displayTabs.addTab({fileName : file.name, pdbObj : pdbObjInp});
         
-                        var pS = widgets.pdbSummary({fileName : input.files[0].name, pdbObj : pdbObjInp, root: $('#' + navDT.name)});
+                        var pS = widgets.pdbSummary({fileName : file.name, pdbObj : pdbObjInp, root: $('#' + navDT.name)});
                         pS.display();
                         pS.on('submit', send);
                      });
         });
-        reader.readAsText(input.files[0]);
+        
+        reader.readAsText(file);
     };
 
 
@@ -110,6 +119,11 @@ $(function(){
         socket.emit('ardockPdbSubmit', pdbObj.dump());
     }
 
+
+//##########################################################DRAG DROP############################
+
+     
+//#####################################################################################################
     });
 
 

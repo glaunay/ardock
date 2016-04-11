@@ -69,10 +69,13 @@ var UploadBox = function (opt) {
     var nArgs = opt ? opt : {};
    
     Core.call(this, nArgs);
+
+    var uploadBoxId = "W_" + this.idNum;
    
-    this.scaffold ('<div class="widget uploadBox" id="w_' + this.idNum + '">'
-                    + '<div class="btn btn-primary">Process PDB</div>'
-                    + '<input type="file" style="display:none"/>'
+    this.scaffold ('<div class="widget uploadBox dropzone container-fluid" id="w_' + this.idNum + '">'
+                    + '<div class="btn btn-primary">Browse</div>'
+                    +'<p>Or DrOp a File (.pdb, .fasta)</p>'
+                    + '<input type="file" style="display:none" accept=".pdb,.fasta"/>'
                     + '</div>');
    
     this.display();
@@ -84,6 +87,25 @@ var UploadBox = function (opt) {
     $(this.node).find('div.btn').on('click', function(){
         $(self.input).click();
     });
+    //###############DRAG & DROP################################
+      $('.dropzone').bind('dragover',function(event){
+             event.stopPropagation();
+             event.preventDefault();
+      });
+
+      $('.dropzone').bind('dragenter',function(event) {
+             event.preventDefault();
+             event.stopPropagation();
+      });
+      
+      $('.dropzone').bind('drop', function(event){
+            event.preventDefault();
+    
+            var files = event.originalEvent.dataTransfer.files; // FileList object.
+            
+            self.emiter.emit('change', files[0]);
+      });
+    //###########################################################
 
 }
 UploadBox.prototype = Object.create(Core.prototype);
@@ -92,7 +114,6 @@ UploadBox.prototype.constructor = UploadBox;
 
 ///////////////////////////////////////////////////////////////////////////////////////////// DISPLAY TABS /////////////////////////////////////////////////////////////////////////////////
 var DisplayTabs = function(opt){
-   // var self = this;
 
     var nArgs = opt ? opt : {};
    Core.call(this, nArgs);
@@ -118,14 +139,25 @@ DisplayTabs.prototype.constructor = DisplayTabs;
 //Methode addTab
 DisplayTabs.prototype.addTab = function(opt){ 
     
-    var name =  opt.fileName.replace(/(?:\.([^.]+))?$/i,"");
+    var name =  opt.fileName.replace(/(?:\.([^.]+))?$/i,""),
+          alreadyExist = false;
+
+    tabTabs.forEach(function(el){
+        if(name === el){
+            alert("File already open !");
+            alreadyExist = true;
+            return false;
+        }
+    });
+
+    if(alreadyExist){return false};
     
     $('#tabs').append('<li role="presentation" class="'+ name +'"><a href="#' + name + '">' + name + '</a><i class="glyphicon glyphicon-remove-circle"></i></li>');  
-    $('.tab-content').append('<div class="tab-pane fade" id="'+ name +'">');
+    $('.tab-content').append('<div class="tab-pane fade container-fluid" id="'+ name +'">');
     $("#tabs li").last().insertBefore('#addFile');
 
     tabTabs.push(name);
-    //console.log(tabTabs);
+    
     var navDT = function(name){
 
         $("." + name + " a").click()
@@ -154,7 +186,7 @@ DisplayTabs.prototype.addTab = function(opt){
             tabTabs.splice(index,1);
             $("." + name).remove();
             $("#" + name).remove();
-            //console.log(tabTabs);
+            
         });
     }
 
