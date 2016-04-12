@@ -60,6 +60,30 @@ Core.prototype.destroy = function(event, callback) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////////////////// HEADER /////////////////////////////////////////////////////////////////////////////////////////
+var Header = function(opt){
+    var self = this;
+   
+    var nArgs = opt ? opt : {};
+   
+    Core.call(this, nArgs);
+
+    this.id = "W_" + this.idNum;
+   
+    this.scaffold ('<header id="header" class="container-fluid">'
+                                +'<div class="widget header row" id="w_' + this.idNum + '">'
+                                    + '<img src="assets/logo.png" class="col-xs-4" />'
+                                    +'<p class="col-xs-8">Probe your Prot</p>'
+                                + '</div>'
+                                +'<hr>'
+                        +'</header>');
+   
+    this.display();
+}
+Header.prototype = Object.create(Core.prototype);
+Header.prototype.constructor = Header;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ////////////////////////////////////////////////////////////////////////////////////////// UPLOADBOX /////////////////////////////////////////////////////////////////////////////////////////
 // Display an upload box
 var UploadBox = function (opt) {
@@ -75,7 +99,7 @@ var UploadBox = function (opt) {
     this.scaffold ('<div class="widget uploadBox dropzone container-fluid" id="w_' + this.idNum + '">'
                     + '<div class="btn btn-primary">Browse</div>'
                     +'<p>Or DrOp a File (.pdb, .fasta)</p>'
-                    + '<input type="file" style="display:none" accept=".pdb,.fasta"/>'
+                    + '<input type="file" style="display:none" accept=".pdb,.fasta" multiple/>'
                     + '</div>');
    
     this.display();
@@ -103,13 +127,30 @@ var UploadBox = function (opt) {
     
             var files = event.originalEvent.dataTransfer.files; // FileList object.
             
-            self.emiter.emit('change', files[0]);
+            self.emiter.emit('change', files);
       });
     //###########################################################
 
 }
 UploadBox.prototype = Object.create(Core.prototype);
 UploadBox.prototype.constructor = UploadBox;
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////////////// LOADER /////////////////////////////////////////////////////////////////////////////////////////
+var Loader = function(opt){
+    var self = this;
+   
+    var nArgs = opt ? opt : {};
+   
+    Core.call(this, nArgs);
+
+    var loaderId = "W_" + this.idNum;
+   
+    this.scaffold ('<div class="widget loader" id="w_' + this.idNum + '">');
+}
+
+Loader.prototype = Object.create(Core.prototype);
+Loader.prototype.constructor = Loader;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////////// DISPLAY TABS /////////////////////////////////////////////////////////////////////////////////
@@ -120,7 +161,7 @@ var DisplayTabs = function(opt){
     
     //this.pdbObj = opt.pdbObj;
 
-    this.scaffold ('<div  class="container-fluid" id="displayTabs">'+
+    this.scaffold ('<div  class="container-fluid" id="w_' + this.idNum + '">'+
                                 '<ul class="nav nav-tabs" id="tabs">'+   
                                     '<li role="presentation" class="active" id="addFile"><a href="#divAddFile">+ Add File</a></li>'+
                                 '</ul>'+
@@ -130,7 +171,7 @@ var DisplayTabs = function(opt){
                                 '</div>'+
                             '</div>');
 
-    this.display();
+    //this.display();
 }
 
 DisplayTabs.prototype = Object.create(Core.prototype);
@@ -143,7 +184,7 @@ DisplayTabs.prototype.addTab = function(opt){
           alreadyExist = false;
 
     tabTabs.forEach(function(el){
-        if(name === el){
+        if(name === el.name){
             alert("File already open !");
             alreadyExist = true;
             return false;
@@ -151,22 +192,30 @@ DisplayTabs.prototype.addTab = function(opt){
     });
 
     if(alreadyExist){return false};
-    
+//////////////
+/*
+    var nTab = new Tab({name: name, pdbObj: opt.pdbObj});
+
+    tabTabs.push(name);
+
     $('#tabs').append('<li role="presentation" class="'+ name +'"><a href="#' + name + '">' + name + '</a><i class="glyphicon glyphicon-remove-circle"></i></li>');  
     $('.tab-content').append('<div class="tab-pane fade container-fluid" id="'+ name +'">');
     $("#tabs li").last().insertBefore('#addFile');
+ */
+ /////////////////
+    tabTabs.push(new Tab({name:name,pdbObj: opt.pdbObj,tabList: '#tabs',tabAdd:'#addFile',container: '.tab-content'}));
 
-    tabTabs.push(name);
-    
     var navDT = function(name){
 
         $("." + name + " a").click()
 
         $("." + name + " i").on('click',function(){
 
-            var index = tabTabs.indexOf(name),
-                      nextClassName = (tabTabs.length > 1 && index !== tabTabs.length - 1) ? tabTabs[index +1] : false,
-                      prevClassName = (tabTabs.length > 1 && index !== 0) ? tabTabs[index - 1] : false ;
+            var index = tabTabs.findIndex(function(element){return element.name == name}),//tabTabs.indexOf(name),
+                      nextClassName = (tabTabs.length > 1 && index !== tabTabs.length - 1) ? tabTabs[index +1].name : false,
+                      prevClassName = (tabTabs.length > 1 && index !== 0) ? tabTabs[index - 1].name : false ;
+
+            console.log(index);
 
             if ($("." + name).hasClass('active')){
                       if(nextClassName){
@@ -201,13 +250,42 @@ DisplayTabs.prototype.addTab = function(opt){
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////////////////// TAB //////////////////////////////////////////////////////////////////////////////////////////////////////
+var Tab = function(opt){
+    var nArgs = opt ? opt : {};
+   
+   Core.call(this, nArgs);
+    
+    this.pdbObj = opt.pdbObj;
+    this.nbJob = 0;//number of job 
+    this.name = opt.name;//pdb name
+    this.tabList = opt.tabList;//ul
+    this.tabClass = "." + name;//tab
+    this.divTabId = "#" + this.name ;
+    this.tabAdd = opt.tabAdd;//tab addTab
+    this.container = opt.container;
+    this.node = $('#' + this.name);
+    this.jobs = [];
+
+    $(this.tabList).append('<li role="presentation" class="'+ this.name +'"><a href="#' + this.name + '">' + this.name + '</a><i class="glyphicon glyphicon-remove-circle"></i></li>');  
+    $(this.container).append('<div class="tab-pane fade container-fluid" id="'+ this.name +'">');
+    $(this.tabList + " li").last().insertBefore(this.tabAdd);
+}
+    Tab.prototype = Object.create(Core.prototype);
+    Tab.prototype.constructor = Tab;
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //////////////////////////////////////////////////////////////////////////////////////////// PDB SUMMARY /////////////////////////////////////////////////////////////////////////////////
 // Display a summary of a loaded pdb file
 var PdbSummary = function(opt) {
     var nArgs = opt ? opt : {};
     Core.call(this, nArgs);
     
-    var scaffold = '<div class="widget pdbSummary" id="w_' + this.idNum + '">';
+    var scaffold = '<div draggable="true" class="widget pdbSummary" id="w_' + this.idNum + '">';
     
     this.pdbObj = opt.pdbObj;
     
@@ -255,6 +333,8 @@ PdbSummary.prototype.display = function(event, callback) {
 
 ////////////////////////////////////////////////////////////////////////////////// MODULES EXPORT /////////////////////////////////////////////////////////////////////////////////////////
 module.exports = {
+    header : function(opt){ var obj = new Header(opt);return obj; },
+    loader : function(opt){ var obj = new Loader(opt);return obj; },
     pdbSummary : function(opt){ var obj = new PdbSummary(opt);return obj; },
     displayTabs : function(opt){ var obj = new DisplayTabs(opt);return obj; },
     uploadBox : function(opt){ var obj = new UploadBox(opt);return obj; }

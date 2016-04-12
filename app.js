@@ -73,42 +73,58 @@ socket.on("arDockStart", function(data) {
 $(function(){
     //Upload Change
     var upload = function(input, widget) {
-
-        var file;
         
-        if(input.files){//Si le fichier ne provient pas d'un input
-            file = input.files[0];
+        var waitLoader = widgets.loader({root: $('.tab-content')});
+        waitLoader.display();
+
+        var file,
+              lCount = 0;
+        
+        if(input.files){//Si le fichier provient d'un input
+            file = input.files;
         } else{
             file = input;
-        }   
+        } 
+       
 
-        var reader = new FileReader();
+        for(i=0; i < file.length; i++){
 
-        $(reader).on('load', function() {
-                //console.log('Contenu du fichier "' + input.files[0].name + '" :\n\n' + reader.result);
-                var s = stream.Readable();
-                s.push(reader.result, 'utf-8');
-                s.push(null);
+            (function(f,F){
+               
+                var reader = new FileReader();
+               
+                $(reader)
+                .on('load', function() {
+                        waitLoader.display();
+                        //console.log('Contenu du fichier "' + input.files[0].name + '" :\n\n' + reader.result);
+                        var s = stream.Readable();
+                        s.push(reader.result, 'utf-8');
+                        s.push(null);
 
-                var pdbParse = pdbLib.parse({ 'rStream' : s })
-                    .on('end', function(pdbObjInp) {
-                        //Implementation DISPLAY TABS////////////////////////////////////////////////////////////////////////////////////////////////
-                        var navDT = displayTabs.addTab({fileName : file.name, pdbObj : pdbObjInp});
-        
-                        var pS = widgets.pdbSummary({fileName : file.name, pdbObj : pdbObjInp, root: $('#' + navDT.name)});
-                        pS.display();
-                        pS.on('submit', send);
-                     });
-        });
-        
-        reader.readAsText(file);
+                        var pdbParse = pdbLib.parse({ 'rStream' : s })
+                            .on('end', function(pdbObjInp) {
+                    
+                                    if(lCount === (F - 1)){waitLoader.hide();}
+                                    else{ lCount++}
+
+                                    var navDT = displayTabs.addTab({fileName : f.name, pdbObj : pdbObjInp});
+                            
+                                    var pS = widgets.pdbSummary({fileName : f.name, pdbObj : pdbObjInp, root: $('#' + navDT.name)});
+                                    pS.display();
+                                    pS.on('submit', send);
+                         });
+                });
+                reader.readAsText(f);
+            })(file[i],file.length);
+        }  
     };
 
 
-    
-
+    //Header Display//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    var header = widgets.header();
     //Tabs Display//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     var displayTabs = widgets.displayTabs();
+    displayTabs.display();
 
     //Upload Display
     var uploadBox = widgets.uploadBox({root: $('#divAddFile')});

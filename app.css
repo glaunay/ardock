@@ -1,12 +1,33 @@
 @import url("node_modules/bootstrap/dist/css/bootstrap.min.css");
+
 body {
-    background-color: #99ff66;
+    background-color: white;
 }
 
 #tabs {
 	position: relative;
 }
 #divAddFile{
+	position: relative;
+}
+.header{
+	margin-bottom: 10px;
+	height: 86px;
+	background-color: white;
+	position: relative;
+}
+.pdbSummary{
+	border: 1px solid black;
+}
+.header p{
+	color: maroon;
+	font-size: 30px;
+	padding-top: 35px;
+	font-style: italic;
+}
+.header img{
+	height: 85px;
+	width: 122px;
 }
 .glyphicon-remove-circle{
 	position: absolute;
@@ -19,10 +40,24 @@ body {
 .dropzone{
 	height:400px;
 	width:100%;
-	padding-top: 22%;
+	padding-top: 180px;
 	padding-bottom: 5px;
 	background:#efefef;
 	border:2px dashed #3f3f3f;
 	text-align:center;
 	font-style:italic;
+}
+.tab-content{
+	position: relative;
+}
+.loader {
+	position : absolute;
+	z-index: 9999;
+	background : url('assets/icon-loader.gif') 50% 50% no-repeat;
+	top : 0px;
+	left : 0px;
+	height : 100%;
+	width : 100%;
+	cursor : wait;
+	background-color: rgba(219, 218, 218, 0.3);
 }
