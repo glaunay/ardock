@@ -3,7 +3,7 @@
     "lastModification" : "02 March 2016",
     "comments" : "Specifications of the arbitrary docking service variables",
     "httpVariables" : {
-        "rootDir" : "/data/www_dev/ardock"
+        "rootDir" : "/data/www_dev/ardock/lib"
         },
     "scriptVariables" : {
         "TEST_DIR" : "/data/www_dev/ardock/lib/scripts/test",
