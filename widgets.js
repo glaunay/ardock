@@ -98,7 +98,7 @@ var UploadBox = function (opt) {
    
     this.scaffold ('<div class="widget uploadBox dropzone container-fluid" id="w_' + this.idNum + '">'
                     + '<div class="btn btn-primary">Browse</div>'
-                    +'<p>Or DrOp a File (.pdb, .fasta)</p>'
+                    +'<p>Or DrOp File(s) (.pdb, .fasta)</p>'
                     + '<input type="file" style="display:none" accept=".pdb,.fasta" multiple/>'
                     + '</div>');
    
@@ -115,6 +115,13 @@ var UploadBox = function (opt) {
       $('.dropzone').bind('dragover',function(event){
              event.stopPropagation();
              event.preventDefault();
+             $(this).css({ "background-color": "#fbf9f9"});
+      });
+
+      $('.dropzone').bind('dragleave',function(event){
+             event.stopPropagation();
+             event.preventDefault();
+             $(this).css({ "background-color": "#efefef"});
       });
 
       $('.dropzone').bind('dragenter',function(event) {
@@ -207,11 +214,11 @@ DisplayTabs.prototype.addTab = function(opt){
 
     var navDT = function(name){
 
-        $("." + name + " a").click()
+        $("." + name + " a").click();
 
         $("." + name + " i").on('click',function(){
 
-            var index = tabTabs.findIndex(function(element){return element.name == name}),//tabTabs.indexOf(name),
+            var index = tabTabs.findIndex(function(element){return element.name == name}),
                       nextClassName = (tabTabs.length > 1 && index !== tabTabs.length - 1) ? tabTabs[index +1].name : false,
                       prevClassName = (tabTabs.length > 1 && index !== 0) ? tabTabs[index - 1].name : false ;
 
@@ -252,6 +259,7 @@ DisplayTabs.prototype.addTab = function(opt){
 
 //////////////////////////////////////////////////////////////////////////////////////////// TAB //////////////////////////////////////////////////////////////////////////////////////////////////////
 var Tab = function(opt){
+    var self = this;
     var nArgs = opt ? opt : {};
    
    Core.call(this, nArgs);
@@ -261,21 +269,100 @@ var Tab = function(opt){
     this.name = opt.name;//pdb name
     this.tabList = opt.tabList;//ul
     this.tabClass = "." + name;//tab
-    this.divTabId = "#" + this.name ;
+    //this.divTabId = "#" + this.name ;
     this.tabAdd = opt.tabAdd;//tab addTab
     this.container = opt.container;
-    this.node = $('#' + this.name);
     this.jobs = [];
 
     $(this.tabList).append('<li role="presentation" class="'+ this.name +'"><a href="#' + this.name + '">' + this.name + '</a><i class="glyphicon glyphicon-remove-circle"></i></li>');  
     $(this.container).append('<div class="tab-pane fade container-fluid" id="'+ this.name +'">');
     $(this.tabList + " li").last().insertBefore(this.tabAdd);
+
+    this.node = $('#' + this.name)[0];
+
+    $(this.node).append('<div id="navJobs' + this.name+ '" class="row navJobs"></div>');
+    
+    this.navJobs = $("#navJobs" + this.name)[0];//id liste job
+
+    $(this.navJobs).append('<button class="btn btn-xs navJobAdd" id="addJob' + this.name +'"><span class="glyphicon glyphicon-plus"></span></button>');
+
+    this.btnAddJob = $('#addJob' + this.name)[0];
+
+    $(this.btnAddJob).click(function(){
+        self.addJob();
+    });
+
+    this.addJob();
 }
-    Tab.prototype = Object.create(Core.prototype);
-    Tab.prototype.constructor = Tab;
+
+Tab.prototype = Object.create(Core.prototype);
+Tab.prototype.constructor = Tab;
+
+//#######################################Tab.addJob#########################
+Tab.prototype.addJob = function(){
+    
+    var self = this;
+
+    this.nbJob++;
+    $(this.navJobs).append('<button class="btn btn-sm '+ this.name + this.nbJob +' navJob">Job' + this.nbJob +'&nbsp;<i class="glyphicon glyphicon-remove-circle"></i></button>');
+    $('.' + this.name + this.nbJob).insertBefore($(this.btnAddJob));
+    $(this.node).append('<div class="row divJob" id="'+ this.name + this.nbJob +'"></div>');
+    this.jobs.push(new Job({node: $('#' + this.name + this.nbJob)[0] ,nbJob: this.nbJob,name: this.name + this.nbJob,pdbObj: this.pdbObj}));
+    //console.log(this.jobs[0].workspace);
 
 
+    var navJobs = function(name){//Rules of navigation
 
+        $("." + name).click(function(e){
+            e.preventDefault();
+            $(self.navJobs).find('.navJob').removeClass('navJobActive');
+            $(this).addClass('navJobActive');
+            $(self.node).find('.divJob').removeClass('divJobActive');
+            $(self.node).find('#' + name).addClass('divJobActive');
+        }).click();
+
+
+        $("." + name + " i").on('click',function(){
+
+            var index = self.jobs.findIndex(function(element){return element.name == name}),
+                      nextClassName = (self.jobs.length > 1 && index !== self.jobs.length - 1) ? self.jobs[index +1].name : false,
+                      prevClassName = (self.jobs.length > 1 && index !== 0) ? self.jobs[index - 1].name : false ;
+
+            //console.log(index);
+            if ($("." + name).hasClass('navJobActive')){
+                      if(nextClassName){
+                          $("." + nextClassName).click();
+                      }
+                      else if(prevClassName){
+                          $("." + prevClassName).click();
+                      }
+            }
+
+            self.jobs.splice(index,1);
+            $("." + name).remove();
+            $("#" + name).remove();
+            
+        });
+    }
+    return navJobs(self.name + self.nbJob);
+}
+//#########################################################################
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////// JOB //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var Job = function(opt){
+    this.workspace = opt.node;
+    this.name = opt.name;
+    //var pS = new PdbSummary({fileName : opt.name, pdbObj : opt.pdbObj, root: $(this.workspace)});
+    //pS.display();
+    /*pS.on('submit', send);
+    //Submit
+    var send = function(pdbObj) {
+        socket.emit('ardockPdbSubmit', pdbObj.dump());
+    }*/
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

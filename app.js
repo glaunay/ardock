@@ -72,10 +72,7 @@ socket.on("arDockStart", function(data) {
 
 $(function(){
     //Upload Change
-    var upload = function(input, widget) {
-        
-        var waitLoader = widgets.loader({root: $('.tab-content')});
-        waitLoader.display();
+    var upload = function(input, widget) {     
 
         var file,
               lCount = 0;
@@ -86,8 +83,12 @@ $(function(){
             file = input;
         } 
        
+       if(file[0]){
+            var waitLoader = widgets.loader({root: $('.tab-content')});
+            waitLoader.display();
+        }
 
-        for(i=0; i < file.length; i++){
+        for(i=0; i < file.length; i++){//Gestion de plusieurs fichiers
 
             (function(f,F){
                
@@ -109,12 +110,14 @@ $(function(){
 
                                     var navDT = displayTabs.addTab({fileName : f.name, pdbObj : pdbObjInp});
                             
-                                    var pS = widgets.pdbSummary({fileName : f.name, pdbObj : pdbObjInp, root: $('#' + navDT.name)});
+                                    /*var pS = widgets.pdbSummary({fileName : f.name, pdbObj : pdbObjInp, root: $('#' + navDT.name)});
                                     pS.display();
-                                    pS.on('submit', send);
+                                    pS.on('submit', send);*/
                          });
                 });
+               
                 reader.readAsText(f);
+
             })(file[i],file.length);
         }  
     };
@@ -135,11 +138,6 @@ $(function(){
         socket.emit('ardockPdbSubmit', pdbObj.dump());
     }
 
-
-//##########################################################DRAG DROP############################
-
-     
-//#####################################################################################################
     });
 
 
