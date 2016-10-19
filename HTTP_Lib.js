@@ -1,7 +1,12 @@
 var express = require('express');
+var favicon = require('serve-favicon');
+
 var app = express();
+app.use(favicon(__dirname + '/favicon.ico'));
+
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+
 //var socket = require('socket.io-client')('http://localhost');
 
 
@@ -53,6 +58,7 @@ var httpStart = function(bean, bIo, bTest, bRest) {
 
     app.use(timeout('120s'));
     app.use(haltOnTimedout);
+    
 
 
 

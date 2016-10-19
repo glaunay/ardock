@@ -2,17 +2,30 @@ window.$ = window.jQuery = require('jquery')
 var Backbone = require('backbone');
 Backbone.$ = $;
 
+//var NGL
+var NGLVIEW = null;// = require('nglview-js');
+var NGLAA = require('nglview-js');
 
 var events = require('events');
+
+//var THREE = require('three');
+
+
+///////////////////////////////////////////////////////////////////////////////////////// GLOBAL //////////////////////////////////////////////////////////////
 var W_counts = 0;
 var tabTabs =[];
+var jobsOperations = null;
+
+var socketApp = null;
+
+
 /*
     Definition of the front-end widgets
 
 */
 
 
-////////////////////////////////////////////////////////////////////////////////////////// CORE /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////// CORE ///////////////////////////////////////////////////////////////
 // Base Class provides emiter interface
 var Core = function (opt) {
 
@@ -75,7 +88,7 @@ var Header = function(opt){
                                     + '<img src="assets/logo.png" class="col-xs-4" />'
                                     +'<p class="col-xs-8">Probe your Prot</p>'
                                 + '</div>'
-                                +'<hr>'
+                                //+'<hr>'
                         +'</header>');
    
     this.display();
@@ -165,6 +178,11 @@ var DisplayTabs = function(opt){
 
     var nArgs = opt ? opt : {};
    Core.call(this, nArgs);
+
+   NGLVIEW = opt.ngl;
+   jobsOperations = opt.jobsOP;
+
+   socketApp = opt.skt;
     
     //this.pdbObj = opt.pdbObj;
 
@@ -188,7 +206,7 @@ DisplayTabs.prototype.constructor = DisplayTabs;
 DisplayTabs.prototype.addTab = function(opt){ 
     
     var name =  opt.fileName.replace(/(?:\.([^.]+))?$/i,""),
-          alreadyExist = false;
+        alreadyExist = false;
 
     tabTabs.forEach(function(el){
         if(name === el.name){
@@ -199,18 +217,8 @@ DisplayTabs.prototype.addTab = function(opt){
     });
 
     if(alreadyExist){return false};
-//////////////
-/*
-    var nTab = new Tab({name: name, pdbObj: opt.pdbObj});
 
-    tabTabs.push(name);
-
-    $('#tabs').append('<li role="presentation" class="'+ name +'"><a href="#' + name + '">' + name + '</a><i class="glyphicon glyphicon-remove-circle"></i></li>');  
-    $('.tab-content').append('<div class="tab-pane fade container-fluid" id="'+ name +'">');
-    $("#tabs li").last().insertBefore('#addFile');
- */
- /////////////////
-    tabTabs.push(new Tab({name:name,pdbObj: opt.pdbObj,tabList: '#tabs',tabAdd:'#addFile',container: '.tab-content'}));
+    tabTabs.push(new Tab({name:name,pdbObj: opt.pdbObj,tabList: '#tabs',tabAdd:'#addFile',container: '.tab-content', pdbText : opt.pdbText}));
 
     var navDT = function(name){
 
@@ -222,7 +230,7 @@ DisplayTabs.prototype.addTab = function(opt){
                       nextClassName = (tabTabs.length > 1 && index !== tabTabs.length - 1) ? tabTabs[index +1].name : false,
                       prevClassName = (tabTabs.length > 1 && index !== 0) ? tabTabs[index - 1].name : false ;
 
-            console.log(index);
+            //console.log(index);
 
             if ($("." + name).hasClass('active')){
                       if(nextClassName){
@@ -265,6 +273,7 @@ var Tab = function(opt){
    Core.call(this, nArgs);
     
     this.pdbObj = opt.pdbObj;
+    this.pdbText = opt.pdbText;
     this.nbJob = 0;//number of job 
     this.name = opt.name;//pdb name
     this.tabList = opt.tabList;//ul
@@ -274,25 +283,32 @@ var Tab = function(opt){
     this.container = opt.container;
     this.jobs = [];
 
-    $(this.tabList).append('<li role="presentation" class="'+ this.name +'"><a href="#' + this.name + '">' + this.name + '</a><i class="glyphicon glyphicon-remove-circle"></i></li>');  
-    $(this.container).append('<div class="tab-pane fade container-fluid" id="'+ this.name +'">');
-    $(this.tabList + " li").last().insertBefore(this.tabAdd);
+    //console.log("PDBTEXT" + nArgs.pdbText);
 
-    this.node = $('#' + this.name)[0];
+    var initTab = function(){
+    	$(self.tabList).append('<li role="presentation" class="'+ self.name +'"><a href="#' + self.name + '">' + self.name + '</a><i class="glyphicon glyphicon-remove-circle"></i></li>');  
+	    $(self.container).append('<div class="tab-pane fade container-fluid" id="'+ self.name +'">');
+	    $(self.tabList + " li").last().insertBefore(self.tabAdd);
 
-    $(this.node).append('<div id="navJobs' + this.name+ '" class="row navJobs"></div>');
-    
-    this.navJobs = $("#navJobs" + this.name)[0];//id liste job
+	    self.node = $('#' + self.name)[0];
 
-    $(this.navJobs).append('<button class="btn btn-xs navJobAdd" id="addJob' + this.name +'"><span class="glyphicon glyphicon-plus"></span></button>');
+	    $(self.node).append('<div id="navJobs' + self.name+ '" class="row navJobs"></div>');
+	    
+	    self.navJobs = $("#navJobs" + self.name)[0];//id liste job
 
-    this.btnAddJob = $('#addJob' + this.name)[0];
+	    $(self.navJobs).append('<button class="btn btn-xs navJobAdd" id="addJob' + self.name +'"><span class="glyphicon glyphicon-plus"></span></button>');
 
-    $(this.btnAddJob).click(function(){
-        self.addJob();
+	    self.btnAddJob = $('#addJob' + self.name)[0];
+
+	    $(self.btnAddJob).click(function(){
+	        self.addJob();
+	    });
+    };
+
+    $.when(initTab()).done(function(){
+    	self.addJob();
     });
 
-    this.addJob();
 }
 
 Tab.prototype = Object.create(Core.prototype);
@@ -307,7 +323,7 @@ Tab.prototype.addJob = function(){
     $(this.navJobs).append('<button class="btn btn-sm '+ this.name + this.nbJob +' navJob">Job' + this.nbJob +'&nbsp;<i class="glyphicon glyphicon-remove-circle"></i></button>');
     $('.' + this.name + this.nbJob).insertBefore($(this.btnAddJob));
     $(this.node).append('<div class="row divJob" id="'+ this.name + this.nbJob +'"></div>');
-    this.jobs.push(new Job({node: $('#' + this.name + this.nbJob)[0] ,nbJob: this.nbJob,name: this.name + this.nbJob,pdbObj: this.pdbObj}));
+    this.jobs.push(new Job({node: $('#' + this.name + this.nbJob)[0] ,nbJob: this.nbJob,name: this.name + this.nbJob,pdbObj: this.pdbObj, pdbText : this.pdbText}));
     //console.log(this.jobs[0].workspace);
 
 
@@ -328,7 +344,7 @@ Tab.prototype.addJob = function(){
                       nextClassName = (self.jobs.length > 1 && index !== self.jobs.length - 1) ? self.jobs[index +1].name : false,
                       prevClassName = (self.jobs.length > 1 && index !== 0) ? self.jobs[index - 1].name : false ;
 
-            //console.log(index);
+            
             if ($("." + name).hasClass('navJobActive')){
                       if(nextClassName){
                           $("." + nextClassName).click();
@@ -353,45 +369,124 @@ Tab.prototype.addJob = function(){
 //////////////////////////////////////////////////////////////////////////////////////////// JOB //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 var Job = function(opt){
+    var self = this;
+    
     this.workspace = opt.node;
     this.name = opt.name;
-    //var pS = new PdbSummary({fileName : opt.name, pdbObj : opt.pdbObj, root: $(this.workspace)});
-    //pS.display();
-    /*pS.on('submit', send);
-    //Submit
-    var send = function(pdbObj) {
-        socket.emit('ardockPdbSubmit', pdbObj.dump());
-    }*/
+    
+    var container = document.createElement('div');
+    document.body.appendChild(container);
+    container.setAttribute("id", "jobContainer" + opt.name);
+    $(container).hide();
+    
+
+    //##################################### Launch Jobs ############################################
+    this.listWidgets = {pC: null, pS: null, pThreeD: null};
+    
+    var initJobs = function(){
+        //-->PanelControls
+        self.listWidgets["pC"] = new PanelControls({root: container});//$(this.workspace)[0];
+        
+        //-->PdbSummary
+        var pS = new PdbSummary({fileName : opt.name, pdbObj : opt.pdbObj, root: container});//$(this.workspace)[0]
+        pS.display();
+        
+        var send = function(pdbObj){//Emit after click Submit
+            //socketApp.emit('ardockPdbSubmit', {data : pdbObj.dump(), uuid: "string"});
+            socketApp.emit('ardockPdbSubmit', pdbObj.dump());
+        };
+
+        pS.on('submit', send);
+        
+    
+        //-->PdbTheeD
+        self.listWidgets["pThreeD"] = new PdbThreeD({name: self.name, pdbObj: opt.pdbObj, pdbText : opt.pdbText, root: container});//$(this.workspace)[0]
+        
+        
+        
+    };
+    
+    $.when(initJobs()).done(function(){
+        
+        $(container).appendTo($(self.workspace)[0]).show();
+        
+        self.listWidgets["pThreeD"].cC();
+        
+    });
+    
+    //##############################################################################################
+    
+
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////// PANEL CONTROLS /////////////////////////////////////////////////////////////////////////////////
+// 
+
+var PanelControls = function(opt) {
+    var nArgs = opt ? opt : {};
+    Core.call(this,nArgs);
+    
+    var self = this;
+    
+    this.panel = null;
+    
+    //DOM 
+    var initPanelControls = function() {
+        //panel
+        var panel = document.createElement('div');
+        self.panel = panel;
+        self.panel.setAttribute("id", "panelControls" + self.idNum);
+        self.panel.style.height = (window.innerHeight - 230) + "px";
+        self.panel.style.width = "180px";
+        self.panel.className += "panelControls";
+        
+    }
+    
+    $.when(initPanelControls()).done(function(){
+        $(self.panel).appendTo(opt.root);
+    });
+    
+}
+
+PanelControls.prototype = Object.create(Core.prototype);
+PanelControls.prototype.constructor = PanelControls;
 
 //////////////////////////////////////////////////////////////////////////////////////////// PDB SUMMARY /////////////////////////////////////////////////////////////////////////////////
 // Display a summary of a loaded pdb file
 var PdbSummary = function(opt) {
     var nArgs = opt ? opt : {};
     Core.call(this, nArgs);
-    
-    var scaffold = '<div draggable="true" class="widget pdbSummary" id="w_' + this.idNum + '">';
+
+    var self = this;
     
     this.pdbObj = opt.pdbObj;
     
     var chains = this.pdbObj.model(1).listChainID();
     
     console.log("-->" + chains);
+
+
+
+    var scaffold = '<div class="widget pdbSummary" id="w_' + this.idNum + '">';//draggable="true" 
     
     if (chains.length > 0) {
-        scaffold += '<div class="btn-group" data-toggle="buttons">';
+        scaffold += '<div class="panelChains">';//btn-group data-toggle="buttons"
 
-        chains.forEach(function(e) {
-            scaffold += '<label class="btn btn-primary active">'
-            + '<input type="checkbox" name="chainBox" id="' + e + '" autocomplete="off" checked>' + e + '</label>'
+        chains.forEach(function(e,i) {
+            scaffold += '<input type="checkbox" class="" name="chainBox" id="' + e + "-" + self.idNum + '" autocomplete="off" checked>' //active btn 
+                        + '<label class="checkChains" for="' + e + "-" + self.idNum + '"><div><span>' + e + '</span></div><div class="overlay"></div></label>'; //btn-primary btn btn-default
+            if(chains.length > 1 && i < chains.length -1){
+                scaffold += '<div class="chainSeparator"><div><span></span></div></div>';
+            }
         });
-        
+           
         scaffold += '</div>';
     }
     
-    scaffold += '<div class="btn btn-primary btn-lg btn-danger"> SUBMIT>></div></div>'
+    scaffold += '<div class="submitChains"><span>PROBE</span><div class="overlay"></div></div></div>' //btn-primary btn-danger btn btn-lg btn-default btn 
     this.scaffold (scaffold);
 }
 
@@ -403,20 +498,137 @@ PdbSummary.prototype.display = function(event, callback) {
 
     Core.prototype.display.call(this);
     var self = this;
-
-    $(this.node).find("div.btn-danger").on('click', function() {
-        var chains = [];
-
-        $(self.node).find('input[name=chainBox]:checked').each(function(e){
-            chains.push($(this).attr('id'));
-        });
-
-        var pdbObj = self.pdbObj.model(1).chain(chains).pull();
-
-        self.emiter.emit('submit', pdbObj);
+    
+    //Hover a chain
+    $(this.node).find(".checkChains").each(function(e){
+        $(this).find(".overlay")
+            .hover(function(e){
+                $(this).css("backgroundColor", "rgba(0,0,0,0.1)");
+            })
+            .mouseout(function(e){
+                $(this).css("backgroundColor", "");
+            })
+            .click(function(e){
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if($("#" + $(this).parent(".checkChains").attr("for")).prop("checked")){
+                    $("#" + $(this).parent(".checkChains").attr("for")).prop("checked", false);
+                }else{
+                    $("#" + $(this).parent(".checkChains").attr("for")).prop("checked", true);                
+                }
+            })
+        ;
     });
+
+    //Click Submit
+    $(this.node).find(".submitChains")
+            .find(".overlay")
+                .click(function() {
+                    var chains = [];
+
+                    $(self.node).find('input[name=chainBox]:checked').each(function(e){
+                        //chains.push($(this).attr('id'));
+                        chains.push((($(this).attr('id')).split("-"))[0]);
+                    });
+        
+                    console.log(chains);
+
+                    if(chains.length){
+                        var pdbObj = self.pdbObj.model(1).chain(chains).pull();
+                        self.emiter.emit('submit', pdbObj);
+                    }else{
+                        alert("Neither chain selected !");
+                    }
+
+                    })
+                    .hover(function(e){
+                            $(this).css("backgroundColor", "rgba(0,0,0,0.1)");
+                    })
+                    .mouseout(function(e){
+                            $(this).css("backgroundColor", "");
+                    })
+    ;
+    
+    
 };
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////// PDB ThreeD /////////////////////////////////////////////////////////////////////////////////////////////
+var PdbThreeD = function(opt){
+
+    var nArgs = opt ? opt : {};
+
+    Core.call(this, nArgs);
+
+    var self = this;
+
+    this.stage = null;
+    this.canvas = null;
+    this.stageViewer = null;
+    this.storeDiv = null;
+    
+    console.log("OPTNAME : " + opt.name);
+
+    this.divID = "threeD" + opt.name;
+    this.pdbObj = opt.pdbObj;
+    this.pdbText = opt.pdbText;
+    
+    var header = document.getElementById("header");
+
+    var createStoreDiv = function(){
+        self.storeDiv = document.createElement('div');
+        self.storeDiv.setAttribute("id", "storeDiv" + self.divID);
+        self.storeDiv.style.height = (window.innerHeight - 230) + "px";
+        self.storeDiv.style.width = (header.getBoundingClientRect().width - 210) + "px";
+        self.storeDiv.className += "storeDivThreeD";
+        
+        document.body.appendChild(self.storeDiv);
+        
+        return {id: $(self.storeDiv).get(0).id, storeD: $(self.storeDiv)[0]} ;
+    };
+    
+    var createCanvas = function(args){
+        self.stage = new NGLAA.NGL.Stage(args.id.valueOf());
+        self.stage.setParameters({'backgroundColor': 'black'})
+        //var stringBlob = new Blob( [ self.pdbText ], { type: 'text/plain'} );
+        var stringBlob = new Blob( [ self.pdbObj.dump() ], { type: 'text/plain'} );
+        //console.log(self.pdbObj.model(1).chain('C','D').dump());
+        self.stage.loadFile(stringBlob,{ext : "pdb", defaultRepresentation:true, asTrajectory: true})
+        .then(function(o){
+            //var component = stage.compList[0];
+            //component.addRepresentation("cartoon", {'sele' : 'protein'});
+            //component.addRepresentation("licorice", {'sele': 'not hydrogen and not protein'});
+            o.centerView();
+            self.stageViewer = o;
+        });
+        
+        $(args.storeD).appendTo($(opt.root));
+        
+        self.canvas = $(self.storeDiv).find('canvas');
+        console.log(self.stage);
+    }
+
+    $.when(createStoreDiv()).done(function(args){
+        createCanvas(args);
+    });
+    
+    var changeCanvas = function(){
+        $(self.storeDiv).detach();
+        setTimeout(function(){
+            console.log("DETACH");
+            $(self.canvas).width(header.getBoundingClientRect().width - 210);
+            $(self.storeDiv).appendTo($(opt.root));
+            self.stageViewer.centerView;
+        },100);
+    };
+
+    return {cC: changeCanvas};
+
+};
+
+PdbThreeD.prototype = Object.create(Core.prototype);
+PdbThreeD.prototype.constructor = PdbThreeD;
 
 ////////////////////////////////////////////////////////////////////////////////// MODULES EXPORT /////////////////////////////////////////////////////////////////////////////////////////
 module.exports = {

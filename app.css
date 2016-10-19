@@ -1,7 +1,7 @@
 @import url("node_modules/bootstrap/dist/css/bootstrap.min.css");
 
 body {
-    background-color: white;
+    background-color: dimgray;
 }
 
 #tabs {
@@ -9,16 +9,138 @@ body {
 }
 #divAddFile{
 	position: relative;
+    color: black;
 }
+
+#divAddFile a{
+    color: black;
+}
+
 .header{
-	margin-bottom: 10px;
+	margin-bottom: 30px;
 	height: 86px;
 	background-color: white;
 	position: relative;
 }
 .pdbSummary{
-	border: 1px solid black;
+    color: black;
+	background-color: transparent;
+    position: absolute;
+    top: 35px;
+    left: 5px;
 }
+
+.panelChains input[type="checkbox"]{
+    position: absolute;
+    left: -9999px;
+}
+
+.panelChains label:hover{
+    background-color: dimgray;
+}
+
+.checkChains {
+    position: relative;
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    background-color: white;
+}
+
+.checkChains .overlay{
+    border-radius: 50%;
+}
+
+.checkChains div{
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+.checkChains div span{
+}
+
+.panelChains input[type="checkbox"]:checked + label{
+    background-color: white;
+}
+.panelChains input[type="checkbox"]:not(:checked) + label{
+    background-color: dimgrey;
+}
+
+.submitChains{
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    justify-content: center;
+    width: auto;
+    height: 35px;
+    border-radius: 10px;
+    background-color: white;
+}
+
+.submitChains .overlay{
+    border-radius: 10px;
+}
+
+.submitChains span{
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.chainSeparator{
+    display: inline-block;
+    position: relative;
+    margin: 0;
+    padding: 0;
+    width: 5px;
+    height: 30px;
+    border-radius: 50%;
+}
+
+.chainSeparator div{
+}
+.chainSeparator span{
+    display: inline-block;
+    vertical-align: middle;
+    width: 5px;
+    height: 3px;
+    background-color: white;
+}
+
+.overlay {
+	position: absolute;
+    top: 0; bottom: 0; left: 0; right: 0;
+}
+
+
+
+.panelControls{
+    display: inline-block;
+    background-color: dimgray;
+    border-left: 1px solid #909090;
+    border-bottom: 1px solid #909090;
+    border-radius: 0px 0px 0px 5px;
+}
+
+.pdbThreeD{
+    display: inline-block;
+}
+
+canvas{
+    border-radius: 5px 0px 0px 5px;
+}
+
+.storeDivThreeD{
+    display: inline-block;
+    padding: 0;
+    margin: 0;
+    width: auto;
+}
+
 .header p{
 	color: maroon;
 	font-size: 30px;
@@ -49,11 +171,12 @@ body {
 }
 .tab-content{
 	position: relative;
+    width: 100%
 }
 .loader {
 	position : absolute;
 	z-index: 9999;
-	background : url('assets/icon-loader.gif') 50% 50% no-repeat;
+	background : url('assets/ripple.svg') 50% 50% no-repeat;
 	top : 0px;
 	left : 0px;
 	height : 100%;
@@ -116,4 +239,15 @@ body {
 }
 .divJobActive{
 	display: block;
+}
+
+
+
+.Panel {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+
+    -o-user-select: none;
+    user-select: none;
 }

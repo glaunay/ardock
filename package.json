@@ -15,7 +15,8 @@
     "jsdom": "^8.0.2",
     "jsonfile": "^2.2.3",
     "mkdirp": "^0.5.1",
-    "node-uuid" : "^1.4.7",
+    "nglview-js": "^0.5.3-dev.0",
+    "node-uuid": "^1.4.7",
     "nslurm": "0.0.0",
     "pdb-lib": "^2.0.0",
     "random-js": "^1.0.8",
@@ -30,7 +31,9 @@
     "jquery": "^2.2.0"
   },
   "scripts": {
-    "test": "node index.js --conf scripts/package.json --test --http"
+    "test": "node index.js --conf scripts/package.json --test --http",
+    "start": "node index.js --conf ./scripts/package.json --http --slurm --rest -p 3",
+    "bundle": "browserify -t browserify-css app.js -o js/bundleTest.js"
   },
   "author": "GL",
   "license": "ISC"
