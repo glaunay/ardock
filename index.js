@@ -99,6 +99,9 @@ var restCallBack = function (ans, data) {
 };
 
 
+//* arDockPdbSubmit has to receive { data : pdbString, uuid:uuid}
+// socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'uuid' : uuid });
+
 var ioPdbSubmissionCallback = function (data, socket){
 
 
