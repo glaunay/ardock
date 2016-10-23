@@ -6,9 +6,6 @@ var io = require('socket.io-client/socket.io.js');
 //var socket = io.connect('http://ardock.ibcp.fr');
 var socket = io.connect('http://92.222.65.71:3000');
 
-var NGLA = require('nglview-js');
-
-
 //var ss = require('socket.io-stream');
 
 
@@ -164,8 +161,6 @@ $(function () {
 
     //Tabs Display//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     var displayTabs = widgets.displayTabs({
-        ngl: NGLA,
-        jobsOP: jobsOperations,
         skt: socket
     });
     displayTabs.display();
