@@ -138,7 +138,9 @@ var ioActivate = function (fn1) {
         socket.on('ardock openStream', function (data) {
             console.log(data);
         });
-        socket.on('ardockPdbSubmit', function (data) {
+        socket.on('ardockPdbSubmit', function (packet) {
+            var uuid = packet.uuid;
+            var data = packet.data;
             console.log('received ardockPdbSubmit event');
             var s = stream.Readable();
             s.push(data, 'utf-8');
