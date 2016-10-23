@@ -1,4 +1,5 @@
-node_modules
+/js/bundleTest.js
+/node_modules
 /Widgets
 /tmp
 jsonObjectPdb.json
