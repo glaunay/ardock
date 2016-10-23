@@ -71521,6 +71521,10 @@ WidgetsUtils = {
                 var structure = stage.compList[0].structure;
                 var residueProxy = pd.atom.residue;
                 
+                //var colorMaker = NGLVIEW.NGL.colorMaker({residueindex: residueIndex, color:255}, structure);
+                
+                console.log(NGLVIEW.NGL);
+                
                 //console.log("ResProx : ");
                 console.log("RESIDUE INDEX : ")
                 console.log(residueIndex);
