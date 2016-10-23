@@ -111,6 +111,7 @@ var ioPdbSubmissionCallback = function (data, socket){
             console.log("Routing to ardock a " + pdbObj.selecSize() + " atoms structure");
             PDB_Lib.arDock(HPC_Lib.jobManager(), {'pdbObj' : pdbObj})
             .on('go', function(taskID, total) {
+                console.log("SOCKET : " + socket);
                 socket.emit("arDockStart", { id : taskID, total : total });
             }) // test is actually useless arDock emitter is created at every call
             .on('jobCompletion', function(res, job, cnt) {

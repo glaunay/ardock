@@ -6,9 +6,9 @@
         "rootDir" : "/data/www_dev/ardock/lib"
         },
     "scriptVariables" : {
-        "TEST_DIR" : "/home/server/Documents/partages/Ardock/ardock/scripts/test",
-        "DATA_DIR" : "/home/server/Documents/partages/Ardock/ardock/scripts/data",
-        "BIN_DIR" : "/home/server/Documents/partages/Ardock/ardock/scripts/bin",
+        "TEST_DIR" : "/data/www_dev/ardock/scripts/test",
+        "DATA_DIR" : "/data/www_dev/ardock/scripts/data",
+        "BIN_DIR" : "/data/www_dev/ardock/scripts/bin",
         "probeList" : ["2.10.270",
                         "2.30.18",
                         "2.30.170",
@@ -36,10 +36,10 @@
                         "3.90.1070"]
     },
     "managerSettings" : {
-        "cacheDir" : "/home/server/Documents/partages/Ardock/tmp",
+        "cacheDir" : "/data/www_dev/ardock/tmp",
         "tcp" : "127.0.0.1",
         "port" : "2222",
-        "slurmBinaries" : "/data/www_dev/ardock/bin/slurm/bin"
+        "slurmBinaries" : "/data/www_dev/ardock/scripts/bin"
     }
 }
 
