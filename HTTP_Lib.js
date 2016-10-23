@@ -58,7 +58,7 @@ var httpStart = function(bean, bIo, bTest, bRest) {
 
     app.use(timeout('120s'));
     app.use(haltOnTimedout);
-    
+
 
 
 

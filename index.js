@@ -116,7 +116,8 @@ var ioPdbSubmissionCallback = function (data, socket){
             }) // test is actually useless arDock emitter is created at every call
             .on('jobCompletion', function(res, job, cnt) {
                 PDB_Lib.bFactorUpdate(pdbObj, res);
-                socket.emit("arDockChunck", { obj : pdbObj.model(1).dump(), left : cnt });
+                //socket.emit("arDockChunck", { obj : pdbObj.model(1).dump(), left : cnt });
+                socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'uuid' : uuid });
             });
     });
 };
