@@ -1,7 +1,12 @@
 @import url("node_modules/bootstrap/dist/css/bootstrap.min.css");
 
+html{
+    height: 100%
+}
+
 body {
     background-color: dimgray;
+    height: 100%;
 }
 
 #tabs {
@@ -23,11 +28,18 @@ body {
 	position: relative;
 }
 .pdbSummary{
+    position: absolute;
+    top: 10px;
+    left: 5px;
+    display: inline-block;
     color: black;
 	background-color: transparent;
-    position: absolute;
-    top: 35px;
-    left: 5px;
+    z-index: 7;
+}
+.panelChains{
+    display: block;
+    position: relative;
+    z-index: 8;
 }
 
 .panelChains input[type="checkbox"]{
@@ -39,86 +51,171 @@ body {
     background-color: dimgray;
 }
 
-.checkChains {
+.panelChains .submitChains:hover{
+    background-color: dimgray;
+}
+
+.checkChainsContainer{
+    display: block;
     position: relative;
-    display: inline-block;
+    width: 100%;
+    height: 30px;
+    
+}
+
+.checkChains{
+    position: absolute;
+    top: 0px;
+    left: 10px;
     width: 30px;
     height: 30px;
     margin: 0;
-    padding: 0;
+    /*padding: 0;*/
+    padding-top: 5.5px;
     border-radius: 50%;
+    text-align: center;
     background-color: white;
+    z-index: 10;
+}
+
+.checkChainsContainer div.border{
+    position: absolute;
+    top: -3px;
+    left: 7px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: black;
+    z-index: 8;
+}
+
+.checkChains span{
+    margin-top: 7px;
 }
 
 .checkChains .overlay{
     border-radius: 50%;
+    z-index: 12;
 }
 
-.checkChains div{
-    display: flex;
+/*.checkChains div{
+    display: block;
+    position: relative
     height: 100%;
+    width: 30px;
+    border-radius: 50%;
     align-items: center;
     justify-content: center;
-}
-.checkChains div span{
-}
+}*/
 
-.panelChains input[type="checkbox"]:checked + label{
+input[type="checkbox"]:checked + label{
     background-color: white;
 }
-.panelChains input[type="checkbox"]:not(:checked) + label{
+input[type="checkbox"]:not(:checked) +  label{
     background-color: dimgrey;
 }
 
-.submitChains{
+.submitChainsContainer{
+    display: block;
     position: relative;
-    display: flex;
-    align-items: center;
-    padding: 5px;
-    justify-content: center;
-    width: auto;
-    height: 35px;
-    border-radius: 10px;
+    text-align: center;
+    width: 50px;
+    height: 50px;
+    
+}
+.submitChains{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    padding-top: 15px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    color: black;
     background-color: white;
+    z-index: 10;
+}
+
+.submitChainsContainer > .border{
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: black;
+    z-index: 8;
 }
 
 .submitChains .overlay{
-    border-radius: 10px;
+    border-radius: 50%;
+    z-index: 12;
 }
 
 .submitChains span{
     display: inline-block;
-    vertical-align: middle;
+    font-weight: bold;
+    /*vertical-align: middle;*/
 }
 
 .chainSeparator{
-    display: inline-block;
+    display: block;
     position: relative;
     margin: 0;
     padding: 0;
-    width: 5px;
-    height: 30px;
-    border-radius: 50%;
+    width: 100%;
+    height: 5px;
+    z-index: 9;
+    /*border-radius: 50%;*/
 }
 
-.chainSeparator div{
+.chainSeparator div.border{
+    position: absolute;
+    left: 19px;
+    top: 0;
+    width: 12px;
+    height: 5px;
+    margin: 0;
+    padding: 0;
+    background-color: black;
+    z-index: 10;
 }
+
 .chainSeparator span{
-    display: inline-block;
-    vertical-align: middle;
+    position: absolute;
+    left: 22px;
+    top: -2px;
+    bottom: -2px;
+    height: 10px;
     width: 5px;
-    height: 3px;
+    margin: 0;
+    padding: 0;
     background-color: white;
+    z-index: 10;
+}
+
+.joinChain{
+    position: absolute;
+    left: 12px;
+    bottom: -2px;
+    height: 4px;
+    width: 5px;
+    margin: 0;
+    padding: 0;
+    background-color: white;
+    z-index: 10;
 }
 
 .overlay {
 	position: absolute;
     top: 0; bottom: 0; left: 0; right: 0;
+    z-index: 12;
 }
 
 
 
 .panelControls{
+    position: relative;
     display: inline-block;
     background-color: dimgray;
     border-left: 1px solid #909090;
@@ -136,6 +233,8 @@ canvas{
 
 .storeDivThreeD{
     display: inline-block;
+    position: absolute;
+    left: 180px;
     padding: 0;
     margin: 0;
     width: auto;
@@ -161,19 +260,40 @@ canvas{
 	cursor: auto;
 }
 .dropzone{
-	height:400px;
+	/*height:400px;*/
 	width:100%;
-	padding-top: 180px;
+	/*padding-top: 180px;*/
 	padding-bottom: 5px;
 	background:#efefef;
 	border:2px dashed #3f3f3f;
 	text-align:center;
 	font-style:italic;
 }
+
 .tab-content{
 	position: relative;
-    width: 100%
+    /*width: 100%;
+    height:100%;*/
 }
+.tab-pane{
+    position: relative;
+    /*width: 100%;
+    height: 100%;*/
+}
+
+.nav-tabs li a{
+    color: white;
+}
+
+.nav-tabs li a:hover{
+    color: black;
+    /*background-color: rgba(0,0,0,0.1);*/
+}
+
+/*.nav-tabs li{
+    color: white;
+}*/
+
 .loader {
 	position : absolute;
 	z-index: 9999;
@@ -236,12 +356,28 @@ canvas{
 }
 
 .divJob{
-	display: none;
+	/*display: none;*/
+    position:absolute;
+    left: 15px;
+    right: 15px;
+    top: 32px;
+    visibility:hidden;
 }
 .divJobActive{
-	display: block;
+    /*display: block;*/
+    position:absolute;
+    left: 15px;
+    right: 15px;
+    top: 32px;
+    visibility: visible;
 }
 
+.disable-select {
+  -webkit-user-select: none;  
+  -moz-user-select: none;    
+  -ms-user-select: none;      
+  user-select: none;
+}
 
 
 .Panel {

@@ -35,7 +35,7 @@ var restCallBack = function (ans, data){
     //console.log(data);
 };
 
-var ioPdbSubmissionRoute = function (data, socket) {
+var ioPdbSubmissionRoute = function (data, uuid, socket) {
     console.log('Test ioPdbSubmissionRoute');
     return;
     var str = '';
@@ -145,7 +145,7 @@ var ioActivate = function (fn1) {
             var s = stream.Readable();
             s.push(data, 'utf-8');
             s.push(null);
-            ioPdbSubmissionRoute(s, socket);
+            ioPdbSubmissionRoute(s, uuid, socket);
         });
     });
 }

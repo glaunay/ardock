@@ -24,7 +24,7 @@ var bootstrap = require('bootstrap');
 
 
 ////////////////////////////////////////////////////////////////// GLOBAL ///////////////////////////////////////////////////////////////////////////////////
-var jobsOperations = {};
+var widgetsUtils = null;
 
 
 //////////////////////////////////////////////////////////////////  SEVER REQUEST ///////////////////////////////////////////////////////////////////////////
@@ -52,6 +52,7 @@ socket.on('ioPdbSubmissionTest', function (str) {
 socket.on('arDockChunck', function (data) {
     //console.log(str);
     //console.log(data.id);
+    
     var s = stream.Readable();
     s.push(data.obj, 'utf-8');
     s.push(null);
@@ -59,8 +60,10 @@ socket.on('arDockChunck', function (data) {
             'rStream': s
         })
         .on('end', function (pdbObjInp) {
-            console.log('this is ardock  chunk ' + pdbObjInp.model(1).selecSize());
-            console.log(pdbObjInp.model(1).dump());
+            //console.log('this is ardock  chunk ' + pdbObjInp.model(1).selecSize());
+            //console.log(pdbObjInp.model(1).dump());
+            
+            widgetsUtils.jobOperations.onArdockChunck({pdbObj: pdbObjInp, uuid: data.uuid});
         });
     //socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'uuid' : uuid });
     
@@ -83,6 +86,8 @@ $(function () {
     var upload = function (input, widget) {
 
         //return new Promise(function(resolve, reject){
+        console.log("CHANGE !!!!");
+        console.log(input);
 
         var file,
             lCount = 0;
@@ -133,7 +138,7 @@ $(function () {
                                 if (lCount === (F - 1)) {
                                     waitLoader.destroy();
                                     for (i = 0; i < tabInfoFiles.length; i++) {
-                                        console.log("OPT OBJECT : ");
+                                        //console.log("OPT OBJECT : ");
                                         var navDT = displayTabs.addTab(tabInfoFiles[i]);
                                     }
                                 } else {
@@ -155,15 +160,28 @@ $(function () {
 
     //Header Display//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     var header = widgets.header();
-    $("#header").on('resize', function(e){
-       console.log("HEADER CHANGE !");
-    });
 
     //Tabs Display//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     var displayTabs = widgets.displayTabs({
         skt: socket
     });
     displayTabs.display();
+    widgetsUtils = displayTabs.widgetsUtils;
+    widgetsUtils.stream = stream;
+    widgetsUtils.pdbLib = pdbLib;
+    widgetsUtils.displayTabs = displayTabs;
+    
+    $( document )
+        .on( "mousemove", function( event ) {
+            widgetsUtils.mousePagePosition.x = event.pageX;
+            widgetsUtils.mousePagePosition.y = event.pageY;
+        //$( "#log" ).text( "pageX: " + event.pageX + ", pageY: " + event.pageY );
+        })
+        .on( "click", function( event ) {
+            $(document.body).find(".magnify").stop(true,true).hide();
+        })
+    ;
+    
 
     //Upload Display
     var uploadBox = widgets.uploadBox({

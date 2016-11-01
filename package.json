@@ -15,6 +15,7 @@
     "jsdom": "^8.0.2",
     "jsonfile": "^2.2.3",
     "mkdirp": "^0.5.1",
+    "ngl": "^0.10.0-dev.3",
     "nglview-js": "^0.5.3-dev.0",
     "node-uuid": "^1.4.7",
     "nslurm": "0.0.0",
