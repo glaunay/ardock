@@ -29,7 +29,7 @@ var widgetsUtils = null;
 
 //////////////////////////////////////////////////////////////////  SEVER REQUEST ///////////////////////////////////////////////////////////////////////////
 socket.on('news', function (data) {
-    console.log(data);
+    //console.log(data);
     socket.emit('my other event', {
         my: 'data'
     });
@@ -50,7 +50,6 @@ socket.on('ioPdbSubmissionTest', function (str) {
     console.log("gotcha!!");
 });
 socket.on('arDockChunck', function (data) {
-    //console.log(str);
     //console.log(data.id);
     
     var s = stream.Readable();
@@ -85,15 +84,9 @@ $(function () {
     //Upload Change
     var upload = function (input, widget) {
 
-        //return new Promise(function(resolve, reject){
-        console.log("CHANGE !!!!");
-        console.log(input);
-
         var file,
             lCount = 0;
         var res;
-
-        tabInfoFiles = new Array(); //empty the tab
 
         if (input.files) { //Si le fichier provient d'un input ou drag&drop
             file = input.files;
@@ -110,7 +103,7 @@ $(function () {
 
         for (i = 0; i < file.length; i++) { //Gestion de plusieurs fichiers
 
-            (function (f, F, t) {
+            (function (f, F) {
 
                 var reader = new FileReader();
 
@@ -133,26 +126,27 @@ $(function () {
                                     pdbObj: pdbObjInp,
                                     pdbText: reader.result
                                 };
-                                tabInfoFiles.push(opt);
+                                
+                                //Slide the header description once
+                                if( displayTabs.nbTabs === 1 && !WidgetsUtils.header.slided ){ header.slide() }
+                                
+                                setTimeout(function(){ var navDT = displayTabs.addTab(opt) }, 1000 * lCount);
 
                                 if (lCount === (F - 1)) {
                                     waitLoader.destroy();
-                                    for (i = 0; i < tabInfoFiles.length; i++) {
-                                        //console.log("OPT OBJECT : ");
-                                        var navDT = displayTabs.addTab(tabInfoFiles[i]);
-                                    }
+
                                 } else {
-                                    lCount++
+                                    lCount++;
                                 }
                             });
                     })
                     .on('loadend', function () {
-
+                        if(waitLoader){ waitLoader.destroy() }
                     });
 
                 reader.readAsText(f);
 
-            })(file[i], file.length, tabInfoFiles);
+            })(file[i], file.length);
         }
 
     };
@@ -166,19 +160,21 @@ $(function () {
         skt: socket
     });
     displayTabs.display();
+    
+    //fill some component to WidgetUtils
     widgetsUtils = displayTabs.widgetsUtils;
     widgetsUtils.stream = stream;
     widgetsUtils.pdbLib = pdbLib;
     widgetsUtils.displayTabs = displayTabs;
+    WidgetsUtils.header = header;
     
     $( document )
         .on( "mousemove", function( event ) {
             widgetsUtils.mousePagePosition.x = event.pageX;
             widgetsUtils.mousePagePosition.y = event.pageY;
-        //$( "#log" ).text( "pageX: " + event.pageX + ", pageY: " + event.pageY );
         })
         .on( "click", function( event ) {
-            $(document.body).find(".magnify").stop(true,true).hide();
+            //$(document.body).find(".magnify").stop(true,true).hide();
         })
     ;
     
@@ -188,6 +184,15 @@ $(function () {
         root: $('#divAddFile')
     });
     uploadBox.on('change', upload);
+    
+    
+    $(document.body).append('<div class="dev-ref">'
+                            +'<span>FrontEnd-Interface: '
+                                +'<a href="mailto:reillesebastien@gmail.com">ceber</a>'
+                                +' <pipe>&nbsp|&nbsp</pipe> Molecular-representation "Lib": '
+                                +'<a target="_blank" href="http://arose.github.io/ngl/api/">arose</a>'
+                            +'</span>'
+                            +'</div>');
 
 });
 
