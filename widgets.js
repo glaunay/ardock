@@ -85,8 +85,8 @@ var Header = function(opt){
                                         +'<a target="_blank" href="http://www.cnrs.fr/"><img src="assets/img/logo-cnrs.png" alt="logo CNRS"class="" /></a>'
                                     +'</div>'
                                     +'<div class="col-xs-6 title-site">'
-                                        +'<p class="title">ARBITRARY DOCKING</p>'
-                                        +'<span class="quote" >"protein-protein docking with arbitrary partners"</span>'
+                                        +'<p class="title disable-select">ARBITRARY DOCKING</p>'
+                                        +'<span class="quote disable-select" >"protein-protein docking with arbitrary partners"</span>'
                                     +'</div>'
                                     +'<div class="col-xs-3 logo logo-uni-lyon">'
                                         +'<a target="_blank" href="http://www.univ-lyon1.fr/"><img alt="logo Université de Lyon 1" class="pull-right" src="assets/img/logo-uni-lyon.png" /></a>'
@@ -143,6 +143,33 @@ Header.prototype.slide = function(){//Slide the description in the header
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+////////////////////////////////////////////////////////////////////////////////////////// FOOTER /////////////////////////////////////////////////////////////////////////////////////////
+var Footer = function(opt){
+    var self = this;
+   
+    var nArgs = opt ? opt : {};
+   
+    Core.call(this, nArgs);
+
+    this.id = "W_" + this.idNum;
+    this.slided = false;
+   
+    this.scaffold('<footer class="widget footer">'
+                    +'<span>FrontEnd-Interface: '
+                        +'<a href="mailto:reillesebastien@gmail.com">ceber</a>'
+                        +' <pipe>&nbsp|&nbsp</pipe> Molecular-representation "Lib": '
+                        +'<a target="_blank" href="http://arose.github.io/ngl/api/">arose</a>'
+                    +'</span>'
+                  +'</footer>');
+    
+    this.display();
+    
+}
+
+Footer.prototype = Object.create(Core.prototype);
+Footer.prototype.constructor = Footer;
+
 ////////////////////////////////////////////////////////////////////////////////////////// UPLOADBOX /////////////////////////////////////////////////////////////////////////////////////////
 // Display an upload box
 var UploadBox = function (opt) {
@@ -165,7 +192,6 @@ var UploadBox = function (opt) {
                                         + '<div class="dropzone-btn-overlay"></div>'
                                     + '</div>'
                                 + '</div>'
-                                //+ '<div class="test-center"></div>'
                                 + '<div class="drop-text">'
                                         + '<img src="assets/img/drop.png" alt="Drag and drop available">'
                                 + '</div>'
@@ -175,10 +201,6 @@ var UploadBox = function (opt) {
                                         + '<div class="dropzone-btn-overlay"></div>'
                                     + '</div>'
                                 +'</div>'
-                                //+ '<div class="btn btn-primary browse">Browse</div>'
-                                //+ '<p>Or DrOp File(s) (.pdb)</p>'//, .fasta
-                                //+ '<div class="btn btn-info test-pdb">Test 4MOW</div>'
-                                //+ '<p class="info" style="color: red"></p>'
                                 + '<input type="file" style="display:none" accept=".pdb" multiple/>'//,.fasta
                             + '</div>'
                         + '</div>'
@@ -227,7 +249,7 @@ var UploadBox = function (opt) {
       });
     
       $(".dropzone").height(WidgetsUtils.getBodyHeight() - (WidgetsUtils.heightUntilNavJob() + WidgetsUtils.heightFooter));
-        //console.log(document.body.getBoundingClientRect().height);
+        
     //###########################################################
     
     
@@ -492,7 +514,6 @@ var Tab = function(opt){
            
            $(window).resize(function(){
                $("#bkJob" + self.name).css({"top": $("#" + self.name).outerHeight(), "height": $("#bkJob" + self.name).parent().find("canvas").height()});//WidgetsUtils.getHeightLeft()
-               console.log(WidgetsUtils.getHeightLeft());
            });
            $(window).trigger("resize");
         }, 2000);
@@ -639,7 +660,7 @@ var Job = function(opt){
     
     var initJobs = function(){
         //-->PanelControls
-        self.listWidgets["pC"] = new PanelControls({root: container, job: self});//$(this.workspace)[0];
+        self.listWidgets["pC"] = new PanelControls({root: container, job: self});
         
         //-->PdbTheeD
         self.listWidgets["pThreeD"] = new PdbThreeD({name: self.name, pdbObj: opt.pdbObj, pdbText : opt.pdbText, root: container, job: self, UUID: self.uuid});
@@ -651,13 +672,6 @@ var Job = function(opt){
         //-->SelectRepresentation
         self.listWidgets['selectRepresentation'] = new SelectRepresentation({root: self.listWidgets["pC"].panel, UUID: self.uuid, pdbObj: self.pdbObj, fileName : opt.name});
         self.listWidgets['selectRepresentation'].display();
-    
-        //Get just one Magnify Object
-        /*if(!($(document.body).find(".magnify").length)){
-            //-->Magnify
-            self.listWidgets["magnify"] = new Magnify({job: self});
-        }*/
-        
         
     };
     
@@ -678,9 +692,9 @@ var Job = function(opt){
                     .width($(".header")[0].getBoundingClientRect().width - (WidgetsUtils.widthPanelControls + WidgetsUtils.marginBodyLeftRight))
                     .height(WidgetsUtils.getHeightLeft() - 10)//-10 because when handle resize canvas take 5px
                 ;
-                //console.log("CANVAS " + $(self.canvas).height());
+                
                 self.stage.handleResize();
-                //console.log("CANVAS AFTER RESIZE" + $(self.canvas).height());
+                
             }, 200);
             
             $(self.canvas)
@@ -1022,6 +1036,7 @@ PdbSummary.prototype.probeStep = function(chains, probeLeft) {
         
         //Find Span submit
         this.$submitText = $(this.node).find(".submitChainsContainer span").first();
+        
         //Fill in array all the elements to fill in color
         this.$progressElements.push($(this.node).find(".submitChainsContainer .overlay"));
         this.$progressElements.push($(this.node).find(".chainSeparator span").first());
@@ -1066,7 +1081,7 @@ PdbSummary.prototype.probeStep = function(chains, probeLeft) {
                             "border-bottom-left-radius": sideUnknown + "px " + a + "px",
                             "border-bottom-right-radius": sideUnknown  + "px " + a + "px",
                         });
-                        //console.log($layProgress.width());
+                        
                     }else{
                         
                         sideKnown = a - ray;
@@ -1080,7 +1095,7 @@ PdbSummary.prototype.probeStep = function(chains, probeLeft) {
                             "border-top-left-radius": ray - sideUnknown + "px " +  sideKnown + "px",
                             "border-top-right-radius": ray - sideUnknown + "px " +  sideKnown + "px",
                         });
-                        //console.log(sideUnknown);
+                        
                     } 
                     
                 }else if($el.is('span')){
@@ -1351,7 +1366,7 @@ var PdbThreeD = function(opt){
             self.stage = componentsNGL.stage;
             self.job.stage = componentsNGL.stage;
    
-            console.log(self.stage);
+            //console.log(self.stage);
             
             self.canvas = componentsNGL.canvas;
             self.job.canvas = componentsNGL.canvas;
@@ -1749,7 +1764,6 @@ WidgetsUtils = {
         WidgetsUtils.magnifyResidueTimeOuts = [];
         
         var height = $('.divJobActive').offset();
-        //console.log(height);
         
         var $magnifyResidue = null;
         var heightNotAvailable = 99;
@@ -1876,7 +1890,6 @@ WidgetsUtils = {
         }
         
         //Fill what the fisrt representation display
-        //var index = WidgetsUtils.tabRepresentationTypeChangeable.indexOf(rType);
         WidgetsUtils.tabRepresentationTypeChangeable.forEach(function(el){ el.base = (el.type === rType) ? true : false });
         
         stage = new NGL.Stage(id.valueOf());
@@ -1927,7 +1940,7 @@ WidgetsUtils = {
                     WidgetsUtils.setNGLClickedFunction(uuid);
                     WidgetsUtils.setNGLHoveredFunction(uuid);
                     
-                    console.log(WidgetsUtils.tabNGLComponents[uuid]);
+                    //console.log(WidgetsUtils.tabNGLComponents[uuid]);
                 });          
             
             }catch(e){
@@ -2519,6 +2532,7 @@ WidgetsUtils = {
 ////////////////////////////////////////////////////////////////////////////////// MODULES EXPORT /////////////////////////////////////////////////////////////////////////////////////////
 module.exports = {
     header : function(opt){ var obj = new Header(opt);return obj; },
+    footer : function(opt){ var obj = new Footer(opt);return obj; },
     loader : function(opt){ var obj = new Loader(opt);return obj; },
     pdbSummary : function(opt){ var obj = new PdbSummary(opt);return obj; },
     displayTabs : function(opt){ var obj = new DisplayTabs(opt);return obj; },

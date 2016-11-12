@@ -40,6 +40,7 @@ body {
     height: 100%;
     padding: 0;
     margin: 0;
+    overflow: hidden;
 }
 
 #tabs {
@@ -146,13 +147,6 @@ body {
 	border-color: white transparent transparent transparent;
 	border-width: 5px; 
 }
-
-/*.header-head p{
-	color: maroon;
-	font-size: 30px;
-	padding-top: 35px;
-	font-style: italic;
-}*/
 
 .logo-uni-lyon img{
     height: 125px;
@@ -321,16 +315,6 @@ body {
     z-index: 12;
 }
 
-/*.checkChains div{
-    display: block;
-    position: relative
-    height: 100%;
-    width: 30px;
-    border-radius: 50%;
-    align-items: center;
-    justify-content: center;
-}*/
-
 .panelChains input[type="checkbox"]:checked + label{
     background-color: white;
 }
@@ -378,7 +362,6 @@ body {
 .submitChains span{
     display: inline-block;
     font-weight: bold;
-    /*vertical-align: middle;*/
 }
 
 .chainSeparator{
@@ -389,7 +372,6 @@ body {
     width: 100%;
     height: 5px;
     z-index: 9;
-    /*border-radius: 50%;*/
 }
 
 .chainSeparator div.border{
@@ -440,17 +422,13 @@ body {
 
 .selectRepresentation{
     position: absolute;
-    /*top: 10px;*/
-    /*left: 20px;*/
     top: 0px;
     left: 0px;
     display: inline-block;
     color: black;
 	background-color: transparent;
-    /*border-radius: 10px;*/
     border-radius: 0px 0px 10px 0px;
     padding: 7px 7px 0px 7px;
-    /*border: 3px solid grey;*/
     border-right: 3px solid grey;
     border-bottom: 3px solid grey;
     z-index: 7;
@@ -478,24 +456,20 @@ body {
 }
 
 .sRContainer{
-    /*display: block;*/
     display: inline-block;
     position: relative;
     text-align: center;
     width: 50px;
-    height: 50px;
-    /*margin-bottom: 10px;*/
-    
+    height: 50px;    
 }
+
 .checkRepresentation{
     position: absolute;
     top: 0px;
     left: 0px;
-    /*padding-top: 15px;*/
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    /*color: black;*/
     background-color: black;
     z-index: 10;
 }
@@ -507,7 +481,7 @@ body {
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background-color: dimgray;/*white;*/
+    background-color: dimgray;
     z-index: 8;
 }
 
@@ -521,8 +495,6 @@ body {
     width: 50px;
     height: 50px;
     border-radius: 100%;
-    /*font-weight: bold;*/
-    /*vertical-align: middle;*/
 }
 
 
@@ -530,20 +502,14 @@ body {
 
 
 .panelControls{
-    /*display: inline-block;*/
-    /*position: relative;*/
     position:absolute;
     top: 0px;
     bottom: 0px;
     left: 0px;
     right: 0px;
     width: 100%;
-    /*background-color: dimgray;*/
     background-color: transparent;
     border-radius: 0px 0px 15px 15px;
-    /*border-left: 1px solid #909090;
-    border-bottom: 1px solid #909090;
-    border-radius: 0px 0px 0px 5px;*/
 }
 
 .pdbThreeD{
@@ -561,12 +527,10 @@ canvas{
 .storeDivThreeD{
     display: inline-block;
     position: absolute;
-    /*left: 180px;*/
     padding: 0;
     margin: 0;
     width: auto;
     border-radius: 0px 0px 15px 15px;
-    /*border: 3px solid grey;*/
     background-color: black;
 }
 
@@ -584,20 +548,8 @@ canvas{
     background-color: yellow;
 }
 
-/*.glyphicon-remove-circle{
-	position: absolute;
-	right: 3px;
-	top: 1px;
-    background-color: darkred;
-    border-radius: 50%;
-}
-.glyphicon-remove-circle:hover{
-	cursor: auto;
-}*/
 .dropzone{
-	/*height:400px;*/
 	width:100%;
-	/*padding-top: 180px;*/
     position: relative;
 	padding-bottom: 5px;
 	background-color: #3b3f56;
@@ -669,14 +621,7 @@ canvas{
 }
 
 .browse {
-    /*position: absolute;
-    top: -7vmin;*/
     left: -45vmin;
-    /*width: 14vmin;
-    height: 14vmin;
-    border-radius: 50%;
-    background-color: black;
-    z-index: 2;*/
 }
 
 .drop-text {
@@ -694,14 +639,7 @@ canvas{
 }
 
 .test-pdb {
-    /*position: absolute;
-    top: -7vmin;*/
     left: 27vmin;
-    /*width: 14vmin;
-    height: 14vmin;
-    border-radius: 50%;
-    background-color: black;
-    z-index: 2;*/
 }
 
 .test-center{
@@ -728,15 +666,12 @@ canvas{
 
 .tab-content{
 	position: relative;
-    /*width: 100%;
-    height:100%;*/
 }
 .tab-pane{
     position: relative;
 }
 
 .nav-tabs li a{
-    /*background-color:color: rgba(0,133,82,0.6);*/
     color: #DBDAF5;
 }
 
@@ -744,14 +679,12 @@ canvas{
     background-color: rgba(0,133,82,0.6) !important;
     color: #3a3a3a;
     font-weight: bold;
-    /*color: white;*/
 }
 
 .nav-tabs li.active a:hover{
     background-color: rgba(0,133,82,0.6) !important;
     color: #3a3a3a;
     font-weight: bold;
-    /*color: white;*/
 }
 
 .nav-tabs #addFile.active .mask{
@@ -771,8 +704,8 @@ canvas{
 }
 
 .nav-tabs #addFile.active a{
-    background-color: #3B3F56 !important;/*white !important;*/
-    color: #DBDAF5;/*#3a3a3a;*/
+    background-color: #3B3F56 !important;
+    color: #DBDAF5;
     border:4px dashed #6780b5;
     border-bottom: none;
     font-weight: bold;
@@ -791,12 +724,7 @@ canvas{
 .nav-tabs li a:hover{
     color: #3a3a3a;
     background-color: rgba(0,133,82,0.3) !important;
-    /*background-color: rgba(0,0,0,0.1);*/
 }
-
-/*.nav-tabs li{
-    color: white;
-}*/
 
 .loader {
 	position : absolute;
@@ -863,13 +791,10 @@ canvas{
     width:auto;
     height: auto;
     background-color: rgba(0,0,0,0);
-	/*border-radius: 0px;*/
     border-top-left-radius: 3px;
     border-top-right-radius: 3px;
-	/*border-top-left-radius: 3px;*/
 	border-left: 0.5px solid gray;
 	border-top: 0.5px solid gray;
-	/*border-bottom: 0.5px solid gray;*/
     border-right: 0.5px solid gray;
 	margin: 0;
     padding: 0;
@@ -879,18 +804,11 @@ canvas{
 }
 
 .navJobActive{
-    /*background-color: white;*/
 	border-bottom: 0px;
 	border-right: 0.5px solid gray;
-	/*border-top-right-radius: 3px;*/
 	font-weight: bold;
     padding: 0;
 }
-
-/*.row{
-    padding-bottom: 0;
-    margin-bottom: 0;
-}*/
 
 .btn:focus{
 	outline-style:none;
@@ -903,10 +821,6 @@ canvas{
     background-color: darkred;
     border-radius: 50%;
 	position: absolute;
-	/*right: 1.5%;
-    top: 1.5%;
-    margin-top: 1px;
-    margin-right: 1px;*/
     right: 1px;
 	top: 1px;
     z-index: 9000;
@@ -921,13 +835,11 @@ canvas{
     background-color: rgba(0,133,82,0.6);
 	border-radius: 3px;
 	margin-left: 7px;
-	/*margin-top: 1px;*/
     margin-bottom: 5px;
 	z-index: 999;
 }
 
 .divJob{
-	/*display: none;*/
     position:absolute;
     left: 15px;
     right: 15px;
@@ -935,7 +847,6 @@ canvas{
     visibility:hidden;
 }
 .divJobActive{
-    /*display: block;*/
     position:absolute;
     left: 15px;
     right: 15px;
@@ -954,10 +865,6 @@ canvas{
     margin: 0;
     border-radius: 0px 0px 15px 15px;
 }
-
-/*.tab-pane.container{
-    padding: 0;
-}*/
 
 .fade {
    opacity: 0;
@@ -985,32 +892,36 @@ canvas{
     user-select: none;
 }
 
-.dev-ref {
+
+
+.footer {
     position: absolute;
-    bottom: 2px;
     left: 50%;
+    bottom: 2px;
     height: 18px;
     margin-top: -18px;
-    
 }
 
-.dev-ref span {
-    position: absolute;
-    left: -250px;
-    width: 500px;
+.footer span {
+    position: relative;
+    left: -50%;
+    width: auto;
     height: auto;
     font-style: italic;
     color: #191919;
+    font-size: 12px;
     font-weight: bold;
     font-family: gravitybold;
     text-align: center;
+    white-space: nowrap;
+    float: left;
 }
 
-.dev-ref span pipe{
+.footer span pipe{
     font-style: normal;
 }
 
-.dev-ref span a {
+.footer span a {
     color: #0026ff;
     text-decoration: underline;
     margin-left: 2px;

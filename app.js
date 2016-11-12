@@ -154,6 +154,9 @@ $(function () {
 
     //Header Display//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     var header = widgets.header();
+    
+    //Footer Display//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    var footer = widgets.footer();
 
     //Tabs Display//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     var displayTabs = widgets.displayTabs({
@@ -174,7 +177,7 @@ $(function () {
             widgetsUtils.mousePagePosition.y = event.pageY;
         })
         .on( "click", function( event ) {
-            //$(document.body).find(".magnify").stop(true,true).hide();
+           
         })
     ;
     
@@ -185,14 +188,6 @@ $(function () {
     });
     uploadBox.on('change', upload);
     
-    
-    $(document.body).append('<div class="dev-ref">'
-                            +'<span>FrontEnd-Interface: '
-                                +'<a href="mailto:reillesebastien@gmail.com">ceber</a>'
-                                +' <pipe>&nbsp|&nbsp</pipe> Molecular-representation "Lib": '
-                                +'<a target="_blank" href="http://arose.github.io/ngl/api/">arose</a>'
-                            +'</span>'
-                            +'</div>');
 
 });
 
