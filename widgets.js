@@ -786,7 +786,8 @@ var Magnify = function(opt) {
     }
     
     $.when(initMagnify()).done(function(){
-        $(self.magnify).appendTo(document.body);
+        //$(self.magnify).appendTo(document.body);
+        $(document.body).append(self.magny);
         $(self.magnify).hide();
         
         //Handle click for remove magnify
@@ -1772,7 +1773,8 @@ WidgetsUtils = {
         if(!($(document.body).find(".magnify-residue").length)){
             var magnifyResidue = WidgetsUtils.getStoreDiv("magnifyResidue", 50, 50, "magnify-residue disable-select");
             magnifyResidue.style.position = "absolute";
-            document.body.append(magnifyResidue);
+            //document.body.append(magnifyResidue);
+            $(document.body).append(magnifyResidue);
             $magnifyResidue = $(document.body).find(".magnify-residue");//z-index:1;
             
             $magnifyResidue.append('<div class="container-flow" style="width: 100%; height: 100%; overflow: auto;position: absolute; top:0; left:25px; bottom:0; right: -100px; pointer-events:none;"></div>');
@@ -2118,7 +2120,7 @@ WidgetsUtils = {
                 resno = pd.atom.resno;
                 tabAtoms.push("CHAIN: " + chainName + " RES: " + pd.atom.resname + "-" + resno);
                 
-                WidgetsUtils.tabNGLComponents[uuid].pdbObj.model(1).naturalAminoAcidOnly().currentSelection.forEach((el,i,tab) => {
+                WidgetsUtils.tabNGLComponents[uuid].pdbObj.model(1).naturalAminoAcidOnly().currentSelection.forEach(function(el,i,tab){
 
                     if(el.resSeq.trim() === resno.toString() && el.chainID.trim() === chainName){ tabAtoms.push("ATOM: " + el.name) }  
                 });
@@ -2299,7 +2301,7 @@ WidgetsUtils = {
             var cCV = nglComponent.currentChainsVisible;
             if( !addOrRemove ) { cCV.splice(cCV.indexOf(targetChain),1) }
         
-            selectionVisible = cCV.map((chain,i,tab) => { return ":" + chain + ((tab.length <= 1) ? "" : (i === (tab.length - 1)) ? "" : " OR ") } ).join('');
+            selectionVisible = cCV.map(function(chain,i,tab) { return ":" + chain + ((tab.length <= 1) ? "" : (i === (tab.length - 1)) ? "" : " OR ") } ).join('');
             
             if( !selectionVisible.length ){ selectionVisible = "NOT:" }
             
