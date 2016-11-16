@@ -1,14 +1,15 @@
 #!/bin/bash
 
+# already loaded in the sbatch script
 #module load cuda/5.0
-module load hex
-module load naccess
+#module load hex
+#module load naccess
 
 # required variables
 #probePdbFile
 #targetPdbFile
 
-#export HEX_FIRST_GPU=${CUDA_VISIBLE_DEVICES}
+export HEX_FIRST_GPU=${CUDA_VISIBLE_DEVICES}
 #ldd /software/mobi/hex/8.0.0//exe/hex8.0.0-cuda.x64
 
 SOURCEDIR=`pwd`
@@ -67,7 +68,9 @@ exit" > input.mac
 
 #run docking
 
-/data/software/mobi/hex/8.0.0/exe/hex8.0.0.x64 -ncpu 8 -nocuda -noexec < input.mac > hex.log
+#echo "/data/software/mobi/hex/8.0.0/exe/hex8.0.0.x64 $hexFlags -noexec < input.mac > hex.log" > $SOURCEDIR/titi.log
+#echo 'titi' > $SOURCEDIR/titi.log
+/data/software/mobi/hex/8.0.0/exe/hex8.0.0.x64 $hexFlags -noexec < input.mac > hex.log
 #ls *.pdb
 cp hex.log $SOURCEDIR/
 
