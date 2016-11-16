@@ -16,6 +16,7 @@ var probeMax = 20;
 var bLocal = false;
 var bIo = false;
 var bRest = false;
+var bGpu = false; // to run on GPU
 
 var HTTP_Lib = require('./HTTP_Lib');
 var HPC_Lib = require('./HPC_Lib');
@@ -137,6 +138,7 @@ process.argv.forEach(function (val, index, array){
     if (val === '--http'){bHttp = true;bRest = true; bIo = true;}
     if (val === '--io') bIo = true;
     if (val === '--rest') bRest = true;
+    if (val === '--gpu') bGpu = true;
     if (val === '-f'){
         if (! array[index + 1])
             throw("usage : ");
@@ -186,7 +188,8 @@ if (bHttp || bIo || bRest) {
             PDB_Lib.pdbLoad(bTest, {'file' : fPdb, 'chain' : pdbChainList}).on('pdbLoad', function (pdbObj) {
                 pdbObj.model(1).bFactor(0);
                 if(!bTest)
-                    PDB_Lib.arDock(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}).on('jobCompletion', function(res) {
+                    // CAUTION : arDock calling with bGpu variable
+                    PDB_Lib.arDock(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}, bGpu).on('jobCompletion', function(res) {
                         console.log("Results of a slurm and pdb custom");
                         PDB_Lib.bFactorUpdate(pdbObj, res);
                         console.log(pdbObj.model(1).dump());
