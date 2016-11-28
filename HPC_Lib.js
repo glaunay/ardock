@@ -52,6 +52,28 @@ var slurmTest = function () {
     return emitter;
 }
 
+
+var slurmStop = function() {
+    var emitter = new events.EventEmitter();
+    jobManager.stop(bean)
+    .on('cleanExit', function (){
+        emitter.emit('cleanExit');
+    })
+    .on('exit', function (){
+        emitter.emit('exit');
+    })
+    .on('errScancel', function () {
+        emitter.emit('errScancel');
+    })
+    .on('errSqueue', function () {
+        emitter.emit('errSqueue');
+    });
+    
+    //console.log(emitter);
+    return emitter;
+}
+
+
 var slurmStart = function(bLocal) {
     var emitter = new events.EventEmitter();
 
@@ -72,6 +94,7 @@ var slurmStart = function(bLocal) {
 module.exports = {
     slurmTest : slurmTest,
     slurmStart : slurmStart,
+    slurmStop : slurmStop,
     jobManager : function() {return jobManager;},
     configure : function (data) { probeMax = data.probeMax; bean = data.bean;}
 };

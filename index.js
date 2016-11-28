@@ -192,7 +192,7 @@ if (bHttp || bIo || bRest) {
                     PDB_Lib.arDock(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}, bGpu).on('jobCompletion', function(res) {
                         console.log("Results of a slurm and pdb custom");
                         PDB_Lib.bFactorUpdate(pdbObj, res);
-                        console.log(pdbObj.model(1).dump());
+                        //console.log(pdbObj.model(1).dump()); // to write the results (PDB)
                     });
                 else
                     HPC_Lib.slurmTest()
@@ -200,21 +200,21 @@ if (bHttp || bIo || bRest) {
                             console.log("Results of a slurm and pdb test");
                             //console.log(res);
                             PDB_Lib.bFactorUpdate(pdbObj, res);
-                            console.log(pdbObj.model(1).dump());
+                            //console.log(pdbObj.model(1).dump()); // to write the results (PDB)
                     });
             });
         } else {
             HPC_Lib.slurmTest()
             .on('jobCompletion', function(res) {
                     PDB_Lib.bFactorUpdate(pdbObj, res);
-                    console.log(pdbObj.model(1).dump());
+                    //console.log(pdbObj.model(1).dump()); // to write the results (PDB)
                 });
             console.log("No pdb provided slurm waiting");
         }
     });
 } else if (bPdb) {
     var claimSuccess = function(pdbObj) {
-        console.log(pdbObj.dump() + "Succesfully parsed " + pdbObj.selecSize() + ' atom record(s)');
+        console.log(pdbObj.dump() + "Successfully parsed " + pdbObj.selecSize() + ' atom record(s)');
     };
     if (!fPdb && !bTest)
         throw 'If you set up pdb service alone, you must provide a file or call for a test';
@@ -223,5 +223,25 @@ if (bHttp || bIo || bRest) {
     else
         PDB_Lib.pdbLoad(bTest).on('pdbLoad', claimSuccess);
 }
+
+
+// if stopping the process using Ctrl + C
+process.on('SIGINT', function () {
+    console.log(' Try to close the sbatch processes...');
+    HPC_Lib.slurmStop()
+    .on('cleanExit', function () {
+        process.exit(0);
+    })
+    .on('exit', function () {
+        process.exit(0);
+    })
+    .on('errScancel', function () {
+        process.exit(1);
+    })
+    .on('errSqueue', function () {
+        process.exit(1);
+    });
+});
+
 
 return;
