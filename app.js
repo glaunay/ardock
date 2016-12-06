@@ -11,11 +11,13 @@ var socket = io.connect('http://ardock.ibcp.fr');
 
 
 
-var pdbLib = require("pdb-lib");
+var pdbLib = require("./pdb-lib"); // Devel version
 var stream = require('stream');
 var events = require('events');
 var widgets = require('./widgets');
-var oParticule = require('./js/omg-particle');
+
+DVL = require('./msa');
+//var oParticule = require('./js/omg-particle');
 
 
 
@@ -61,8 +63,9 @@ socket.on('arDockChunck', function (data) {
         .on('end', function (pdbObjInp) {
             //console.log('this is ardock  chunk ' + pdbObjInp.model(1).selecSize());
             //console.log(pdbObjInp.model(1).dump());
-
-            widgetsUtils.jobOperations.onArdockChunck({pdbObj: pdbObjInp, uuid: data.uuid});
+            console.log('this is ardock  chunk ');
+            console.dir(data);
+            widgetsUtils.jobOperations.onArdockChunck({pdbObj: pdbObjInp, uuid: data.uuid, probeMax : data.probeMax, left : data.left});
         });
     //socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'uuid' : uuid });
 
@@ -80,6 +83,11 @@ socket.on("arDockStart", function (data) {
 
 
 $(function () {
+
+
+    var fastaWidget = require('./Alignment.js');
+    //fastaWidget.test();
+    fastaWidget.testSolo();
 
     //Upload Change
     var upload = function (input, widget) {

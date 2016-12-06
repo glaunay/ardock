@@ -1,5 +1,11 @@
 @import url("node_modules/bootstrap/dist/css/bootstrap.min.css");
 
+@import url("node_modules/datatables/media/css/jquery.dataTables.min.css");
+@import url("node_modules/font-awesome/css/font-awesome.min.css");
+
+@import url("widgets.css");
+@import url("arDockDL.css");
+@import url("arDockDT.css");
 
 @font-face {
     font-family: "gravitybold";
@@ -134,7 +140,7 @@ body {
 	height: 1px;
 	border: 1px solid white;
 	border-color: transparent transparent white transparent;
-	border-width: 5px; 
+	border-width: 5px;
 }
 
 .button-slide-triangle-bottom{
@@ -145,7 +151,7 @@ body {
 	height: 1px;
 	border: 1px solid white;
 	border-color: white transparent transparent transparent;
-	border-width: 5px; 
+	border-width: 5px;
 }
 
 .logo-uni-lyon img{
@@ -185,7 +191,7 @@ body {
 }
 
 .header-core{
-    
+
 }
 
 .jumbotron{
@@ -277,7 +283,7 @@ body {
     position: relative;
     width: 100%;
     height: 30px;
-    
+
 }
 
 .checkChains{
@@ -328,7 +334,7 @@ body {
     text-align: center;
     width: 50px;
     height: 50px;
-    
+
 }
 .submitChains{
     position: absolute;
@@ -460,7 +466,7 @@ body {
     position: relative;
     text-align: center;
     width: 50px;
-    height: 50px;    
+    height: 50px;
 }
 
 .checkRepresentation{
@@ -502,6 +508,7 @@ body {
 
 
 .panelControls{
+    overflow:hidden;
     position:absolute;
     top: 0px;
     bottom: 0px;
@@ -876,9 +883,9 @@ canvas{
 }
 
 .disable-select {
-  -webkit-user-select: none;  
-  -moz-user-select: none;    
-  -ms-user-select: none;      
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
   user-select: none;
 }
 

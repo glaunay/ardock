@@ -1,0 +1,36 @@
+div.endscript {
+   /* background: url(assets/END_awesome.png);*/
+}
+
+div.ardockDLctrl {
+    /*width : 300px;*/
+    background-color: whitesmoke;
+    padding-top:4px;
+    padding-bottom:4px;
+    padding-right:4px;
+    /*padding-left: 10px;*/
+}
+
+div.pdb {
+    /*background: url(assets/pdb.png);*/
+}
+
+div.ardockDLcBut {
+    padding-top: 5%;
+}
+
+div.faBtnDL {
+    padding : 5px 25px 4px 25px;
+    color: black;
+}
+
+div.ardockDLctrl div.btn-primary {
+    float :none;
+}
+/*}​*/
+
+/*
+div.csv {
+    */
+   /*content:url("http://placehold.it/350x150");*/
+/*}​*/
