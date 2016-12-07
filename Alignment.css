@@ -1,0 +1,10 @@
+div.wc-body g.slider-handler {
+    cursor: pointer;
+}
+div.wc-body g.slider-background {
+    cursor: pointer;
+}
+
+div.wc-body {
+    border-radius : 0px 0px 3px 3px;
+}

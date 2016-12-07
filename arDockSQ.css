@@ -1,0 +1,5 @@
+@import url("Alignment.css");
+div.arDockSQ {
+    position:absolute;
+    z-index : 7;
+}

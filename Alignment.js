@@ -1,13 +1,6 @@
 var d3 = require('d3');
 var _ = require('underscore');
-
-
-var aaTranslate = function (aa) {
-
-
-}
-
-
+window.$ = window.jQuery = require('jquery');
 
 var rectangle = function (x, y, w, h, r1, r2, r3, r4) {
     var p = function(x, y) {
@@ -35,8 +28,16 @@ var WindowComponent = function(elem, anchor) { // anchor elem for minification O
     this.h = 200;
     this.w = 402;
     this.container = elem ? elem : 'body';
+
+    if (d3.select(this.container).size() === 0) throw 'WindowComponent container "'
+        + this.container + '" does not exist';
+
     this.div = d3.select(this.container).append('div').style({
         "max-width": this.w + "px"
+    });
+    var self = this;
+    this.div.each(function(){
+        self.node = this;
     });
     this.header = this.div.append('div').attr('class', 'wc-header').style("margin-bottom", '-5px');
     this.body = this.div.append('div').attr('class', 'wc-body').style({
@@ -44,7 +45,7 @@ var WindowComponent = function(elem, anchor) { // anchor elem for minification O
         'padding-left': '0px'
     });
 
-    var self = this;
+
     this.h_height = 20;
     this.svgHead = this.header.append('svg').attr('height', this.h_height).attr('width', this.w);
 
@@ -95,10 +96,13 @@ var WindowComponent = function(elem, anchor) { // anchor elem for minification O
         },
         handlerOut: function() {
             console.log('handlerOut');
+        },
+        cellClick : function() {
+            console.log('cellClick');
         }
     };
 
-    console.dir(this.div[0][0]);
+    //console.dir(this.div[0][0]);
 
     /* var drag = d3.behavior.drag();
         drag.on('drag', function(){
@@ -204,7 +208,10 @@ WindowComponent.prototype.erase = function() {
     [ { aa : "EFHQTIGELVEWLQRTEQNIKASEPVDLTEERSVLETKFKKFKDLRAELER-CEPRVVSLQDAADQLLRSVEGSEQQSQHTYERTLSRLTDLRLRLQSLRRL"
         name : "FBpp0292449 PF00435_seed (13307, 13408)"
         ss2 : "CHHHHHHHHHHHHHHHHHHHHHCCCCCCCCCHHHHHHHHHHHHHHHHHHHHxHCHHHHHHHHHHHHHHHHCCCHHHHHHHHHHHHHHHHHHHHHHHHHHHCC"
-        startsAt : "13307"
+        startsAt : "13307",
+        */
+        /*optionally explicit numbers can be specified */
+        /*numbers :
         },
         {
         aa : "EFHQTIGELVEWLQRTEQNIKASEPVDLTEERSVLETKFKKFKDLRAELER-CEPRVVSLQDAADQLLRSVEGSEQQSQHTYERTLSRLTDLRLRLQSLRRL"
@@ -218,15 +225,15 @@ WindowComponent.prototype.erase = function() {
         */
 
 
-var FastaDuo = function(data) {
-    WindowComponent.call(this);
+var FastaDuo = function(data, node, anchor) {
+    WindowComponent.call(this, node, anchor);
     this.data = data;
     this.cellW = 20;
     this.cellH = 20;
-    this.nElem = this.data.length
-
-
+    this.nElem = this.data.length;
+    console.log("FataDuo constructor");
     console.dir(this.data);
+    console.dir(node);
 };
 FastaDuo.prototype = Object.create(WindowComponent.prototype);
 FastaDuo.prototype.constructor = FastaDuo;
@@ -235,6 +242,7 @@ FastaDuo.prototype.cellDim = function() {
     return [this.cellW, this.cellH];
 };
 FastaDuo.prototype._draw = function(opt) {
+    console.log("drawing");
     var self = this;
     if (opt) {
         if (opt.hasOwnProperty('shape')) {
@@ -306,6 +314,9 @@ FastaDuo.prototype._draw = function(opt) {
                     if (d > 99) return '8px';
                 }
                 return "10px";
+            }).on('click', function (d,i){
+                self.fire('cellClick', this, d, i);
+                console.dir(this);
             });
         this.sequences[i].attr('transform', 'translate(' + 0 + ', ' + (i * self.cellDim()[0]) + ')');
     };
@@ -353,9 +364,24 @@ FastaDuo.prototype._draw = function(opt) {
     })
 };
 
+var customNumberIndexing = function(list){
+    console.log("custom indexing");
+    var index = _.map(list, function(d, i) {
+        if (i > 0 && i % 5 == 0) {
+            return d;
+        }
+            return '.';
+    });
+    return index;
+}
+
 FastaDuo.prototype._generateIndex = function() {
     this.index = Array(this.nElem);
     for (var x = 0; x < this.nElem; x++) {
+        if (this.data[x].hasOwnProperty('numbers')) {
+            this.index[x] = customNumberIndexing(this.data[x]['numbers']);
+            continue;
+        }
         var i = 0;
         if (this.data[x].hasOwnProperty('startsAt')) {
             i = this.data[x].startsAt - 1;
@@ -427,8 +453,10 @@ FastaDuo.prototype._color = function(l) {
 };
 FastaDuo.prototype.createLabels = function() {
     var self = this;
-    this.svg.selectAll('g.frame').append('g').classed('label', true);
-    this.svg.selectAll('g.frame').append('g').classed('label', true);
+    self.data.forEach(function() {
+    self.svg.selectAll('g.frame').append('g').classed('label', true);
+    });
+    //this.svg.selectAll('g.frame').append('g').classed('label', true);
     this.svg.selectAll('g.label').append('text').text(function(d, i) {
         return self.data[i].name;
     }).style({
@@ -607,9 +635,11 @@ module.exports = {
             alert("no Data fount for FastaDuo");
             return;
         }
+
         var node = opt.hasOwnProperty("node") ? opt["node"] : 'body';
         var anchor = opt.hasOwnProperty("anchor") ? opt["anchor"] : null;
-        var o = new FastaDuo(data, node, anchor);
+        var o = new FastaDuo(opt['data'], node, anchor);
         return o;
-    }
+    },
+    FastaDuo : FastaDuo
 };
