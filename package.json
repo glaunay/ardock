@@ -17,7 +17,7 @@
     "mkdirp": "^0.5.1",
     "nglview-js": "^0.5.3-dev.0",
     "node-uuid": "^1.4.7",
-    "nslurm": "0.0.0",
+    "nslurm": "^0.0.4",
     "pdb-lib": "^2.0.0",
     "random-js": "^1.0.8",
     "socket.io": "^1.4.5",
