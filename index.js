@@ -124,6 +124,29 @@ var ioPdbSubmissionCallback = function (data, socket){
     });
 };
 
+// route to handle socket io "keySubmission" packet
+var ioKeySubmissionCallback = function (key, socket) {
+    PDB_Lib.keyRequest(key)
+    .on('completed', function (pdb) {
+        //console.log(pdb.model(1).dump());
+        console.log('All jobs are completed');
+        socket.emit("arDockRestore", { 'obj' : pdb.model(1).dump(), 'left' : 0, 'uuid' : key });
+    })
+    .on('errJob', function () {
+        console.log('Error during calculations');
+        socket.emit('arDockRestoreError', { 'uuid' : key });
+    })
+    .on('notFinished', function (jobStatus) {
+        //console.log(jobStatus);
+        console.log('Some jobs are not finished');
+        socket.emit('arDockRestoreBusy', { 'uuid' : key, 'status' : jobStatus});
+    })
+    .on('errKey', function () {
+        console.log('This key does not exist');
+        socket.emit('arDockRestoreUnknown', {'uuid' : key});
+    });
+}
+
 
 var parseConfig = function (fileName){
     var obj = jsonfile.readFileSync(fileName);
