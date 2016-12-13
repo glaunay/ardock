@@ -1,7 +1,17 @@
+/*
+npm install --save-dev gulp browserify browserify-css gulp-rename watchify vinyl-buffer vinyl-source-stream gulp-util
+
+
+cp node_modules/dist/socket.io.js node_modules/dist/
+rm -rf  node_modules/ngl*
+cp -r ngl-bak/* node_modules/
+
+*/
+
 "use strict";
 const
     rename = require("gulp-rename"),
-    exec = require('child_process').exec,
+    spawn = require('child_process').spawn,
     browserify = require("browserify"),
     buffer       = require("vinyl-buffer"),
     gulp         = require("gulp"),
@@ -51,11 +61,16 @@ gulp.task("watch", function () {
 });
 
 gulp.task('server', function (cb) {
-  exec('node index.js --conf ./scripts/package.json --http', function (err, stdout, stderr) {
+
+    spawn('node', ['index.js', '--conf', '../default.conf', '--http'], { stdio: 'inherit' })
+
+ /*
+ exec('node index.js --conf ../default.conf --http', function (err, stdout, stderr) {
     console.log(stdout);
     console.log(stderr);
     cb(err);
   });
+  */
 });
 
 

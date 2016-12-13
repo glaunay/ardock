@@ -204,6 +204,7 @@ PDB_Lib.configure({ probeMax : probeMax, bean : bean });
 if (bHttp || bIo || bRest) {
     HTTP_Lib.setRestCallBack(restCallBack);
     HTTP_Lib.setIoPdbSubmissionCallback(ioPdbSubmissionCallback);
+    HTTP_Lib.setIoKeySubmissionCallback(ioKeySubmissionCallback);
     HTTP_Lib.httpStart(bean, bIo, bTest, bRest).on('listening', function() {
         if (bSlurm) {
             HPC_Lib.slurmStart(bLocal).on('ready', function(){
