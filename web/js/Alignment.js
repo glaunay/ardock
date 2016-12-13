@@ -1,6 +1,22 @@
 var d3 = require('d3');
 var _ = require('underscore');
+
+
+/*var TweenLite = require('./greenSock/src/uncompressed/TweenLite.js');
+var TimelineLite = require('./greenSock/src/uncompressed/TimelineLite.js');
+var CSSPlugin = require('./greenSock/src/uncompressed/CSSPlugin.js');
+var Draggable = require('./greenSock/src/minified/utils/Draggable.min.js"')
+*/
 window.$ = window.jQuery = require('jquery');
+
+
+//<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/TweenLite.min.js"></script>
+//<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/utils/Draggable.min.js"></script>
+//<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/plugins/CSSPlugin.min.js"></script>
+
+//var TweenLite = require('../bower_components/gsap/src/uncompressed/TweenLite.js');
+//var TimelineLite = require('../bower_components/gsap/src/uncompressed/TimelineLite.js');
+//var CSSPlugin = require('../bower_components/gsap/src/uncompressed/plugins/CSSPlugin.js');
 
 var rectangle = function (x, y, w, h, r1, r2, r3, r4) {
     var p = function(x, y) {
@@ -99,6 +115,12 @@ var WindowComponent = function(elem, anchor) { // anchor elem for minification O
         },
         cellClick : function() {
             console.log('cellClick');
+        },
+        onDragClick : function() {
+
+        },
+        onDragEnd : function() {
+
         }
     };
 
@@ -117,10 +139,33 @@ var WindowComponent = function(elem, anchor) { // anchor elem for minification O
         });
 */
 
-    $(this.div[0][0]).drags({
+// Previous implementation
+/*    $(this.div[0][0]).drags({
         cursor: 'default',
-        handle: this.header[0][0] /*'.wc-header'*/
+        handle: this.header[0][0]
     }); //this.svgHead[0][0]
+*/
+// Now we use GreenSock
+    var self = this;
+    Draggable.create($(this.div[0][0]), {
+   // type:"y",
+        bounds: this.container,
+        trigger : this.header[0][0],
+        //throwProps:true,
+        onClick:function() {
+            console.log("clicked");
+            self.fire('onDragClick');
+        },
+        onDragEnd:function() {
+            console.log("drag ended");
+            self.fire('onDragEnd');
+        }
+    });
+//gasp.Draggable()
+
+
+
+
     this.svgHead.on('mouseenter', function() {
         d3.select(this).selectAll('.background').style('fill', 'rgb(191, 186, 186)');
         self.fire("handlerIn");

@@ -8,7 +8,7 @@
     "scriptVariables" : {
         "TEST_DIR" : "/data/www_dev/ardock/lib/scripts/test",
         "DATA_DIR" : "/data/dev/ardock/scriptPackage/data",
-        "BIN_DIR" : "/data/www_dev/ardock/lib/scripts/bin",
+        "BIN_DIR" : "/data/www_dev/ardock/lib/front_end/scripts/bin",
         "probeList" : ["2.10.270",
                         "2.30.18",
                         "2.30.170",

@@ -99,7 +99,6 @@ var httpStart = function(bean, bIo, bTest, bRest) {
     return emitter;
 };
 
-
 var testTemplateGenerate = function () {
     var header = '<!DOCTYPE html><html class="ocks-org do-not-copy"><meta charset="utf-8">';
     var body = '<body><h1>HELLO GUYS !!!</h1>';
@@ -109,7 +108,12 @@ var testTemplateGenerate = function () {
 }
 
 var baseTemplateGenerate = function () {
-    var header = '<!DOCTYPE html><html class="ocks-org do-not-copy"><meta charset="utf-8">';
+    var header = '<!DOCTYPE html><html class="ocks-org do-not-copy"><meta charset="utf-8">'
+                    +  '<head><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">'
+                    + '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/TweenLite.min.js"></script>'
+                    + '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/utils/Draggable.min.js"></script>'
+                    + '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/plugins/CSSPlugin.min.js"></script>'
+                    + '</head>';
     var body = '<body>'
         + '<script src="js/bundleTest.js"></script>\n'
     var trailer = '</body></html>';

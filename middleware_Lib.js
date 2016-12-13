@@ -124,7 +124,7 @@ var pdbLoad = function(bTest, opt) {
 var configJob = function (bGpu) {
     /**
     * According to bGpu, make a configuration or another.
-    */ 
+    */
     jobOpt = {
         'tWall' : '0-00:15',
         'gid' : 'ws_users',
@@ -147,6 +147,7 @@ var configJob = function (bGpu) {
         jobOpt['hexFlags'] = "\" -nocuda -ncpu " + jobOpt.nCores + " \"";
         // no gres option on CPU
     }
+
     return jobOpt;
 }
 

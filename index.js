@@ -104,24 +104,38 @@ var restCallBack = function (ans, data) {
 // socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'uuid' : uuid });
 
 var ioPdbSubmissionCallback = function (data, uuid, socket){
-
-
+    var cnt = probeMax;
     PDB_Lib.pdbLoad(bTest, {'ioSocketStream' : data, 'chain' : pdbChainList})
         .on('pdbLoad', function (pdbObj) {
+            var TaskPatt = null;
             pdbObj.model(1).bFactor(0);
             console.log("Routing to ardock a " + pdbObj.selecSize() + " atoms structure");
             PDB_Lib.arDock(HPC_Lib.jobManager(), {'pdbObj' : pdbObj})
             .on('go', function(taskID, total) {
-                console.log("SOCKET : " + socket);
+                console.log("SOCKET : taskID is " + taskID);
+                //console.dir(socket)
+                taskPatt = new RegExp(taskID);
                 socket.emit("arDockStart", { id : taskID, total : total });
             }) // test is actually useless arDock emitter is created at every call
-            .on('jobCompletion', function(res, job, cnt) {
+            .on('jobCompletion', function(res, job) {
+                if (taskPatt.test(job.id)) cnt--;
                 PDB_Lib.bFactorUpdate(pdbObj, res);
                 //socket.emit("arDockChunck", { obj : pdbObj.model(1).dump(), left : cnt });
-                socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'uuid' : uuid });
+                socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'probeMax' : probeMax, 'uuid' : uuid });
             });
     });
 };
+
+// TO DO
+//process.on('SIGINT', function () {
+//    console.log("Shutting down nslurm processes");
+//    process.exit(0);
+    //HPC_Lib.close();
+
+    //server.close(function () {
+    //    process.exit(0);
+    //});
+//});
 
 
 

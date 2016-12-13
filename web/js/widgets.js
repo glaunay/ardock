@@ -6,9 +6,11 @@ Backbone.$ = $;
 
 var NGL = require('ngl');
 
-var events = require('events');
-
-
+//var events = require('events');
+var Core = require('./Core.js').Core;
+var arDockDL = require('./arDockDL.js');
+var arDockDT = require('./arDockDT.js');
+var fastaWidget = require('./arDockSQ.js');
 
 ///////////////////////////////////////////////////////////////////////////////////////// GLOBAL //////////////////////////////////////////////////////////////
 
@@ -21,60 +23,27 @@ var events = require('events');
  *
  */
 ////////////////////////////////////////////////////////////////////////////////////////// CORE ///////////////////////////////////////////////////////////////
-// Base Class provides emiter interface
-var Core = function (opt) {
 
-    this.nodeRoot = opt ? 'root' in opt ? $(opt.root)[0] : $('body')[0] : $('body')[0];
-
-    this.emiter = new events.EventEmitter();
+var createAndRegister = function(self, nArgs) {
     WidgetsUtils.W_counts++;
-    this.idNum = WidgetsUtils.W_counts;
-
-    this._scaffold = '<div class="widget" id="w_' + this.idNum + '"></div>';
-};
-
-Core.prototype.scaffold = function(opt) {
-    if (opt)
-        this._scaffold = opt;
-    else
-        return this._scaffold;
-
-    return null;
+    nArgs['idNum'] = WidgetsUtils.W_counts
+    Core.call(self, nArgs);
 }
 
-Core.prototype.on = function(eventName, callback) {
-    this.emiter.on(eventName, callback);
-};
-
-Core.prototype.display = function(event, callback) {
-
-    if (! this.node) {
-        var string = this.scaffold();
-        $(this.nodeRoot).append(string);
-        this.node = $('div.widget#w_' + this.idNum)[0];
-    }
-
-    $(this.node).show();
-};
-
-
-Core.prototype.hide = function(event, callback) {
-    $(this.node).hide();
-};
-
-Core.prototype.destroy = function(event, callback) {
-    $(this.node).remove();
-};
-
+var externalCreateAndRegister = function(constructor, nArgs) {
+    WidgetsUtils.W_counts++;
+    nArgs['idNum'] = WidgetsUtils.W_counts
+    var obj = constructor(nArgs);
+    return obj;
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////////////// HEADER /////////////////////////////////////////////////////////////////////////////////////////
 var Header = function(opt){
     var self = this;
-
     var nArgs = opt ? opt : {};
+    createAndRegister(self,nArgs);
 
-    Core.call(this, nArgs);
 
     this.id = "W_" + this.idNum;
     this.slided = false;
@@ -150,7 +119,7 @@ var Footer = function(opt){
 
     var nArgs = opt ? opt : {};
 
-    Core.call(this, nArgs);
+    createAndRegister(self,nArgs);
 
     this.id = "W_" + this.idNum;
     this.slided = false;
@@ -178,9 +147,12 @@ var UploadBox = function (opt) {
 
     var nArgs = opt ? opt : {};
 
-    Core.call(this, nArgs);
+    createAndRegister(self, nArgs);
 
     var uploadBoxId = "W_" + this.idNum;
+
+    console.log("-->" + uploadBoxId);
+
     this.targetInput = null;
 
     this.scaffold ('<div class="widget uploadBox dropzone container-fluid" id="w_' + this.idNum + '">'
@@ -254,6 +226,8 @@ var UploadBox = function (opt) {
 
 
 
+
+/* All test button disable to replace by restore session
     //Click button TEST PDB, ajax get a streamed pdb file
     $(".test-pdb").click(function(e){
 
@@ -311,6 +285,7 @@ var UploadBox = function (opt) {
 
         });
     });
+*/
 
     //$(".browse").css("margin-top", ((WidgetsUtils.getBodyHeight() - (WidgetsUtils.heightUntilNavJob() + WidgetsUtils.heightFooter)) / 2) - 50);
 
@@ -332,7 +307,7 @@ var Loader = function(opt){
 
     var nArgs = opt ? opt : {};
 
-    Core.call(this, nArgs);
+    createAndRegister(self, nArgs);
 
     var loaderId = "W_" + this.idNum;
 
@@ -347,7 +322,7 @@ Loader.prototype.constructor = Loader;
 var DisplayTabs = function(opt){
 
     var nArgs = opt ? opt : {};
-    Core.call(this, nArgs);
+    createAndRegister(this, nArgs);
 
     WidgetsUtils.socketApp = opt.skt;
     this.widgetsUtils = WidgetsUtils;
@@ -355,7 +330,7 @@ var DisplayTabs = function(opt){
 
     //this.pdbObj = opt.pdbObj;
 
-    this.scaffold ('<div  class="container-fluid after-head" id="w_' + this.idNum + '">'+
+    this.scaffold('<div  class="container-fluid after-head" id="w_' + this.idNum + '">'+
                                 '<ul class="nav nav-tabs" id="tabs" style="border: none;">'+
                                     '<li role="presentation" class="active" id="addFile"><a href="#divAddFile">+ Add .pdb</a><div class="mask"></div></li>'+
                                 '</ul>'+
@@ -369,6 +344,12 @@ var DisplayTabs = function(opt){
 
 DisplayTabs.prototype = Object.create(Core.prototype);
 DisplayTabs.prototype.constructor = DisplayTabs;
+
+/*DisplayTabs.prototype.display = function() {
+    console.log("trying to display tab");
+    console.log('displayTabs registered id is ' + this.idNum);
+    Core.prototype.display.call(this);
+}*/
 
 DisplayTabs.prototype.addTab = function(opt){
 
@@ -466,7 +447,7 @@ var Tab = function(opt){
     var self = this;
     var nArgs = opt ? opt : {};
 
-   Core.call(this, nArgs);
+    createAndRegister(self, nArgs);
 
     this.pdbObj = opt.pdbObj;
     this.pdbText = opt.pdbText;
@@ -617,6 +598,11 @@ Tab.prototype.addJob = function(){
 //////////////////////////////////////////////////////////////////////////////////////////// JOB //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 var Job = function(opt){
+
+
+    console.log("This is job Constructor, parameters are:")
+    console.dir(opt)
+
     var nArgs = opt ? opt : {};
     Core.call(this,nArgs);
 
@@ -673,8 +659,16 @@ var Job = function(opt){
         self.listWidgets['selectRepresentation'] = new SelectRepresentation({root: self.listWidgets["pC"].panel, UUID: self.uuid, pdbObj: self.pdbObj, fileName : opt.name});
         self.listWidgets['selectRepresentation'].display();
 
+        // RESUME HERE
         //--> add new component here, root value is PAnelControl which ensure that visual of new component will be place relative to canvas
 
+        self.listWidgets['bookmarkDL'] = externalCreateAndRegister(arDockDL.new, {root: self.listWidgets["pC"].panel, /*UUID: self.uuid, */ pdbObj: self.pdbObj});
+        self.listWidgets['bookmarkDT'] = externalCreateAndRegister(arDockDT.new, {root: self.listWidgets["pC"].panel, /*UUID: self.uuid, */ pdbObj: self.pdbObj});
+        //WidgetsUtils.tabTabs[0].jobs[1].listWidgets.bookmarkDL.display({ position : 'br', absPosSpecs : {'top' : '200px'}})
+       //WidgetsUtils.tabTabs[0].jobs[1].listWidgets.bookmarkDL.display({ position : 'br', absPosSpecs : {'top' : '400px'}, 'pdbObj' : self.pdbObj})
+       //WidgetsUtils.tabTabs[0].jobs[0].listWidgets.bookmarkDT.display({ position : 'br', absPosSpecs : {'top' : '300px'}, pdbObj : WidgetsUtils.tabTabs[0].jobs[0].pdbObj })
+        //pdbObj
+        //arDockDL.new({root: self.listWidgets["pC"].panel, /*UUID: self.uuid, */ pdbObj: self.pdbObj});
     };
 
     //Actions after creating objects
@@ -806,13 +800,14 @@ Magnify.prototype.constructor = Magnify;
 
 //////////////////////////////////////////////////////////////////////////////////////////// PDB SUMMARY /////////////////////////////////////////////////////////////////////////////////
 // Display a summary of a loaded pdb file
+
+// GL added sequence visualization possibility
+
 var PdbSummary = function(opt) {
 
     var nArgs = opt ? opt : {};
-
-    Core.call(this, nArgs);
-
     var self = this;
+    createAndRegister(self, nArgs);
 
     this.pdbObj = nArgs.pdbObj;
     this.job = nArgs.job;
@@ -878,6 +873,7 @@ PdbSummary.prototype.setNavigationRules = function() {
 
     var self = this;
 
+    this.latest = null;
     //Hover, mouseout, click a chain
     $(this.node).find(".checkChains").each(function(e){
         $(this).find(".overlay")
@@ -896,7 +892,125 @@ PdbSummary.prototype.setNavigationRules = function() {
             .click(function(e){
                 e.preventDefault();
                 e.stopPropagation();
+                console.log('!!!!click!!!!');
 
+                var component = this;
+
+                $(self.nodeRoot).find('div.summaryMenu').remove();
+
+
+                console.log("who am i ? ");
+                console.log($(component).parent(".checkChains").attr("for"));
+                console.log("latest known is " + this.latest);
+
+                //this.latest = this.latest ? $(component).parent(".checkChains").attr("for") :
+                if( !this.latest ){
+                    this.latest = $(component).parent(".checkChains").attr("for");
+                } else if (this.latest === $(component).parent(".checkChains").attr("for")){
+                    this.latest = null;
+                    return;
+                }
+
+
+                // Get Position of current chain circle
+                // append two fa circle to allow for view or suppress
+                // Get y as center of clicked div
+                // Get x as border of pdbSummary
+
+                /*console.log(WidgetsUtils.mousePagePosition.x + ' , ' + WidgetsUtils.mousePagePosition.y);
+                console.log("Clicked Elem content and position");
+                console.dir(this);
+                console.log($(this).position());
+                console.log("Closest parent non abosulte");
+                console.log($(this).closest('.checkChainsContainer').position());
+                console.log("pdbSummary position");
+                console.log($(self.node).position());
+                console.log($(self.node).outerWidth());
+
+                console.log("Spawning point is " + $(this).closest('.checkChainsContainer').position()["top"] + ' , ' + $(self.node).outerWidth() );
+                */
+                var x = $(self.node).outerWidth();
+                var y = $(this).closest('.checkChainsContainer').position()["top"];
+                var html =  '<div class="summaryMenu">'
+                            + '<div class="view"><span class="fa-stack fa-lg">'
+                            + '<i class="fa fa-circle fa-stack-2x fa-inverse"></i>'
+                            + '<i class="fa fa-search fa-stack-1x"></i>'
+                            + '</span></div>'
+                            + '<div class="ban">'
+                            + '<span class="fa-stack fa-lg">'
+                            + '<i class="fa fa-circle fa-stack-2x fa-inverse"></i>'
+                            + '<i class="fa fa-ban fa-stack-2x text-danger"></i>'
+                            + '</span></div>'
+                            + '</div>'
+
+                $(self.nodeRoot).remove('div.summaryMenu');
+                $(self.nodeRoot).append(html);
+                $(self.nodeRoot).find('div.summaryMenu').css({'top' : y, 'right' : x});
+
+
+                $(self.nodeRoot).find('div.summaryMenu div.view').on('click', function() {
+                    var $checkboxElement = $("#" + $(component).parent(".checkChains").attr("for"));
+                    var targetChain = $checkboxElement.attr('id').split("-")[0];
+
+                    if($(self.nodeRoot).find('#arDockSQ_' + targetChain).length > 0) {
+                        console.log("fastawidget already displayed");
+                        return;
+                    }
+                    console.log("--->");console.dir(self.nodeRoot);
+                    var windowSeq = fastaWidget.new(
+                        {   pdbObj : self.pdbObj,
+                            chain : targetChain, node : self.nodeRoot
+                        });
+                    windowSeq._draw({ shape : [90, 402]});
+                });
+
+            $(self.nodeRoot).find('div.summaryMenu div.ban').on('click', function() {
+
+
+                if (self.NGLComponent === null) {
+                    self.NGLComponent = WidgetsUtils.tabNGLComponents[self.UUID];
+                }
+
+                //Check if representation'change is ongoing
+                if (WidgetsUtils.tabNGLComponents[self.UUID].changeReprOngoing) {
+                    WidgetsUtils.magnifyError("Can not remove a chain when a representation change is ongoing !", 3000, $('#tabs'), {
+                        top: "-8px",
+                        right: "0px"
+                    });
+                    return false;
+                }
+
+                var $checkboxElement = $("#" + $(component).parent(".checkChains").attr("for"));
+                var targetChain = $checkboxElement.attr('id').split("-")[0];
+
+                if ($("#" + $(component).parent(".checkChains").attr("for")).prop("checked")) {
+
+                    //Uncheck chain
+                    $("#" + $(component).parent(".checkChains").attr("for")).prop("checked", false);
+
+                    //Change background color of the label
+                    $(component).parent(".checkChains").css("background-color", "dimgray");
+
+                    //Remove chain from representation
+                    WidgetsUtils.removeAddChain(self.UUID, targetChain, false);
+
+
+                } else {
+                    //Check chain
+                    $("#" + $(component).parent(".checkChains").attr("for")).prop("checked", true);
+
+                    //Change background color of the label
+                    $(component).parent(".checkChains").css("background-color", "white");
+
+                    //Add chain to representation
+                    WidgetsUtils.removeAddChain(self.UUID, targetChain, true);
+
+                }
+            });
+
+
+
+/*
                 if(self.NGLComponent === null){
                     self.NGLComponent = WidgetsUtils.tabNGLComponents[self.UUID];
                 }
@@ -933,6 +1047,7 @@ PdbSummary.prototype.setNavigationRules = function() {
                     WidgetsUtils.removeAddChain(self.UUID, targetChain, true);
 
                 }
+    */
             })
         ;
     });
@@ -986,7 +1101,7 @@ PdbSummary.prototype.setNavigationRules = function() {
                                    if( valFor.includes("surface") ){ $(this).find('.overlay').trigger("click") }
                                 });
                             }
-
+                            // triggered by clic on go
                             self.probeStep(chains);
 
                             //Change name of the job tab buton
@@ -1022,8 +1137,14 @@ PdbSummary.prototype.setNavigationRules = function() {
 
 
 PdbSummary.prototype.probeStep = function(chains, probeLeft) {
+    //console.log("OUHOU " + probeLeft);
+    console.log("node ref");
+
+
     //Handle Safari
-    if(probeLeft === undefined){ probeLeft = null }
+    if(probeLeft === undefined){
+        probeLeft = null;
+    }
 
     var self = this;
 
@@ -1031,13 +1152,16 @@ PdbSummary.prototype.probeStep = function(chains, probeLeft) {
 
     var timeIncrease = 50;
 
-    //First Step from PDBSUMMARY
-    if(this.probeStart === false){
+    console.log("This is probeStep");
 
+    //First Step from PDBSUMMARY
+    if(this.probeStart === false){ // 1st ardock Chunck signal
+        console.log("This is probeStep, premier remplissage");
         //Say probe operation is starting
         this.probeStart = true;
 
         //Find Span submit
+        //$(this.node).find(".submitChainsContainer span").first();
         this.$submitText = $(this.node).find(".submitChainsContainer span").first();
 
         //Fill in array all the elements to fill in color
@@ -1113,6 +1237,8 @@ PdbSummary.prototype.probeStep = function(chains, probeLeft) {
                     var waitLoader = new Loader({root: self.$submitText});
                     waitLoader.display();
                     $(waitLoader.node).css({ borderRadius: "50%" });
+                    console.log("-->Max iteration reached -->");
+                    //self.$submitText.text(self.probeMax);
                 }
 
             }, time);
@@ -1148,17 +1274,22 @@ PdbSummary.prototype.probeStep = function(chains, probeLeft) {
 
             for(a = 0; a <= len ; a++){
                 timeOut += timeIncrease;
-
                 progress(timeOut, a, len, $el, $layProgress);
             }
         }
+    } else {//Others step(s) from ardockchunck
 
-    }else{//Others step(s) from ardockchunck
+        console.log("this is not 1st probeStep")
+        console.log("probe Left is " + probeLeft);
+
         if(probeLeft === 0){
             //Change text to "1"
-            this.$submitText.text("1");
+            //this.$submitText.text("1");
             //Say "End"
-            setTimeout(function(){ self.$submitText.text("End"); },1500);
+            setTimeout(function(){
+                self.$submitText.text("Surface probed");
+                $(self.node).find('div.submitChains').first().css({'padding-top' : '8px', 'font-size' : '0.8em'});
+            }, 1000);
         }else{
             if(self.nbStep === 2){
                 //Clear all timeout for the progress bar
@@ -1174,8 +1305,12 @@ PdbSummary.prototype.probeStep = function(chains, probeLeft) {
                 //},timeIncrease);
             }
 
-            //Change text to "n probe left"
-            this.$submitText.text(probeLeft + 1);
+            console.log("Change text to n probe left");
+            this.$submitText.text(probeLeft);
+            $(self.node).find('div.submitChains').first().css({'font-size' : '1.75em', 'padding-top' : '7px'});
+
+            var waitLoader = new Loader({root: self.$submitText});
+            waitLoader.display();
         }
     }
 
@@ -1188,10 +1323,10 @@ PdbSummary.prototype.probeStep = function(chains, probeLeft) {
 var SelectRepresentation = function(opt) {
 
     var nArgs = opt ? opt : {};
-
-    Core.call(this, nArgs);
-
     var self = this;
+    createAndRegister(self, nArgs);
+
+
 
     this.UUID = nArgs.UUID;
     this.pdbObj = nArgs.pdbObj;
@@ -1307,10 +1442,10 @@ SelectRepresentation.prototype.setNavigationRules = function() {
 var PdbThreeD = function(opt){
 
     var nArgs = opt ? opt : {};
-
-    Core.call(this, nArgs);
-
     var self = this;
+    createAndRegister(self, nArgs);
+
+
 
     this.stage = null;
     this.canvas = null;
@@ -2480,7 +2615,7 @@ WidgetsUtils = {
             var nglComponent = WidgetsUtils.tabNGLComponents[data.uuid];
 
             nglComponent.stage.signals.clicked.removeAll();
-
+            nglComponent.probeMax = data.hasOwnProperty('probeMax') ? data['probeMax'] : 3 ;
             nglComponent.probeStart = true;
             nglComponent.probe++;
 
@@ -2492,24 +2627,32 @@ WidgetsUtils = {
 
             //Fill objectAtoms to nglComponent
             nglComponent.objectAtoms = objectAtoms;
-
+            console.dir(data);
+            console.log("probeLeft Count ==> " + data.left);
+            console.dir(this);
             //Handle probe left, waiting backend upgrade
-            if(data.left){
+            if(data.hasOwnProperty('left')) {
+                console.log("We have dataleft  --> " + data.left);
                 nglComponent.probeLeft = data.left;
-            }else{
+                console.log("setting  nglComponent.probeLeft  to " + nglComponent.probeLeft);
+            } else {
+                console.log("We have no dataleft using 3 - " + nglComponent.probe);
                 nglComponent.probeleft = 3 - nglComponent.probe;
+                //nglComponent.probeleft = data.probeMax - nglComponent.probe;
             }
 
             //Get Job Object by uuid to signal Probe operation is starting
-            try{
-                WidgetsUtils.tabJobs[data.uuid].listWidgets.pS.probeStep(nglComponent.currentChainsVisible, nglComponent.probeleft);
-            }catch(e){
+            try {
+                console.log("calling probeStep with [" + nglComponent.currentChainsVisible + ',' + nglComponent.probeLeft + ']');
+                WidgetsUtils.tabJobs[data.uuid].listWidgets.pS.probeStep(nglComponent.currentChainsVisible, nglComponent.probeLeft);
+                //WidgetsUtils.tabJobs[data.uuid].listWidgets.pS.probeStep(nglComponent.currentChainsVisible, data.probeleft);
+            } catch(e) {
                 console.warn(e);
             }
 
             //Set the time when display the representation
             var timeOut = nglComponent.probe === 1 ? 0 : 1500 * nglComponent.probe;
-
+            //var timeOut = 1;
             //Display the representation
             setTimeout(function(){
                 //Create the SchemeId with coloring bFactor/tempFactor
@@ -2532,7 +2675,7 @@ WidgetsUtils = {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+// WidgetsUtils.W_counts++;
 ////////////////////////////////////////////////////////////////////////////////// MODULES EXPORT /////////////////////////////////////////////////////////////////////////////////////////
 module.exports = {
     header : function(opt){ var obj = new Header(opt);return obj; },

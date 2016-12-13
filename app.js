@@ -11,15 +11,12 @@ var socket = io.connect('http://ardock.ibcp.fr');
 
 
 
-var pdbLib = require("./pdb-lib"); // Devel version
+var pdbLib = require("pdb-lib");
 var stream = require('stream');
 var events = require('events');
-var widgets = require('./widgets');
+var widgets = require('./web/js/widgets');
 
-DVL = require('./msa');
 //var oParticule = require('./js/omg-particle');
-
-
 
 var css = require('./app.css');
 var bootstrap = require('bootstrap');
@@ -85,9 +82,9 @@ socket.on("arDockStart", function (data) {
 $(function () {
 
 
-    var fastaWidget = require('./Alignment.js');
+    //var fastaWidget = require('./Alignment.js');
     //fastaWidget.test();
-    fastaWidget.testSolo();
+    //fastaWidget.testSolo();
 
     //Upload Change
     var upload = function (input, widget) {

@@ -3,10 +3,10 @@
 @import url("node_modules/datatables/media/css/jquery.dataTables.min.css");
 @import url("node_modules/font-awesome/css/font-awesome.min.css");
 
-@import url("widgets.css");
-@import url("arDockDL.css");
-@import url("arDockDT.css");
-@import url("arDockSQ.css");
+@import url("web/css/widgets.css");
+@import url("web/css/arDockDL.css");
+@import url("web/css/arDockDT.css");
+@import url("web/css/arDockSQ.css");
 
 @font-face {
     font-family: "gravitybold";
