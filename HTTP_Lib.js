@@ -48,6 +48,13 @@ var ioPdbSubmissionRoute = function (data, uuid, socket) {
     });
 };
 
+
+var ioKeySubmissionRoute = function (key, socket) {
+    console.log('test ioKeySubmissionRoute ' + key);
+}
+
+
+
 var httpStart = function(bean, bIo, bTest, bRest) {
 
     var emitter = new events.EventEmitter();
@@ -151,6 +158,9 @@ var ioActivate = function (fn1) {
             s.push(null);
             ioPdbSubmissionRoute(s, uuid, socket);
         });
+        socket.on('keySubmission', function (key) {
+            ioKeySubmissionRoute(key, socket);
+        });
     });
 }
 
@@ -224,6 +234,7 @@ var restRoute = function(req, res) {
 module.exports = {
     setRestCallBack : function (fn) { restCallBack = fn;},
     setIoPdbSubmissionCallback : function (fn_io) { ioPdbSubmissionRoute = fn_io;},
+    setIoKeySubmissionCallback : function (fn_io) { ioKeySubmissionRoute = fn_io;},
     //restRoute : restRoute,
     ioActivate : ioActivate,
     baseTemplateGenerate : baseTemplateGenerate,

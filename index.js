@@ -4,7 +4,7 @@ var events = require('events');
 var bodyParser = require('body-parser');
 
 var fs = require('fs');
-var jsonfile = require('jsonfile')
+var jsonfile = require('jsonfile');
 var bTest = false;
 var bHttp = false;
 var bSlurm = false;
@@ -12,6 +12,7 @@ var bPdb = false;
 var configFile;
 var bean, fPdb;
 var pdbChainList = [];
+var key;
 var probeMax = 20;
 var bLocal = false;
 var bIo = false;
@@ -126,18 +127,28 @@ var ioPdbSubmissionCallback = function (data, uuid, socket){
     });
 };
 
-// TO DO
-//process.on('SIGINT', function () {
-//    console.log("Shutting down nslurm processes");
-//    process.exit(0);
-    //HPC_Lib.close();
-
-    //server.close(function () {
-    //    process.exit(0);
-    //});
-//});
-
-
+// route to handle socket io "keySubmission" packet
+var ioKeySubmissionCallback = function (key, socket) {
+    PDB_Lib.keyRequest(key)
+    .on('completed', function (pdb) {
+        //console.log(pdb.model(1).dump());
+        console.log('All jobs are completed');
+        socket.emit("arDockRestore", { 'obj' : pdb.model(1).dump(), 'left' : 0, 'uuid' : key });
+    })
+    .on('errJob', function () {
+        console.log('Error during calculations');
+        socket.emit('arDockRestoreError', { 'uuid' : key });
+    })
+    .on('notFinished', function (jobStatus) {
+        //console.log(jobStatus);
+        console.log('Some jobs are not finished');
+        socket.emit('arDockRestoreBusy', { 'uuid' : key, 'status' : jobStatus});
+    })
+    .on('errKey', function () {
+        console.log('This key does not exist');
+        socket.emit('arDockRestoreUnknown', {'uuid' : key});
+    });
+}
 
 var parseConfig = function (fileName){
     var obj = jsonfile.readFileSync(fileName);
@@ -173,6 +184,10 @@ process.argv.forEach(function (val, index, array){
             throw("usage : ");
         probeMax = parseInt(array[index + 1]);
     }
+    if (val === '-k') {
+        if (! array[index + 1]) throw 'usage : ';
+        key = array[index + 1];
+    }
 });
 
 if (!bean) {
@@ -206,7 +221,7 @@ if (bHttp || bIo || bRest) {
                     PDB_Lib.arDock(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}, bGpu).on('jobCompletion', function(res) {
                         console.log("Results of a slurm and pdb custom");
                         PDB_Lib.bFactorUpdate(pdbObj, res);
-                        console.log(pdbObj.model(1).dump());
+                        //console.log(pdbObj.model(1).dump()); // to write the results (PDB)
                     });
                 else
                     HPC_Lib.slurmTest()
@@ -214,21 +229,21 @@ if (bHttp || bIo || bRest) {
                             console.log("Results of a slurm and pdb test");
                             //console.log(res);
                             PDB_Lib.bFactorUpdate(pdbObj, res);
-                            console.log(pdbObj.model(1).dump());
+                            //console.log(pdbObj.model(1).dump()); // to write the results (PDB)
                     });
             });
         } else {
             HPC_Lib.slurmTest()
             .on('jobCompletion', function(res) {
                     PDB_Lib.bFactorUpdate(pdbObj, res);
-                    console.log(pdbObj.model(1).dump());
+                    //console.log(pdbObj.model(1).dump()); // to write the results (PDB)
                 });
             console.log("No pdb provided slurm waiting");
         }
     });
 } else if (bPdb) {
     var claimSuccess = function(pdbObj) {
-        console.log(pdbObj.dump() + "Succesfully parsed " + pdbObj.selecSize() + ' atom record(s)');
+        console.log(pdbObj.dump() + "Successfully parsed " + pdbObj.selecSize() + ' atom record(s)');
     };
     if (!fPdb && !bTest)
         throw 'If you set up pdb service alone, you must provide a file or call for a test';
@@ -237,5 +252,54 @@ if (bHttp || bIo || bRest) {
     else
         PDB_Lib.pdbLoad(bTest).on('pdbLoad', claimSuccess);
 }
+
+
+
+
+
+
+
+
+// for tests of the request by key
+if (key) {
+    PDB_Lib.keyRequest(key)
+    .on('completed', function (pdb) {
+        console.log(pdb.model(1).dump());
+        console.log('All jobs are completed');
+    })
+    .on('errJob', function () {
+        console.log('Error during calculations');
+    })
+    .on('notFinished', function (jobStatus) {
+        //console.log(jobStatus);
+        console.log('Some jobs are not finished');
+    })
+    .on('errKey', function () {
+        console.log('This key does not exist');
+    });
+}
+
+
+
+
+
+// if stopping the process using Ctrl + C
+process.on('SIGINT', function () {
+    console.log(' Try to close the sbatch processes...');
+    HPC_Lib.slurmStop()
+    .on('cleanExit', function () {
+        process.exit(0);
+    })
+    .on('exit', function () {
+        process.exit(0);
+    })
+    .on('errScancel', function () {
+        process.exit(1);
+    })
+    .on('errSqueue', function () {
+        process.exit(1);
+    });
+});
+
 
 return;
