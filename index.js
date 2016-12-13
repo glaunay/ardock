@@ -4,7 +4,7 @@ var events = require('events');
 var bodyParser = require('body-parser');
 
 var fs = require('fs');
-var jsonfile = require('jsonfile')
+var jsonfile = require('jsonfile');
 var bTest = false;
 var bHttp = false;
 var bSlurm = false;
@@ -12,6 +12,7 @@ var bPdb = false;
 var configFile;
 var bean, fPdb;
 var pdbChainList = [];
+var key;
 var probeMax = 20;
 var bLocal = false;
 var bIo = false;
@@ -124,7 +125,6 @@ var ioPdbSubmissionCallback = function (data, socket){
 };
 
 
-
 var parseConfig = function (fileName){
     var obj = jsonfile.readFileSync(fileName);
     return obj;
@@ -158,6 +158,10 @@ process.argv.forEach(function (val, index, array){
         if (! array[index + 1])
             throw("usage : ");
         probeMax = parseInt(array[index + 1]);
+    }
+    if (val === '-k') {
+        if (! array[index + 1]) throw 'usage : ';
+        key = array[index + 1];
     }
 });
 
@@ -223,6 +227,35 @@ if (bHttp || bIo || bRest) {
     else
         PDB_Lib.pdbLoad(bTest).on('pdbLoad', claimSuccess);
 }
+
+
+
+
+
+
+
+
+// for tests of the request by key
+if (key) {
+    PDB_Lib.keyRequest(key)
+    .on('completed', function (pdb) {
+        console.log(pdb.model(1).dump());
+        console.log('All jobs are completed');
+    })
+    .on('errJob', function () {
+        console.log('Error during calculations');
+    })
+    .on('notFinished', function (jobStatus) {
+        //console.log(jobStatus);
+        console.log('Some jobs are not finished');
+    })
+    .on('errKey', function () {
+        console.log('This key does not exist');
+    });
+}
+
+
+
 
 
 // if stopping the process using Ctrl + C

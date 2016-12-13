@@ -1,7 +1,11 @@
 var pdbLib = require("pdb-lib");
+var fs = require('fs');
+var jsonfile = require('jsonfile');
 var events = require('events');
 var bean;
 var uuid = require('node-uuid');
+
+
 
 var pdbLoad = function(bTest, opt) {
     var emitter = new events.EventEmitter();
@@ -59,65 +63,7 @@ var pdbLoad = function(bTest, opt) {
     return emitter;
 }
 
-// //sending an arDock task to cluster, return emitter
-// var arDock = function (jobManager, opt) {
-//     var emitter = new events.EventEmitter();
-//     var taskId = 'ardockTask_' + uuid.v4();
-//     //console.dir(jobManager);
-//     var pdbFilePath = jobManager.cacheDir() + '/' + taskId + '.pdb';
 
-//     var pdbObj = opt.pdbObj; // implement iosocket interface
-
-//     pdbLib.fWrite(pdbObj, pdbFilePath)
-//     .on("saved", function(){
-//         emitter.emit('go', taskId, probeMax);
-//         bean.scriptVariables.probeList.forEach(function(probe, i, array) {
-//             if (i >= probeMax) return;
-
-//             var probePdbFile = bean.scriptVariables.DATA_DIR + '/' + probe + '.pdb';
-//             var jName = taskId + '_hex_' + (i + 1);
-//             var scriptFile = bean.scriptVariables.BIN_DIR + '/run_ar_dock_WEB.sh';
-//             var exportVar = { // List of variables which will be exported in the sbatch
-//                     probePdbFile : probePdbFile,
-//                     targetPdbFile : pdbFilePath
-//             };
-//             if(jobManager.isEmulated()) {
-//                 jName = taskId + '_emul_' + (i + 1);
-//                 exportVar = { 'residueHitsDir' : bean.scriptVariables.TEST_DIR + '/residue_hits' };
-//                 scriptFile = bean.scriptVariables.BIN_DIR + '/run_ar_dock_EMUL.sh';
-//             }
-//             var j = jobManager.push({ 'id' : jName,
-//                 'script' : scriptFile,
-//                 'nCpu' : 8, 'tWall' : '0-00:15',
-//                 'gid' : 'ws_users', 'uid' : 'ws_ardock',
-//                 'exportVar' : exportVar
-//             });
-//             j.on('completed', function(stdout, stderr, jobObject){
-//                 if(stderr) {
-//                     stderr.on('data', function(buf){
-//                         console.log("stderr content:");
-//                         console.log(buf.toString());
-//                     });
-//                 }
-//                 var results = '';
-//                 stdout.on('data', function(buf){
-//                     results += buf.toString();
-//                 });
-//                 stdout.on('end', function (){
-//                     var jsonRes = JSON.parse(results);
-//                     emitter.emit('jobCompletion', jsonRes, jobObject);
-//                   //  if(cnt === 0)
-//                   //     emitter.emit('allComplete');
-//                 });
-//             //jobManager.jobsView();
-//             })
-//             .on('error',function(e, j){
-//                 console.log("job " + j.id + " : " + e);
-//             });
-//         });
-//     });
-//     return emitter;
-// }
 
 
 // configure the dictionary to pass to the push function
@@ -234,9 +180,201 @@ var bFactorUpdate = function(pdbObj, dataObj) {
 };
 
 
+
+
+/*
+* Check the status of an ardock job, by :
+*   - first, checking if val is a directory
+*   - then check if .out file exists in the directory
+*   - then check if .out file is empty or not
+*   - finally check the JSON format of the .out file
+*/
+var statusJob_ardock = function (jobStatus, workDir, val) {
+    if (! jobStatus) throw 'No jobStatus specified';
+    if (! workDir) throw 'No workDir specified';
+    if (! val) throw 'No value specified';
+
+    // check if val is an ardock directory
+    var regDir = /^ardockTask_[-0-9a-zA-Z]{1,}_hex_[0-9]{1,}$/;
+    if (val.match(regDir) === null) return jobStatus;
+
+    var outFile = workDir + '/' + val + '/' + val + '.out';
+    // check the existence of the .out file
+    try { var stat = fs.statSync(outFile); }
+    catch (err) {
+        // no .out file > pending status
+        jobStatus.pending = jobStatus.pending.concat(val);
+        return jobStatus;
+    }
+    // check the size of the .out file
+    if (stat.size === 0) {
+        // .out file is empty > running status
+        jobStatus.running = jobStatus.running.concat(val);
+        return jobStatus;
+    }
+    // check the good format of the .out file
+    try { var dict = jsonfile.readFileSync(outFile); }
+    catch (e) {
+        // .out file is not a JSON format (writing not finished for ex.) > running status
+        jobStatus.running = jobStatus.running.concat(val);
+        return jobStatus;
+    }
+    // else > completed status
+    jobStatus.completed = jobStatus.completed.concat(val);
+    return jobStatus;
+}
+
+
+/*
+* Make a squeue command to know the jobs still running, pending or else
+*/
+var squeue = function () {
+    var emitter = new events.EventEmitter();
+    var exec_cmd = require('child_process').exec;
+    var squeuePath = bean.managerSettings['slurmBinaries'] + '/squeue';
+
+    exec_cmd(squeuePath + ' -o \"\%j \%t\"', function (err, stdout, stderr) {
+        if (err) {
+            console.log('Error : ' + err);
+            return;
+        }
+        squeueRes = ('' + stdout).replace(/\"/g, '');
+        emitter.emit('end', squeueRes);
+    });
+    return emitter;
+}
+
+
+/*
+* For each job of jobList, check in the queue if we found them.
+* In the case one (at least) is missing, return false. 
+* Otherwise, return true.
+*/
+var checkQueue = function (jobList, squeueRes) {
+    if (! jobList) throw 'No jobStatus specified';
+    if (! squeueRes) throw 'No squeueRes specified';
+    var bError = false;
+
+    // for running jobs
+    jobList.forEach(function (job) {
+        console.log(job)
+        var reg = new RegExp(job + ' ([A-Z]{1,2})\n');
+        if (! reg.test(squeueRes)) { // the job is not in the queue
+            console.log('Error : the job ' + job + ' is not finished AND is not in the queue...');
+            bError = true;
+        }
+        // if we found the job in the queue, possibility to access the status
+        //status = reg.exec(squeueRes);
+        //console.log('status >' + status[1] + '<');
+    });
+
+    if (bError) return false;
+    else return true;
+}
+
+
+/*
+* Collect the rawCounts data in all the .out files, in a unique variable
+*/
+var collectOutFiles = function (workDir, jobsArray) {
+    if (! workDir) throw 'No workDir specified';
+    if (! jobsArray) throw 'No jobsArray specified';
+
+    var allProbes = { 'rawCounts' : [] };
+    jobsArray.forEach(function (job) {
+        var outFile = workDir + '/' + job + '/' + job + '.out';
+        var oneProbe = jsonfile.readFileSync(outFile);
+        if (! oneProbe.rawCounts) throw 'No rawCounts key in the file ' + outFile;
+        allProbes.rawCounts = allProbes.rawCounts.concat(oneProbe.rawCounts);
+    });
+    return allProbes;
+}
+
+
+// /*
+// * Catch the pdb file by the pdb-lib parser
+// */
+// var catchPdbFile = function (workDir, workDirContent) {
+//     if (! workDir) throw 'No workDir specified';
+//     if (! workDirContent) throw 'No workDirContent specified';
+//     var emitter = new events.EventEmitter();
+//     var regPDBfile = /^ardockTask_[-0-9a-zA-Z]{1,}.pdb$/;
+//     var pdb;
+//     var pdbName = false; // to know if we found the PDB file
+
+//     workDirContent.forEach(function (val) {
+//         if (val.match(regPDBfile) === null) return;
+//         else pdbName = val;
+//     });
+
+//     if (! pdbName) throw 'No PDB file in the working directory';
+//     pdbLib.parse({file : workDir + '/' + pdbName}).on('end', function (obj) {
+//         obj.model(1).bFactor(0);
+//         emitter.emit('end', obj);
+//     });
+//     return emitter;
+// }
+
+
+/*
+* On a key request
+*/
+var keyRequest = function (key) {
+    if (! key) throw 'No key specified';
+
+    var emitter = new events.EventEmitter();
+    var workDir = bean.managerSettings.cacheDir + '/' + key;
+    var jobStatus = { 'completed' : [], 'running' : [], 'pending' : [] };
+    var regPDBfile = /^ardockTask_[-0-9a-zA-Z]{1,}.pdb$/; // for the PDB file
+    var pdbName = false; // to know if we found the PDB file
+
+    // squeue command before anyting else
+    squeue().on('end', function (squeueRes) {
+        // next line only for tests
+        //squeueRes += " ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_7 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_10 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_11 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_12 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_13 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_14 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_15 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_16 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_17 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_18 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_19 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_20 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_21 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_22 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_23 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_24 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_25 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_3 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_4 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_5 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_6 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_8 AZ\n"
+
+        // lists all the files and directories in the workDir directory
+        fs.readdir(workDir, function (err, workDirContent) {
+            if (err) {
+                try { var stat = fs.statSync(bean.managerSettings.cacheDir); }
+                catch (e) { throw 'Error with the cacheDir path in package.json : ' + e; }
+                emitter.emit('errKey');
+                return;
+            }
+
+            workDirContent.forEach(function (val) {
+                jobStatus = statusJob_ardock(jobStatus, workDir, val); // update the job status
+                if (val.match(regPDBfile) !== null) pdbName = val; // if we find the PDB file
+            });
+
+            // if jobs are all completed
+            if (jobStatus.running.length === 0 && jobStatus.pending.length === 0) {
+                var dict = collectOutFiles(workDir, jobStatus.completed); // all results in a unique dictionnary
+                if (! pdbName) throw 'No PDB file in the working directory'; // check the existence of a PDB file
+                pdbLib.parse({file : workDir + '/' + pdbName}).on('end', function(pdb) { // parse the PDB file
+                    pdb.model(1).bFactor(0);
+                    bFactorUpdate(pdb, dict);
+                    emitter.emit('completed', pdb);
+                });
+            // if jobs are in the queue
+            } else if (checkQueue(jobStatus.running, squeueRes) && checkQueue(jobStatus.pending, squeueRes)) {
+                emitter.emit('notFinished', jobStatus);
+            } else {
+                emitter.emit('errJobs');
+            }
+        });
+    });
+    return emitter;
+}
+
+
+
+
+
 module.exports = {
     arDock : arDock,
     pdbLoad : pdbLoad,
+    keyRequest : keyRequest,
     bFactorUpdate : bFactorUpdate,
     configure : function(data){ probeMax = data.probeMax; bean = data.bean;}
 };
