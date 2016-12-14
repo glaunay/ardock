@@ -646,7 +646,7 @@ canvas{
     height: 100%;
 }
 
-.test-pdb {
+.key-submiter {
     left: 27vmin;
 }
 
@@ -947,3 +947,41 @@ canvas{
         padding-left: 60px;
     }
 }
+
+
+div.blocker {
+    z-index: 99999;
+    color : rgba(102,102,102, 0.5);
+    width: 100%;
+    height : 100%;
+}
+div.keyBox {
+    width : 325px;
+    background: whitesmoke;
+    padding : 5px;
+    border-radius : 5px 5px 5px 5px;
+    position: absolute;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    max-height: 140px;
+}
+
+div.keyBody {
+    padding: 13px 7px 5px 7px;
+}
+div.keyHead {
+    height : 1.75em;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.39);
+}
+div.keyHead span {
+    cursor : pointer;
+}
+div.keyFooter {
+    height : 3.0em;
+    padding : 7px 7px 7px 7px;
+}
+
+

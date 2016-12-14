@@ -167,9 +167,9 @@ var UploadBox = function (opt) {
                                 + '<div class="drop-text">'
                                         + '<img src="assets/img/drop.png" alt="Drag and drop available">'
                                 + '</div>'
-                                + '<div class="test-pdb dropzone-btn">'
+                                + '<div class="key-submiter dropzone-btn">'
                                     + '<div class="dropzone-btn-border">'
-                                        + '<img src="assets/img/test-pdb-1hv4.png" alt="Test 1hv4.pdb">'
+                                        + '<img src="assets/img/keySubmission.png" alt="Key submit">'
                                         + '<div class="dropzone-btn-overlay"></div>'
                                     + '</div>'
                                 +'</div>'
@@ -224,8 +224,15 @@ var UploadBox = function (opt) {
 
     //###########################################################
 
-
-
+    $(".key-submiter").click(function(e){
+        console.log("toto");
+        //Handle compatibility browser
+        if(!WidgetsUtils.getBrowserCompatibility()){
+            $(".info").text('Sorry, your browser is not compatible with some WEBGL features. Please change to an updated version of "Chrome" or "Firefox" !');
+            return false;
+        }
+        var blocker = keySubmitBox();
+    });
 
 /* All test button disable to replace by restore session
     //Click button TEST PDB, ajax get a streamed pdb file
@@ -316,6 +323,57 @@ var Loader = function(opt){
 
 Loader.prototype = Object.create(Core.prototype);
 Loader.prototype.constructor = Loader;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////// RESTORE COMPONENTS AND LOGIC////////////////////////////////////////////////////////////////////////////////////////
+
+WidgetsUtils.socketApp.on("arDockRestore", function(data){
+    // { 'obj' : pdb.model(1).dump(), 'left' : 0, 'uuid' : key }
+});
+WidgetsUtils.socketApp.on('errJob', function (data) {
+    //{ 'uuid' : key }
+        console.log('Error during calculations');
+    })
+WidgetsUtils.socketApp.on('notFinished', function (data) {
+    //{ 'uuid' : key, 'status' : jobStatus}
+        //console.log(jobStatus);
+        console.log('Some jobs are not finished');
+    })
+WidgetsUtils.socketApp.on('errKey', function () {
+    //{'uuid' : key}
+        console.log('This key does not exist');
+    });
+
+var keySubmitBox = function (tabRef) {
+    $('body').prepend('<div class="blocker">'
+        + '<div class="keyBox">'
+        + '<div class="keyHead"><span><i class="fa fa-remove fa-pull-right"></i></span></div>'
+        + '<div class="keyBody">'
+        + '<div class="input-group">'
+        + '<span class="input-group-addon"><i class="fa fa-key fa-fw"></i></span>'
+        + '<input class="form-control" type="text" placeholder="Enter a job identifier">'
+        + '</div>'
+        + '</div>'
+        + '<div class="keyFooter"><div class="pull-right btn btn-primary">Submit</div></div>'
+        + '</div>'
+        + '</div>');
+    $('body div.blocker .keyHead span').on('click',function(){
+        $('body div.blocker .keyBox').fadeTo(500, 0.0,function(){
+            $('body div.blocker').fadeTo(250, 0.0,function(){$('body div.blocker').remove();});
+        });
+    });
+    $('body div.blocker div.keyFooter div.btn').on('click', function() {
+        console.log("clong");
+        var key = $('body div.blocker .keyBody input').val();
+        restore(key);
+    });
+}
+var restore = function(key) {
+    console.log("emitting key " + key );
+    WidgetsUtils.socketApp.emit("keySubmission", key);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////////// DISPLAY TABS /////////////////////////////////////////////////////////////////////////////////
@@ -2056,27 +2114,27 @@ WidgetsUtils = {
 
                     WidgetsUtils.tabNGLComponents[uuid] = { stage: stage,
                                                             structureComponent: structureComponent,
-                                                            baseRepresentation: listRepresentationAvailable[rType],
+                                                            baseRepresentation: listRepresentationAvailable[rType], // On-screen representation
                                                             listRepresentationAvailable : listRepresentationAvailable,
                                                             baseChain: pdbObj.model(1).listChainID(),
                                                             currentChainsVisible: pdbObj.model(1).listChainID(),
                                                             changeReprOngoing: false,
                                                             addRemoveReprOngoing: 0,
-                                                            lastSchemeId: schemeId,
+                                                            lastSchemeId: schemeId, // current whole protein color
                                                             storeDiv: storeDiv,
                                                             $canvas: canvas,
-                                                            lastSelection: ":",
+                                                            lastSelection: ":", // ':' means all in NGL selection language
                                                             probe: 0,
                                                             probeLeft: 0,
                                                             probeSchemeId: null,
                                                             probeStart: false,
                                                             probeEnd: false,
                                                             pdbObj: pdbObj,
-                                                            objectAtoms: null,
+                                                            objectAtoms: null, // Dictionnary w/ key as ATOM serial
                                                           };
                     stage.centerView();
 
-                    WidgetsUtils.setNGLClickedFunction(uuid);
+                    WidgetsUtils.setNGLClickedFunction(uuid); // Example of coloration on-click
                     WidgetsUtils.setNGLHoveredFunction(uuid);
 
                     //console.log(WidgetsUtils.tabNGLComponents[uuid]);
@@ -2234,6 +2292,8 @@ WidgetsUtils = {
     *@uuid (String represent the key provide by Job object wich match with an Ardock nglComponent object which is in tabNGLComponents)
     *@afterProbe (Boolean for get custom colorscheme after probe operation, if undefined === false)
     *
+    GL NOTE this is the template for implementing coloration event
+
     */
     setNGLClickedFunction : function(uuid, afterProbe){
         //Handle Safari
@@ -2263,8 +2323,12 @@ WidgetsUtils = {
                 });
 
                 //Set Range
-                if(afterProbe){ additionalRange = {chainName: chainName, resno: resno, color: "0xffc0cb"} }//pink
-                else{ additionalRange = [["red", ":" + chainName + " and " + resno]] }
+                if(afterProbe){
+                    additionalRange = {chainName: chainName, resno: resno, color: "0xffc0cb"}
+                    }//pink
+                else{
+                    additionalRange = [["red", ":" + chainName + " and " + resno]] //Specify as many color and chain--residue coordinates as needed
+                }
 
             }
 
