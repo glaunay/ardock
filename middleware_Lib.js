@@ -363,7 +363,7 @@ var keyRequest = function (key) {
                 pdbLib.parse({file : workDir + '/' + pdbName}).on('end', function(pdb) { // parse the PDB file
                     pdb.model(1).bFactor(0);
                     bFactorUpdate(pdb, dict);
-                    emitter.emit('completed', pdb);
+                    emitter.emit('completed', pdb, jobStatus.completed.length);
                 });
             // if jobs are in the queue
             } else if (checkQueue(jobStatus.running, squeueRes) && checkQueue(jobStatus.pending, squeueRes)) {
