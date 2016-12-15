@@ -11,6 +11,8 @@ var Core = require('./Core.js').Core;
 var arDockDL = require('./arDockDL.js');
 var arDockDT = require('./arDockDT.js');
 var fastaWidget = require('./arDockSQ.js');
+var pdbLib = require('pdb-lib');
+var stream = require('stream');
 
 ///////////////////////////////////////////////////////////////////////////////////////// GLOBAL //////////////////////////////////////////////////////////////
 
@@ -18,7 +20,7 @@ var fastaWidget = require('./arDockSQ.js');
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-/*
+/* setTimeout(function(){ var navDT = displayTabs.addTab(opt); }, 1000 * 1);
  *  Definition of the front-end widgets
  *
  */
@@ -225,13 +227,14 @@ var UploadBox = function (opt) {
     //###########################################################
 
     $(".key-submiter").click(function(e){
-        console.log("toto");
         //Handle compatibility browser
         if(!WidgetsUtils.getBrowserCompatibility()){
             $(".info").text('Sorry, your browser is not compatible with some WEBGL features. Please change to an updated version of "Chrome" or "Firefox" !');
             return false;
         }
-        var blocker = keySubmitBox();
+        WidgetsUtils.blocker = new keySubmitBox();
+        WidgetsUtils.blocker.display();
+        //setTimeout(function(){  WidgetsUtils.blocker.remove(); }, 1000 * 1);
     });
 
 /* All test button disable to replace by restore session
@@ -327,53 +330,153 @@ Loader.prototype.constructor = Loader;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////////// RESTORE COMPONENTS AND LOGIC////////////////////////////////////////////////////////////////////////////////////////
+var setUpRestoreConnections = function (){
 
-WidgetsUtils.socketApp.on("arDockRestore", function(data){
+// We recover the pdb w/ updated bFactor
+// we want to regiser the uuid too
+    WidgetsUtils.socketApp.on("arDockRestore", function(data){
     // { 'obj' : pdb.model(1).dump(), 'left' : 0, 'uuid' : key }
-});
-WidgetsUtils.socketApp.on('errJob', function (data) {
+        console.log("arDockRestore packet");
+        console.dir(data);
+        var displayTabs = WidgetsUtils.displayTabs;
+        var s = stream.Readable();
+        s.push(data.obj, 'utf-8');
+        s.push(null);
+        var pdbParse = pdbLib.parse({'rStream': s})
+            .on('end', function (pdbObjInp) {
+                var opt = {
+                    fileName: "restored",
+                    pdbObj: pdbObjInp,
+                    pdbText: data.obj,
+                    pUUID : data.uuid
+                    };
+                //Slide the header description once
+        if( displayTabs.nbTabs === 1 && !WidgetsUtils.header.slided ){ WidgetsUtils.header.slide() }
+        setTimeout(function(){
+            var navDT = displayTabs.addTab(opt);
+            WidgetsUtils.blocker.displaySuccess();
+        }, 1000 * 1);
+        console.log("RESTORE PDB PARSED");
+        });
+    });
+    WidgetsUtils.socketApp.on('errJob', function (data) {
     //{ 'uuid' : key }
         console.log('Error during calculations');
     })
-WidgetsUtils.socketApp.on('notFinished', function (data) {
+    WidgetsUtils.socketApp.on('notFinished', function (data) {
     //{ 'uuid' : key, 'status' : jobStatus}
         //console.log(jobStatus);
         console.log('Some jobs are not finished');
     })
-WidgetsUtils.socketApp.on('errKey', function () {
+    WidgetsUtils.socketApp.on('errKey', function () {
     //{'uuid' : key}
         console.log('This key does not exist');
     });
+    console.log('All restore connection set up');
+};
 
-var keySubmitBox = function (tabRef) {
-    $('body').prepend('<div class="blocker">'
-        + '<div class="keyBox">'
-        + '<div class="keyHead"><span><i class="fa fa-remove fa-pull-right"></i></span></div>'
-        + '<div class="keyBody">'
-        + '<div class="input-group">'
-        + '<span class="input-group-addon"><i class="fa fa-key fa-fw"></i></span>'
-        + '<input class="form-control" type="text" placeholder="Enter a job identifier">'
-        + '</div>'
-        + '</div>'
-        + '<div class="keyFooter"><div class="pull-right btn btn-primary">Submit</div></div>'
-        + '</div>'
-        + '</div>');
-    $('body div.blocker .keyHead span').on('click',function(){
-        $('body div.blocker .keyBox').fadeTo(500, 0.0,function(){
-            $('body div.blocker').fadeTo(250, 0.0,function(){$('body div.blocker').remove();});
-        });
+
+var keySubmitBox = function(tabRef) {
+    console.log("TOTO");
+    Core.call(this, {root : 'body', idNum : '-1'});
+}
+keySubmitBox.prototype = Object.create(Core.prototype);
+keySubmitBox.prototype.constructor = keySubmitBox;
+
+
+keySubmitBox.prototype.display = function(){
+    var node = this.getNode();
+    $(node).prependTo("body");
+    $(node).addClass('blocker');
+    //$('body').prepend('<div class="blocker">' + '<div class="keyBox">' + '<div class="keyHead"><span><i class="fa fa-remove fa-pull-right"></i></span></div>' + '<div class="keyBody">' + '<div class="input-group">' + '<span class="input-group-addon"><i class="fa fa-key fa-fw"></i></span>' + '<input class="form-control" type="text" placeholder="Enter a job identifier">' + '</div>' + '</div>' + '<div class="keyFooter"><div class="pull-right btn btn-primary">Submit</div></div>' + '</div>' + '</div>');
+    $(node).append('<div class="keyBox">' + '<div class="keyHead"><span><i class="fa fa-remove fa-pull-right"></i></span></div>' + '<div class="keyBody">' + '<div class="input-group">' + '<span class="input-group-addon"><i class="fa fa-key fa-fw"></i></span>' + '<input class="form-control" type="text" placeholder="Enter a job identifier">' + '</div>' + '</div>' + '<div class="keyFooter"><div class="pull-right btn btn-primary">Submit</div></div>' + '</div>');
+    //this.node = $('body > div.blocker');
+
+    var self = this;
+    $(node).find('.keyHead span').on('click', function() {
+        console.log("erRemove");
+        self.remove();
+        /* $('body div.blocker .keyBox').fadeTo(500, 0.0,function(){
+             $('body div.blocker').fadeTo(250, 0.0,function(){$('body div.blocker').remove();});
+         });*/
     });
-    $('body div.blocker div.keyFooter div.btn').on('click', function() {
-        console.log("clong");
-        var key = $('body div.blocker .keyBody input').val();
+    $(node).find('div.keyFooter div.btn').on('click', function() {
+        var key = $(node).find('.keyBody input').val();
+        console.log(">>>>>" + key);
+        if (key == null) return;
+        if (key === '') return;
+
+        self.displayLoader();
         restore(key);
     });
+};
+
+
+
+keySubmitBox.prototype.remove = function() {
+    var node = this.getNode();
+    $(node).find('.keyBox').fadeTo(500, 0.0, function() {
+        $(node).fadeTo(250, 0.0, function() {
+            $(node).remove();
+            $(window).trigger("resize");
+        });
+    });
+};
+
+keySubmitBox.prototype.displayLoader = function() {
+    var node = this.getNode();
+    this.currentKey = $(node).find('.keyBody input').val();
+    var h = $(node).find('.keyBody').height(),
+        w = $(node).find('.keyBody').width();
+    console.log(h + " ,, " + w);
+    var $kBody = $(node).find('.keyBody');
+    console.log($kBody);
+    $kBody.empty();
+    console.log($kBody);
+    $kBody.append('<div class="alert alert-info"><strong>Loading session</strong>' + ' Please wait ' + '<i class="fa fa-refresh fa-pull-right fa-spin fa-3x fa-fw"></i>' + '<span class="sr-only">Loading...</span>' + '</div>');
+    $kBody.find('i.fa-refresh').css('line-height', '24px');
+    $(node).find('.keyFooter').empty();
+    $(node).find('.keyHead').empty();
 }
+keySubmitBox.prototype.displaySuccess = function() {
+    var self = this;
+    var node = this.getNode();
+    var $kBody = $(node).find('.keyBody');
+    $kBody.empty();
+    $kBody.append('<div class="alert alert-success"><strong>Session restored!</strong>' + ' Setting display' + '<span class="keyCheck"><i class="fa fa-check fa-pull-right fa-3x"></i></span>'
+        //                   + '<span class="sr-only">Loading...</span>'
+        + '</div>');
+    $kBody.find('i.fa-check').css('line-height', '24px');
+    $(node).find('.keyFooter').empty();
+    $(node).find('.keyHead').empty();
+    $kBody.append('<div class="veil"></div>');
+
+    $kBody.find('div.veil').delay(800).animate({
+        'width': '0px'
+    }, 500, function() {
+        $kBody.find('div.veil').remove();
+        self.remove();
+    })
+}
+keySubmitBox.prototype.displayLATER = function(data)  {
+
+}
+keySubmitBox.prototype.displayERROR = function() {
+
+    }
+    /*
+        return {
+            node : $node,
+            remove : remove,
+            displayLoader : displayLOADER,
+            displaySuccess : displayOK
+        };
+    }
+    */
 var restore = function(key) {
-    console.log("emitting key " + key );
+    console.log("emitting key " + key);
     WidgetsUtils.socketApp.emit("keySubmission", key);
 }
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////////// DISPLAY TABS /////////////////////////////////////////////////////////////////////////////////
@@ -387,6 +490,8 @@ var DisplayTabs = function(opt){
     this.nbTabs = 1;
 
     //this.pdbObj = opt.pdbObj;
+
+    setUpRestoreConnections();
 
     this.scaffold('<div  class="container-fluid after-head" id="w_' + this.idNum + '">'+
                                 '<ul class="nav nav-tabs" id="tabs" style="border: none;">'+
@@ -568,7 +673,8 @@ Tab.prototype = Object.create(Core.prototype);
 Tab.prototype.constructor = Tab;
 
 //#######################################Tab.addJob#########################
-Tab.prototype.addJob = function(){
+// pUUID parameter is provided when restoring from a previous session
+Tab.prototype.addJob = function(pUUID){
 
     var self = this;
 
@@ -581,7 +687,11 @@ Tab.prototype.addJob = function(){
     $(this.navJobs).append('<div class="' + this.name + this.nbJob + ' navJob"><button class="btn job-text' + this.nbJob + '" >' + text + '</button><i class="remove-job"></i><div class="mask"></div></div>');
     $('.' + this.name + this.nbJob).insertBefore($(this.btnAddJob));
     $(this.node).append('<div class="row divJob" id="'+ this.name + this.nbJob +'"></div>');
-    var job = new Job({node: $('#' + this.name + this.nbJob)[0] ,nbJob: this.nbJob,name: this.name + this.nbJob,pdbObj: this.pdbObj, pdbText : this.pdbText});
+
+    var jobParam = {node: $('#' + this.name + this.nbJob)[0] ,nbJob: this.nbJob,name: this.name + this.nbJob,pdbObj: this.pdbObj, pdbText : this.pdbText}
+    if (pUUID !== undefined)
+        jobParam['pUUID'] = pUUID;
+    var job = new Job(jobParam);
     this.jobs.push(job);
 
     //Handle position absolute top of the workspace
@@ -673,7 +783,7 @@ var Job = function(opt){
     this.canvas = null;
     this.storeDiv = null;
     this.pdbObj = opt.pdbObj;
-    this.uuid = WidgetsUtils.getUUID();
+    this.uuid = opt.hasOwnProperty(pUUID) ? opt.pUUID : WidgetsUtils.getUUID();
     this.probe = 1;
     this.pdbOjProbeList = [];
     this.currentSchemeID = null;

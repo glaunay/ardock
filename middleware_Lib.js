@@ -197,18 +197,23 @@ var statusJob_ardock = function (jobStatus, workDir, val) {
 
     // check if val is an ardock directory
     var regDir = /^ardockTask_[-0-9a-zA-Z]{1,}_hex_[0-9]{1,}$/;
-    if (val.match(regDir) === null) return jobStatus;
-
+    if (val.match(regDir) === null) {
+        console.log('CASE1');
+        return jobStatus;
+    }
     var outFile = workDir + '/' + val + '/' + val + '.out';
+    console.log("accessing " + outFile);
     // check the existence of the .out file
     try { var stat = fs.statSync(outFile); }
     catch (err) {
+        console.log('CASE2');
         // no .out file > pending status
         jobStatus.pending = jobStatus.pending.concat(val);
         return jobStatus;
     }
     // check the size of the .out file
     if (stat.size === 0) {
+        console.log('CASE3');
         // .out file is empty > running status
         jobStatus.running = jobStatus.running.concat(val);
         return jobStatus;
@@ -216,10 +221,12 @@ var statusJob_ardock = function (jobStatus, workDir, val) {
     // check the good format of the .out file
     try { var dict = jsonfile.readFileSync(outFile); }
     catch (e) {
+        console.log('CASE4');
         // .out file is not a JSON format (writing not finished for ex.) > running status
         jobStatus.running = jobStatus.running.concat(val);
         return jobStatus;
     }
+    console.log('CASE COMPLETE');
     // else > completed status
     jobStatus.completed = jobStatus.completed.concat(val);
     return jobStatus;
@@ -248,7 +255,7 @@ var squeue = function () {
 
 /*
 * For each job of jobList, check in the queue if we found them.
-* In the case one (at least) is missing, return false. 
+* In the case one (at least) is missing, return false.
 * Otherwise, return true.
 */
 var checkQueue = function (jobList, squeueRes) {
@@ -328,11 +335,11 @@ var keyRequest = function (key) {
     var jobStatus = { 'completed' : [], 'running' : [], 'pending' : [] };
     var regPDBfile = /^ardockTask_[-0-9a-zA-Z]{1,}.pdb$/; // for the PDB file
     var pdbName = false; // to know if we found the PDB file
-
+    console.log(workDir);
     // squeue command before anyting else
     squeue().on('end', function (squeueRes) {
         // next line only for tests
-        //squeueRes += " ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_7 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_10 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_11 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_12 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_13 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_14 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_15 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_16 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_17 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_18 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_19 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_20 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_21 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_22 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_23 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_24 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_25 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_3 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_4 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_5 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_6 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_8 AZ\n"
+        squeueRes += " ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_7 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_10 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_11 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_12 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_13 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_14 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_15 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_16 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_17 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_18 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_19 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_20 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_21 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_22 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_23 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_24 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_25 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_3 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_4 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_5 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_6 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_8 AZ\n"
 
         // lists all the files and directories in the workDir directory
         fs.readdir(workDir, function (err, workDirContent) {
@@ -344,6 +351,7 @@ var keyRequest = function (key) {
             }
 
             workDirContent.forEach(function (val) {
+                console.log("Browsing :  " + workDir + " , " + val);
                 jobStatus = statusJob_ardock(jobStatus, workDir, val); // update the job status
                 if (val.match(regPDBfile) !== null) pdbName = val; // if we find the PDB file
             });

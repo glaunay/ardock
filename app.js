@@ -23,8 +23,8 @@ var bootstrap = require('bootstrap');
 
 
 ////////////////////////////////////////////////////////////////// GLOBAL ///////////////////////////////////////////////////////////////////////////////////
-var widgetsUtils = null;
-
+//var widgetsUtils = null;
+WidgetUtils = null;
 
 //////////////////////////////////////////////////////////////////  SEVER REQUEST ///////////////////////////////////////////////////////////////////////////
 socket.on('news', function (data) {
@@ -170,16 +170,24 @@ $(function () {
     displayTabs.display();
 
     //fill some component to WidgetUtils
-    widgetsUtils = displayTabs.widgetsUtils;
+   /* widgetsUtils = displayTabs.widgetsUtils;
     widgetsUtils.stream = stream;
     widgetsUtils.pdbLib = pdbLib;
     widgetsUtils.displayTabs = displayTabs;
+    widgetsUtils.header = header;*/
+    //WidgetsUtils.header = header;
+
+    WidgetsUtils = displayTabs.widgetsUtils;
+    WidgetsUtils.stream = stream;
+    WidgetsUtils.pdbLib = pdbLib;
+    WidgetsUtils.displayTabs = displayTabs;
     WidgetsUtils.header = header;
+
 
     $( document )
         .on( "mousemove", function( event ) {
-            widgetsUtils.mousePagePosition.x = event.pageX;
-            widgetsUtils.mousePagePosition.y = event.pageY;
+            WidgetsUtils.mousePagePosition.x = event.pageX;
+            WidgetsUtils.mousePagePosition.y = event.pageY;
         })
         .on( "click", function( event ) {
 

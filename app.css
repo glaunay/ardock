@@ -978,10 +978,21 @@ div.keyHead {
 }
 div.keyHead span {
     cursor : pointer;
+    cursor : hand;
+    color : red;
 }
 div.keyFooter {
     height : 3.0em;
     padding : 7px 7px 7px 7px;
 }
 
+div.veil {
+    position: absolute;
+    z-index: 999999999;
+    top: 46.5px;
+    right: 20px;
+    width: 50px;
+    background-color: #dff0d8;
+    height: 3em;
+}
 
