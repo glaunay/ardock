@@ -127,10 +127,10 @@ var ioPdbSubmissionCallback = function (data, socket){
 // route to handle socket io "keySubmission" packet
 var ioKeySubmissionCallback = function (key, socket) {
     PDB_Lib.keyRequest(key)
-    .on('completed', function (pdb) {
+    .on('completed', function (pdb, nProbes) {
         //console.log(pdb.model(1).dump());
         console.log('All jobs are completed');
-        socket.emit("arDockRestore", { 'obj' : pdb.model(1).dump(), 'left' : 0, 'uuid' : key });
+        socket.emit("arDockRestore", { 'obj' : pdb.model(1).dump(), 'left' : 0, 'uuid' : key, 'probeMax' : nProbes });
     })
     .on('errJob', function () {
         console.log('Error during calculations');
@@ -261,7 +261,7 @@ if (bHttp || bIo || bRest) {
 // for tests of the request by key
 if (key) {
     PDB_Lib.keyRequest(key)
-    .on('completed', function (pdb) {
+    .on('completed', function (pdb, nProbes) {
         console.log(pdb.model(1).dump());
         console.log('All jobs are completed');
     })
