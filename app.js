@@ -62,7 +62,7 @@ socket.on('arDockChunck', function (data) {
             //console.log(pdbObjInp.model(1).dump());
             console.log('this is ardock  chunk ');
             console.dir(data);
-            widgetsUtils.jobOperations.onArdockChunck({pdbObj: pdbObjInp, uuid: data.uuid, probeMax : data.probeMax, left : data.left});
+            WidgetsUtils.jobOperations.onArdockChunck({pdbObj: pdbObjInp, uuid: data.uuid, probeMax : data.probeMax, left : data.left});
         });
     //socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'uuid' : uuid });
 

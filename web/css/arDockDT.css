@@ -2,3 +2,24 @@ div.ardockDT div.datatableW {
     padding: 0.5em;
 }
 
+div.ardockDT .cFooter {
+    padding-top : 0.5em;
+    text-align: center;
+}
+
+div.ardockDT .btn.xlDL {
+    width : 75%;
+
+}
+
+div.ardockDT .btn.xlDL span{
+    padding-left: 1.25em;
+}
+
+div.ardockDT div.btn.willSlide {
+    background-color: rgba(204, 204, 204, 0.88)!important;
+}
+
+div.ardockDT div.datatableW {
+    background-color: #f5f5f5!important;
+}

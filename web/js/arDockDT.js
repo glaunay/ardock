@@ -204,16 +204,20 @@ arDockTable.prototype.display = function(opt) {
         });
         console.log($(cNode).find("table"));
 
-        $(cNode).find("table").DataTable({
-                    initComplete: function() {
-                        self.dtObj = this;
-                        $(cNode).find('.dataTables_info').append(
-                            '<div class="btn btn-primary pull-right xlDL">' + '<i class="fa fa-file-excel-o fa-2x" aria-hidden="true"></i> Download</div>');
-                        $(cNode).find('.dataTables_info').css({
+        var drawButtonDL = function (cNode){
+             $(cNode).find('.dataTables_info').append(
+                '<div class="cFooter"><div class="btn btn-primary xlDL btn-lg">' + '<i class="fa fa-file-excel-o fa-2x" aria-hidden="true"></i><span>Download</span></div></div>');
+                $(cNode).find('.dataTables_info').css({
                             'float': 'none',
                             'padding': '5px 5px 5px 10px'
                         })
-                        $(cNode).find('.dataTables_info div.btn.xlDL').on("click", function(){self.exportToCsv();});
+                $(cNode).find('.dataTables_info div.btn.xlDL').on("click", function(){self.exportToCsv();});
+        };
+
+        $(cNode).find("table").DataTable({
+                drawCallback : function (){drawButtonDL( cNode )},
+                initComplete: function() {
+                        self.dtObj = this;
                     },
                     "scrollY": "200px",
                     "scrollCollapse": true,

@@ -27,10 +27,51 @@ div.faBtnDL {
 div.ardockDLctrl div.btn-primary {
     float :none;
 }
-/*}​*/
 
-/*
-div.csv {
-    */
-   /*content:url("http://placehold.it/350x150");*/
-/*}​*/
+div.ardockDLctrl .keyPaste input {
+    width: 291px;
+    height: 2.5em;
+}
+div.ardockDLctrl .keyPaste {
+    padding-top: 0.25em;
+    padding-left:5px;
+}
+div.ardockDLctrl span.invit {
+    border-radius: 8px 0px 0px 8px;
+}
+div.ardockDLctrl span.close {
+    width : 2.5em;
+    opacity: 0.9;
+    border-radius: 0px 8px 8px 0px;
+    /*padding-left:5px;*/
+
+}
+
+div.ardockDLctrl  div.keyContainer {
+     padding-top: 0.3em;
+}
+
+div.ardockDLctrl span.close:hover {
+    color:white;
+    background-color: grey;
+}
+
+div.ardockDLctrl  div.keyComment {
+    color : steelblue;
+    padding-left: 10px;
+    padding-top: 0.5em;
+    padding-bottom: 0.85em;
+}
+
+
+div.ardockDLcBut {
+    background-color: rgba(204, 204, 204, 0.88)!important;
+}
+
+div.ardockDLctrl.content {
+    background-color: rgba(204, 204, 204, 0.88)!important;
+}
+
+
+
+

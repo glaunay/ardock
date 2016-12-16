@@ -13,6 +13,7 @@ var arDockDT = require('./arDockDT.js');
 var fastaWidget = require('./arDockSQ.js');
 var pdbLib = require('pdb-lib');
 var stream = require('stream');
+var events = require('events');
 
 ///////////////////////////////////////////////////////////////////////////////////////// GLOBAL //////////////////////////////////////////////////////////////
 
@@ -352,9 +353,25 @@ var setUpRestoreConnections = function (){
                     };
                 //Slide the header description once
         if( displayTabs.nbTabs === 1 && !WidgetsUtils.header.slided ){ WidgetsUtils.header.slide() }
+
         setTimeout(function(){
             var navDT = displayTabs.addTab(opt);
-            WidgetsUtils.blocker.displaySuccess();
+            WidgetsUtils.currentRestoreJob.on('canvasCompleted', function(job){
+                console.log("Boum");
+                console.log(job);
+                WidgetsUtils.blocker.displaySuccess();
+                WidgetsUtils.jobOperations
+                    .onArdockChunck({pdbObj: pdbObjInp, uuid: data.uuid,
+                                        probeMax : data.probeMax, left : data.left,
+                                        'restore' : true
+                                    })
+                    .on('display', function(){
+                        console.log("show DTy");
+                        job.listWidgets["bookmarkDT"].display({pdbObj:pdbObjInp, position : 'br', absPosSpecs : {'top' : '45%'}});
+                        job.listWidgets["bookmarkDL"].hook(pdbObjInp, job.uuid);
+                        job.listWidgets["bookmarkDL"].display({ position : 'br', absPosSpecs : {'top' : '25%'}});
+                    });
+            });
         }, 1000 * 1);
         console.log("RESTORE PDB PARSED");
         });
@@ -377,7 +394,6 @@ var setUpRestoreConnections = function (){
 
 
 var keySubmitBox = function(tabRef) {
-    console.log("TOTO");
     Core.call(this, {root : 'body', idNum : '-1'});
 }
 keySubmitBox.prototype = Object.create(Core.prototype);
@@ -388,21 +404,15 @@ keySubmitBox.prototype.display = function(){
     var node = this.getNode();
     $(node).prependTo("body");
     $(node).addClass('blocker');
-    //$('body').prepend('<div class="blocker">' + '<div class="keyBox">' + '<div class="keyHead"><span><i class="fa fa-remove fa-pull-right"></i></span></div>' + '<div class="keyBody">' + '<div class="input-group">' + '<span class="input-group-addon"><i class="fa fa-key fa-fw"></i></span>' + '<input class="form-control" type="text" placeholder="Enter a job identifier">' + '</div>' + '</div>' + '<div class="keyFooter"><div class="pull-right btn btn-primary">Submit</div></div>' + '</div>' + '</div>');
     $(node).append('<div class="keyBox">' + '<div class="keyHead"><span><i class="fa fa-remove fa-pull-right"></i></span></div>' + '<div class="keyBody">' + '<div class="input-group">' + '<span class="input-group-addon"><i class="fa fa-key fa-fw"></i></span>' + '<input class="form-control" type="text" placeholder="Enter a job identifier">' + '</div>' + '</div>' + '<div class="keyFooter"><div class="pull-right btn btn-primary">Submit</div></div>' + '</div>');
-    //this.node = $('body > div.blocker');
 
     var self = this;
     $(node).find('.keyHead span').on('click', function() {
         console.log("erRemove");
         self.remove();
-        /* $('body div.blocker .keyBox').fadeTo(500, 0.0,function(){
-             $('body div.blocker').fadeTo(250, 0.0,function(){$('body div.blocker').remove();});
-         });*/
     });
     $(node).find('div.keyFooter div.btn').on('click', function() {
         var key = $(node).find('.keyBody input').val();
-        console.log(">>>>>" + key);
         if (key == null) return;
         if (key === '') return;
 
@@ -546,7 +556,9 @@ DisplayTabs.prototype.addTab = function(opt){
     if(alreadyExist){return false};
 
     //Create a new Tab and push it in Array
-    WidgetsUtils.tabTabs.push(new Tab({name:name,pdbObj: opt.pdbObj,tabList: '#tabs',tabAdd:'#addFile',container: '.tab-content', pdbText : opt.pdbText}));
+    var param = {name:name,pdbObj: opt.pdbObj,tabList: '#tabs',tabAdd:'#addFile',container: '.tab-content', pdbText : opt.pdbText};
+    if (opt.hasOwnProperty("pUUID")) param["pUUID"] = opt.pUUID;
+    WidgetsUtils.tabTabs.push(new Tab(param));
 
     var navDT = function(name){
 
@@ -645,7 +657,6 @@ var Tab = function(opt){
 
             //rezise elements
             $(window).trigger("resize");
-
             //Add one job
             self.addJob();
 	    });
@@ -664,7 +675,12 @@ var Tab = function(opt){
 
 
         //add one job at creation
-    	self.addJob();
+        var pUUID = opt.hasOwnProperty('pUUID') ? opt.pUUID : null;
+    	var curr_job = self.addJob(pUUID);
+        if (pUUID !== null) {
+            WidgetsUtils.currentRestoreJob = curr_job;
+        }
+
     });
 
 }
@@ -675,7 +691,7 @@ Tab.prototype.constructor = Tab;
 //#######################################Tab.addJob#########################
 // pUUID parameter is provided when restoring from a previous session
 Tab.prototype.addJob = function(pUUID){
-
+    console.log('addJob pUUID--> ' + pUUID);
     var self = this;
 
     /*var len = self.pdbObj.model(1).listChainID().length;
@@ -757,7 +773,10 @@ Tab.prototype.addJob = function(pUUID){
 
         });
     }
-    return navJobs(self.name + self.nbJob);
+
+    navJobs(self.name + self.nbJob);
+    return job;
+    //return navJobs(self.name + self.nbJob);
 }
 //#########################################################################
 
@@ -783,7 +802,7 @@ var Job = function(opt){
     this.canvas = null;
     this.storeDiv = null;
     this.pdbObj = opt.pdbObj;
-    this.uuid = opt.hasOwnProperty(pUUID) ? opt.pUUID : WidgetsUtils.getUUID();
+    this.uuid = opt.hasOwnProperty('pUUID') ? opt.pUUID : WidgetsUtils.getUUID();
     this.probe = 1;
     this.pdbOjProbeList = [];
     this.currentSchemeID = null;
@@ -795,6 +814,7 @@ var Job = function(opt){
 
 
     this.send = function(pdbObj){//Emit after click Submit ('GO')
+        console.log("Emiting ardockPdbSubmit w/ " +  self.uuid );
         WidgetsUtils.socketApp.emit('ardockPdbSubmit', {data : pdbObj.dump(), uuid: self.uuid});
         //WidgetsUtils.socketApp.emit('ardockPdbSubmit', pdbObj.dump());
     };
@@ -841,7 +861,7 @@ var Job = function(opt){
 
     //Actions after creating objects
     $.when(initJobs()).done(function(){
-
+        console.log("InitJOBS Done promise");
         $(container).appendTo($(self.workspace)[0]).show();
 
 
@@ -871,15 +891,28 @@ var Job = function(opt){
             $(self.listWidgets.pC.panel).height($(self.canvas).height());
             $(self.storeDiv).height($(self.canvas).height());
 
+
+
         });
 
         self.listWidgets["pS"].setNavigationRules();
         self.listWidgets["pS"].on('submit', self.send);
 
         self.listWidgets['selectRepresentation'].setNavigationRules();
-
+        console.log('Promise and register');
+        console.log(self.uuid);
         //Fill taJobs with self - Key --> uuid
         WidgetsUtils.tabJobs[self.uuid] = self;
+        console.log(WidgetsUtils.tabJobs);
+        setTimeout(function(){
+            console.log("FIRE canvasCompleted delayed");
+               // console.dir(self);
+            self.emiter.emit('canvasCompleted', self);
+        }, 500);
+
+//        setTimeout(2000,function(){
+
+//        });
     });
 
     //##############################################################################################
@@ -1307,7 +1340,6 @@ PdbSummary.prototype.setNavigationRules = function() {
 PdbSummary.prototype.probeStep = function(chains, probeLeft) {
     //console.log("OUHOU " + probeLeft);
     console.log("node ref");
-
 
     //Handle Safari
     if(probeLeft === undefined){
@@ -2780,13 +2812,26 @@ WidgetsUtils = {
         *data(object with properties pdbObj, uuid, left-->number of received packet)
         */
         onArdockChunck: function(data){
+            var emiter = new events.EventEmitter();
+            console.log('arDockChunk ==> data in');
+            console.dir(data);
+
+            var bRestore = data.hasOwnProperty('restore') ? data.restore : false;
 
             var job = null;
 
             var tabAtoms = data.pdbObj.model(1).currentSelection;
             //var tabchains = data.pdbObj.model(1).listChainID();
-
             var nglComponent = WidgetsUtils.tabNGLComponents[data.uuid];
+            console.log("AOEAO---EZO");
+
+            console.dir(WidgetsUtils.tabNGLComponents);
+
+
+            console.log(data.uuid);
+
+            console.log(nglComponent);
+
 
             nglComponent.stage.signals.clicked.removeAll();
             nglComponent.probeMax = data.hasOwnProperty('probeMax') ? data['probeMax'] : 3 ;
@@ -2818,7 +2863,8 @@ WidgetsUtils = {
             //Get Job Object by uuid to signal Probe operation is starting
             try {
                 console.log("calling probeStep with [" + nglComponent.currentChainsVisible + ',' + nglComponent.probeLeft + ']');
-                WidgetsUtils.tabJobs[data.uuid].listWidgets.pS.probeStep(nglComponent.currentChainsVisible, nglComponent.probeLeft);
+                if (!bRestore)
+                    WidgetsUtils.tabJobs[data.uuid].listWidgets.pS.probeStep(nglComponent.currentChainsVisible, nglComponent.probeLeft);
                 //WidgetsUtils.tabJobs[data.uuid].listWidgets.pS.probeStep(nglComponent.currentChainsVisible, data.probeleft);
             } catch(e) {
                 console.warn(e);
@@ -2841,10 +2887,13 @@ WidgetsUtils = {
                     WidgetsUtils.setNGLClickedFunction(data.uuid, true);//Second parameter --> afterProbe
                     nglComponent.probeSchemeId = schemeId;
                 }
-
+                emiter.emit("display");
             },timeOut);
+
+            return emiter;
         }
     }
+
 
 }
 
