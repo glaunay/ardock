@@ -62,16 +62,20 @@ div.ardockDLctrl  div.keyComment {
     padding-top: 0.5em;
     padding-bottom: 0.85em;
 }
-
-
-div.ardockDLcBut {
-    background-color: rgba(204, 204, 204, 0.88)!important;
+div.ardockDLctrl {
+    background-color: #f5f5f5!important;
+    padding-left : 5px;
 }
 
+div.ardockDLcBut {
+    /*background-color: rgba(204, 204, 204, 0.88)!important;*/
+    background-color: rgb(192, 192, 192)!important;
+}
+/*
 div.ardockDLctrl.content {
     background-color: rgba(204, 204, 204, 0.88)!important;
 }
 
-
+*/
 
 

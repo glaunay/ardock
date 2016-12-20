@@ -279,6 +279,30 @@ var FastaDuo = function(data, node, anchor) {
     console.log("FataDuo constructor");
     console.dir(this.data);
     console.dir(node);
+
+    this.code = {
+        'L': 'LEU',
+        'V': 'VAL',
+        'I': 'ILE',
+        'M': 'MET',
+        'C': 'CYS',
+        'F': 'PHE',
+        'Y': 'TYR',
+        'W': 'TRP',
+        'D': 'ASP',
+        'E': 'GLU',
+        'K': 'LYS',
+        'R': 'ARG',
+        'H': 'HIS',
+        'N': 'ASN',
+        'Q': 'GLN',
+        'S': 'SER',
+        'T': 'THR',
+        'G': 'GLU',
+        'P': 'PRO',
+        '-': 'UNK'
+    };
+
 };
 FastaDuo.prototype = Object.create(WindowComponent.prototype);
 FastaDuo.prototype.constructor = FastaDuo;
@@ -496,6 +520,17 @@ FastaDuo.prototype._color = function(l) {
     return 'grey'
 
 };
+
+
+FastaDuo.prototype._convert = function(value) {
+
+    if (this.code.hasOwnProperty(value)) return this.code[value];
+    for (var k in this.code) 
+        if (this.code[k] === value)
+            return k;
+    throw("Cant convert amino acid character " + value);
+}
+
 FastaDuo.prototype.createLabels = function() {
     var self = this;
     self.data.forEach(function() {

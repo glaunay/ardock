@@ -334,7 +334,7 @@ Loader.prototype.constructor = Loader;
 var setUpRestoreConnections = function (){
 
 // We recover the pdb w/ updated bFactor
-// we want to regiser the uuid too
+// we want to register the uuid too
     WidgetsUtils.socketApp.on("arDockRestore", function(data){
     // { 'obj' : pdb.model(1).dump(), 'left' : 0, 'uuid' : key }
         console.log("arDockRestore packet");
@@ -366,10 +366,10 @@ var setUpRestoreConnections = function (){
                                         'restore' : true
                                     })
                     .on('display', function(){
-                        console.log("show DTy");
-                        job.listWidgets["bookmarkDT"].display({pdbObj:pdbObjInp, position : 'br', absPosSpecs : {'top' : '45%'}});
-                        job.listWidgets["bookmarkDL"].hook(pdbObjInp, job.uuid);
-                        job.listWidgets["bookmarkDL"].display({ position : 'br', absPosSpecs : {'top' : '25%'}});
+                        WidgetsUtils.bookmarkDisplay({job : job});
+                            job.listWidgets.bookmarkDT.on('cellClick', function (d){
+                            WidgetsUtils.datatableInteraction(job.uuid, d.data[2], d.data[1], d.data[0]);
+                        });
                     });
             });
         }, 1000 * 1);
@@ -691,6 +691,7 @@ Tab.prototype.constructor = Tab;
 //#######################################Tab.addJob#########################
 // pUUID parameter is provided when restoring from a previous session
 Tab.prototype.addJob = function(pUUID){
+    console.log(">>>>> ADDING JOB <<<<<<");
     console.log('addJob pUUID--> ' + pUUID);
     var self = this;
 
@@ -802,7 +803,7 @@ var Job = function(opt){
     this.canvas = null;
     this.storeDiv = null;
     this.pdbObj = opt.pdbObj;
-    this.uuid = opt.hasOwnProperty('pUUID') ? opt.pUUID : WidgetsUtils.getUUID();
+    this.uuid = opt.hasOwnProperty('pUUID') ? opt.pUUID != null ? opt.pUUID : WidgetsUtils.getUUID() : WidgetsUtils.getUUID();
     this.probe = 1;
     this.pdbOjProbeList = [];
     this.currentSchemeID = null;
@@ -811,6 +812,8 @@ var Job = function(opt){
     this.structureComponent = null;
     this.baseRepresentation = null;
 
+    console.log("Job initial State:");
+    console.dir(this);
 
 
     this.send = function(pdbObj){//Emit after click Submit ('GO')
@@ -1163,6 +1166,12 @@ PdbSummary.prototype.setNavigationRules = function() {
                             chain : targetChain, node : self.nodeRoot
                         });
                     windowSeq._draw({ shape : [90, 402]});
+                    windowSeq.on('aminoAcidClick', function(i, c, resName, resNum, chain){
+                        console.log("CLONG : " + i + ", " + resName + ", " + resNum + ", " + chain);
+                        WidgetsUtils.datatableInteraction(self.UUID, chain, resNum, resName);
+                        //  datatableInteraction = function (uuid, chain, resNum, resName) {
+                        //HERE
+                    });
                 });
 
             $(self.nodeRoot).find('div.summaryMenu div.ban').on('click', function() {
@@ -1489,7 +1498,8 @@ PdbSummary.prototype.probeStep = function(chains, probeLeft) {
             setTimeout(function(){
                 self.$submitText.text("Surface probed");
                 $(self.node).find('div.submitChains').first().css({'padding-top' : '8px', 'font-size' : '0.8em'});
-            }, 1000);
+                //HERE
+                }, 1000);
         }else{
             if(self.nbStep === 2){
                 //Clear all timeout for the progress bar
@@ -1984,8 +1994,52 @@ WidgetsUtils = {
 
         return (isChrome || isFirefox || isSafari);//Here we define wich browser we want to access the application    || isIE || isEdge
     },
+    // Display as percentage in space above pdb Summary, setting as responsive
+    bookmarkDisplay : function (nArgs) {
+            var getOffsets = function(job) {
+                var totalH = $(job.storeDiv).height();
+                var spanSpace = totalH - topOffset;
+                console.log('Available space to display bookmarks is ' + spanSpace);
+                var topDL = topOffset + 5
+                spanSpace = spanSpace > 0 ? spanSpace : topDL + 10;
+                var topDT = 0.25 * spanSpace + topOffset;
+                return [topDL, topDT];
+            };
+
+            if ( nArgs.hasOwnProperty("job") ){
+                var job = nArgs.job;
+                var topOffset =   parseInt( $( job.listWidgets["pS"].getNode() ).outerHeight() )
+                                + parseInt( $( job.listWidgets["pS"].getNode() ).position().top);
+
+                var offsets = getOffsets(job);
 
 
+                job.listWidgets["bookmarkDL"].hook(job.pdbObj, job.uuid);
+                job.listWidgets["bookmarkDL"].display({ position : 'br', absPosSpecs : {'top' : offsets[0] + 'px' }});
+                job.listWidgets["bookmarkDT"].display({pdbObj:job.pdbObj, position : 'br', absPosSpecs : {'top' : offsets[1] + 'px'}});
+
+
+                // Set z-index rotation delegated to css
+                $(job.listWidgets["bookmarkDL"].getButtonNode()).css('height', 'auto');
+                console.log('shouldbe small');
+
+                var setPositions = function() {
+                    var offsets = getOffsets(job);
+                    $(job.listWidgets["bookmarkDL"].getNode()).css('top', offsets[0] + 'px');
+                    $(job.listWidgets["bookmarkDT"].getNode()).css('top', offsets[1] + 'px');
+                }
+                setPositions();
+                $(window).on('resize', function () {
+                    setPositions();
+                });
+            // Compute offset, set visibility priorities
+
+            }
+    },
+     /*job.listWidgets["bookmarkDT"].display({pdbObj:pdbObjInp, position : 'br', absPosSpecs : {'top' : '45%'}});
+                        job.listWidgets["bookmarkDL"].hook(pdbObjInp, job.uuid);
+                        job.listWidgets["bookmarkDL"].display({ position : 'br', absPosSpecs : {'top' : '25%'}});
+*/
 
     /*
     *Return an object Magnify
@@ -2390,6 +2444,11 @@ WidgetsUtils = {
 
         var tempFactorPercent = maxTempFactor / 100;
 
+
+        console.log(">>>>> THIS IS GET NGL CUSTOM<<<<<<<");
+        console.log(additionalRange);
+
+
         var schemeId = NGL.ColorMakerRegistry.addScheme( function( params ){
                 this.atomColor = function( atom ){
 
@@ -2481,7 +2540,7 @@ WidgetsUtils = {
             }else{
                 schemeId = WidgetsUtils.getNGLScheme(nglComponent.baseChain, (pd.atom)? additionalRange : null);
             }
-
+            console.dir(schemeId);
             //Update SchemeId
             nglComponent.baseRepresentation.setParameters({'colorScheme': schemeId});
             nglComponent.baseRepresentation.update({'color':true});
@@ -2796,6 +2855,60 @@ WidgetsUtils = {
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
     },
 
+    datatableInteraction : function (uuid, chain, resNum, resName) {
+        //Handle Safari
+//        if(afterProbe === undefined){ afterProbe = false }
+        var afterProbe = true; // We keep it in case additonal component would like to interact w/ WEBGL rendering
+        var nglComponent = WidgetsUtils.tabNGLComponents[uuid];
+        var chainName = chain;
+        var resno = parseInt(resNum);
+        var additionalRange = null;
+        var schemeId = null;
+        var tabAtoms = [];
+
+        console.log("NtD" + uuid + ", " + chainName + ", " + resno + ", " + resName);
+
+        tabAtoms.push("CHAIN: " + chainName + " RES: " + resName + "-" + resno);
+
+        //nglComponent.stage.signals.clicked.removeAll();
+        //tabAtoms.push("CHAIN: " + chainName + " RES: " + pd.atom.resname + "-" + resno);
+        WidgetsUtils.tabNGLComponents[uuid].pdbObj.model(1)
+            .naturalAminoAcidOnly()
+            .currentSelection.forEach(function(el,i,tab){
+
+            if(el.resSeq.trim() === resno.toString()
+                && el.chainID.trim() === chainName){
+                    /*console.log("got it");
+                    console.log(el);*/
+                    tabAtoms.push("ATOM: " + el.name) }
+                });
+                console.log("atom set to highlight");
+                console.dir(tabAtoms);
+                //Set Range
+                if(afterProbe){
+                    additionalRange = {chainName: chainName, resno: resno, color: "0xffc0cb"}
+                    }//pink
+                else{
+                    additionalRange = [["red", ":" + chainName + " and " + resno]] //Specify as many color and chain--residue coordinates as needed
+                }
+
+            WidgetsUtils.magnifyResidue(tabAtoms.length > 0 ? tabAtoms : null);
+
+            if(afterProbe){
+                schemeId = WidgetsUtils.getNGLCustomScheme(uuid, additionalRange);
+            }else{
+                schemeId = WidgetsUtils.getNGLScheme(nglComponent.baseChain, additionalRange);
+            }
+            console.dir(schemeId);
+            //Update SchemeId
+            nglComponent.baseRepresentation.setParameters({'colorScheme': schemeId});
+            nglComponent.baseRepresentation.update({'color':true});
+
+            //Fill the last schemeId to keep the selected residue display when representation is changing
+            nglComponent.lastSchemeId = schemeId;
+
+        },
+
 
     /*
     *Operations on job when server response
@@ -2817,8 +2930,6 @@ WidgetsUtils = {
             console.dir(data);
 
             var bRestore = data.hasOwnProperty('restore') ? data.restore : false;
-
-            var job = null;
 
             var tabAtoms = data.pdbObj.model(1).currentSelection;
             //var tabchains = data.pdbObj.model(1).listChainID();
@@ -2863,8 +2974,19 @@ WidgetsUtils = {
             //Get Job Object by uuid to signal Probe operation is starting
             try {
                 console.log("calling probeStep with [" + nglComponent.currentChainsVisible + ',' + nglComponent.probeLeft + ']');
-                if (!bRestore)
-                    WidgetsUtils.tabJobs[data.uuid].listWidgets.pS.probeStep(nglComponent.currentChainsVisible, nglComponent.probeLeft);
+                if (!bRestore) {
+                    var job = WidgetsUtils.tabJobs[data.uuid];
+                    job.listWidgets.pS.probeStep(nglComponent.currentChainsVisible, nglComponent.probeLeft);
+                    if (data.left === 0) {
+                        console.log("No more probe to collect");
+                        WidgetsUtils.bookmarkDisplay({job : job});
+                        job.listWidgets.bookmarkDT.on('cellClick', function (d){
+                            //this.stopPropagation();
+                            WidgetsUtils.datatableInteraction(job.uuid, d.data[2], d.data[1], d.data[0]);
+                        //  datatableInteraction = function (uuid, chain, resNum, resName) {
+                        });
+                    }
+                }
                 //WidgetsUtils.tabJobs[data.uuid].listWidgets.pS.probeStep(nglComponent.currentChainsVisible, data.probeleft);
             } catch(e) {
                 console.warn(e);

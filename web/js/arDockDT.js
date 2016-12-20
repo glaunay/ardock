@@ -214,10 +214,25 @@ arDockTable.prototype.display = function(opt) {
                 $(cNode).find('.dataTables_info div.btn.xlDL').on("click", function(){self.exportToCsv();});
         };
 
-        $(cNode).find("table").DataTable({
-                drawCallback : function (){drawButtonDL( cNode )},
+       $(cNode).find("table").DataTable({
+                drawCallback : function (){
+                    self.dtObj = this.api();
+                    drawButtonDL( cNode );
+                },
                 initComplete: function() {
-                        self.dtObj = this;
+                   $(this)
+                    .find('tbody tr').on('click', function(e) {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            console.log(e.target);
+                            console.log(e.originalEvent);
+                            var idx = self.dtObj
+                                .row( this )
+                                .index();
+
+                        self.emiter.emit("cellClick", { i : idx,  data : self.data[idx] });
+                    });
+
                     },
                     "scrollY": "200px",
                     "scrollCollapse": true,
@@ -266,7 +281,7 @@ arDockTable.prototype.display = function(opt) {
     console.dir(this);
 
 }
-
+/*
 arDockTable.prototype._display = function(opt) {
     if (bBookMark){
         console.log("This is bookmark style display");
@@ -280,7 +295,11 @@ arDockTable.prototype._display = function(opt) {
     var self = this;
     $(node).find("table").DataTable( {
         initComplete: function () {
-           self.dtObj = this;
+             $(this)
+                    .find('tbody tr').on('click', function() {
+                        self.fire("cellClick");
+                    });
+            //self.dtObj = this;
         },
         data: this.data,
         columns: this.header.map(function(e) {return { title : e };}),
@@ -316,7 +335,7 @@ arDockTable.prototype._display = function(opt) {
 
     //console.log('ii :> ' + $(node).width() );
 }
-
+*/
 
 var pdbObject;
 

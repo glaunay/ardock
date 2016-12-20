@@ -17,7 +17,8 @@ div.ardockDT .btn.xlDL span{
 }
 
 div.ardockDT div.btn.willSlide {
-    background-color: rgba(204, 204, 204, 0.88)!important;
+   /* background-color: rgba(204, 204, 204, 0.88)!important;*/
+    background-color: rgb(192, 192, 192)!important;
 }
 
 div.ardockDT div.datatableW {

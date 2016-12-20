@@ -47,13 +47,14 @@ var arDockSQ = function(opt){
     $(this.node).attr('id', "arDockSQ_" + this.chainID);
     console.log($(this.node).length);
     //$(this.node).addClass("ARDockSQ_" + this.chainID);
-
+    var self = this;
     this.on('cellClick',function (domElem, data, index) {
         console.log("UBERCALLBACK ");
        /* console.dir(domElem);
         console.dir(data);
         console.dir(index);*/
-        console.log("Lets ask NGL for " + this.sequence[index] + ' ' + this.pdbnum[index]);
+        console.log("Lets ask NGL for " + self.sequence[index] + ' ' + self.pdbnum[index]);
+        this.fire('aminoAcidClick', index, self.sequence[index], self._convert(self.sequence[index]), self.pdbnum[index], self.chainID);
     })
 
 }

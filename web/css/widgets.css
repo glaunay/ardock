@@ -67,3 +67,7 @@ div.widget.bookmarkable div.btn.willSlide i.fa{
 .btn.expanded .click{
  display:none;
 }
+
+div.widget.bookmarkable:hover {
+    z-index : 8;
+}
