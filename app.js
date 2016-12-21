@@ -8,9 +8,6 @@ var socket = io.connect('http://ardock.ibcp.fr');
 
 //var ss = require('socket.io-stream');
 
-
-
-
 var pdbLib = require("pdb-lib");
 var stream = require('stream');
 var events = require('events');
@@ -68,7 +65,9 @@ socket.on('arDockChunck', function (data) {
 
 });
 socket.on("arDockStart", function (data) {
-    console.log('starting ardock task ' + data.id + ' over ' + data.total + ' probes');
+    console.log('starting ardock task ');
+    console.log(data)
+    WidgetsUtils.jobOperations.onArdockStart(data);
 });
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,6 +80,7 @@ socket.on("arDockStart", function (data) {
 
 $(function () {
 
+//    _Loader = tLoader.new();
 
     //var fastaWidget = require('./Alignment.js');
     //fastaWidget.test();

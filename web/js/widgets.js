@@ -15,6 +15,10 @@ var pdbLib = require('pdb-lib');
 var stream = require('stream');
 var events = require('events');
 
+var tLoader = require('./arLoader.js');
+
+
+
 ///////////////////////////////////////////////////////////////////////////////////////// GLOBAL //////////////////////////////////////////////////////////////
 
 
@@ -380,10 +384,19 @@ var setUpRestoreConnections = function (){
     //{ 'uuid' : key }
         console.log('Error during calculations');
     })
-    WidgetsUtils.socketApp.on('notFinished', function (data) {
-    //{ 'uuid' : key, 'status' : jobStatus}
-        //console.log(jobStatus);
+    WidgetsUtils.socketApp.on('arDockRestoreBusy', function (data) {
+    /*{ 'uuid' : key, 'status' : {
+        "completed" : [],
+        "pending" : [],
+        "running" :[]
+    }}*/
+        //For now we just compute total and completed
+        var n = data.status.completed.length,
+            t = data.status.completed.length + data.status.pending.length + data.status.running.length;
         console.log('Some jobs are not finished');
+
+        WidgetsUtils.blocker.displayProgress({ num : n, div : t });
+
     })
     WidgetsUtils.socketApp.on('errKey', function () {
     //{'uuid' : key}
@@ -468,7 +481,25 @@ keySubmitBox.prototype.displaySuccess = function() {
         self.remove();
     })
 }
-keySubmitBox.prototype.displayLATER = function(data)  {
+keySubmitBox.prototype.displayProgress = function(data)  {
+    console.log("DP INPUT");
+    console.log(data);
+
+    var self = this;
+    var node = this.getNode();
+    var kBody = $(node).find('.keyBody')[0];
+    var w = $(kBody).width(),
+        h = $(kBody).height();
+
+    $(kBody).empty();
+    $(kBody).append('<div class="alert alert-warning"><strong>Computation under way, please wait</strong><div class="tLoad"></div></div>');
+
+    this._tLoader = tLoader.new({root : $(kBody).find(".tLoad")[0], width : h/*w*/, height : h});
+    $(this._tLoader.getNode()).css('float', 'right');
+    $(kBody).find('div.alert-warning').css('height', h);
+
+    $(kBody).find(".tLoad").css('margin-top', '-2.1em');
+    this._tLoader.display({frac : data });
 
 }
 keySubmitBox.prototype.displayERROR = function() {
@@ -2014,7 +2045,7 @@ WidgetsUtils = {
                 var offsets = getOffsets(job);
 
 
-                job.listWidgets["bookmarkDL"].hook(job.pdbObj, job.uuid);
+                job.listWidgets["bookmarkDL"].hook(job.pdbObj, job.restoreKey);
                 job.listWidgets["bookmarkDL"].display({ position : 'br', absPosSpecs : {'top' : offsets[0] + 'px' }});
                 job.listWidgets["bookmarkDT"].display({pdbObj:job.pdbObj, position : 'br', absPosSpecs : {'top' : offsets[1] + 'px'}});
 
@@ -2917,6 +2948,12 @@ WidgetsUtils = {
     */
     jobOperations: {
 
+        onArdockStart : function(data) {
+            console.log("WU ardockstart");
+            console.log(data);
+            var job = WidgetsUtils.tabJobs[data.uuid];
+            job.restoreKey = data.restoreKey;
+        },
         /*Change the color of residues depending of bfactor
         *
         *@function

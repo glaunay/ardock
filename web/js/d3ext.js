@@ -1,5 +1,32 @@
 var d3 = require('d3');
 
+
+/*
+  Accepts one or more transitions and a callback as last argument
+  Example:
+  ```
+    var transition1 = d3.selectAll('g').transition().duration(500)
+      , transition2 = d3.selectAll('circle').transition().duration(400)
+      , callback = function() {console.log('done')}
+
+    onD3TransitionsEnd(transition1, transition2, callback)
+  ```
+*/
+function onD3TransitionsEnd() {
+  var args = Array.prototype.slice.call(arguments)
+    , selectionCount = 0
+    , cb = args[args.length - 1]
+
+  for (var i = 0; i < args.length - 1; i++) {
+    selectionCount += args[i].length
+    args[i].each('end', function(){
+      selectionCount -= 1
+      selectionCount === 0 && cb()
+    })
+  }
+}
+
+
 d3.selection.prototype.size = function() {
     var n = 0;
     this.each(function() { ++n; });
@@ -45,5 +72,6 @@ d3.selection.prototype.delegate = function(event, targetselector, handler) {
 
 
 module.exports = {
-    d3 : d3
+    d3 : d3,
+    onD3TransitionsEnd: onD3TransitionsEnd
 };

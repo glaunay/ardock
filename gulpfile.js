@@ -15,10 +15,12 @@ const
     browserify = require("browserify"),
     buffer       = require("vinyl-buffer"),
     gulp         = require("gulp"),
+    plumber = require("gulp-plumber"),
    // path         = require("path"),
     source       = require("vinyl-source-stream"),
     util         = require("gulp-util"),
     watchify     = require("watchify"),
+    minify = require('gulp-minify'),
     src = {
         js: ["./app.js"]
     },
@@ -45,6 +47,14 @@ function bundle() {
     let start = new Date().getTime(),
         _ = bundler
             .bundle()
+            /*.pipe(plumber({
+                errorHandler: function (err) {
+                util.log.bind(util, "Browserify Error");
+                //console.log(err);
+                this.emit('end');
+                }
+            }))
+            */
             .on("error", util.log.bind(util, "Browserify Error"))
             .pipe(source("main.js"))
             .pipe(buffer())
@@ -60,9 +70,23 @@ gulp.task("watch", function () {
     bundler.on("update", bundle.bind(null));
 });
 
+gulp.task('compress', function() {
+  gulp.src('./js/bundleTest.js')
+    .pipe(minify({
+        ext:{
+            src:'-debug.js',
+            min:'.js'
+        },
+        exclude: ['tasks'],
+        ignoreFiles: ['.combo.js', '-min.js']
+    }).on('error', util.log))
+    .pipe(gulp.dest('./js/bundleTest-min.js'))
+});
+
+
 gulp.task('server', function (cb) {
 
-    spawn('node', ['index.js', '--conf', '../default.conf', '--http'], { stdio: 'inherit' })
+    spawn('node', ['index.js', '--conf', '../default.conf', '--http','--slurm','-p','3'], { stdio: 'inherit' })
 
  /*
  exec('node index.js --conf ../default.conf --http', function (err, stdout, stderr) {

@@ -86,7 +86,8 @@ arDockDownloader.prototype.display = function(opt) {
         $(cNode).append('<div class="container keyContainer">'
                         + '<div class="row"><div class="input-group keyPaste">'
                         + '<span class="input-group-addon invit"><i class="fa fa-key fa-fw"></i></span>'
-                        + '<input class="form-control" type="text" placeholder="' + self.uuid + '"" readonly>'
+                        //+ '<input class="form-control" type="text" placeholder="' + self.uuid + '"" readonly>'
+                        + '<div class="form-control keyPasteForm">' + self.uuid + '</div>'
                         + '<span class="input-group-addon pull-left close"><i class="fa fa-remove"></i></span>'
                         + '</div></div>'
                         + '<div class="row keyComment">Copy the above key to restore present session at any time.</div></div>');
