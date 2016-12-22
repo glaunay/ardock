@@ -36,6 +36,8 @@ Loader.prototype.display = function(data) {
     console.log('<<IN>>');
     console.log(input);
 
+    var backGroundSpecs = data.hasOwnProperty('background') ? data.background : null;
+
     var color = d3.scale.linear()
         .domain([0, 0.5 , 1])
         .range(["red" , "orange", "green"]);
@@ -59,7 +61,19 @@ Loader.prototype.display = function(data) {
             .attr("height", this.height)
             .append("g")
             .attr("transform", "translate(" + this.width / 2 + "," + this.height / 2 + ")");
-
+        if (backGroundSpecs) {
+            var self = this;
+            var shape =  backGroundSpecs.hasOwnProperty('shape') ? backGroundSpecs['shape'] : null;
+            var colorId =  backGroundSpecs.hasOwnProperty('color') ? backGroundSpecs['color'] : null;
+            if (shape && colorId) {
+                this.svg.append(shape).each(function(){
+                    if (shape === 'circle')
+                        d3.select(this)
+                        .attr('r', self.radius);
+                })
+                .style('fill', colorId)
+            }
+        }
 
 
         var g = this.svg.selectAll(".arc")

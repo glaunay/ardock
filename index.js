@@ -105,6 +105,7 @@ var restCallBack = function (ans, data) {
 // socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'uuid' : uuid });
 
 var ioPdbSubmissionCallback = function (data, uuid, socket){
+    console.log('received ' + uuid);
     var cnt = probeMax;
     PDB_Lib.pdbLoad(bTest, {'ioSocketStream' : data, 'chain' : pdbChainList})
         .on('pdbLoad', function (pdbObj) {
@@ -114,18 +115,29 @@ var ioPdbSubmissionCallback = function (data, uuid, socket){
             PDB_Lib.arDock(HPC_Lib.jobManager(), {'pdbObj' : pdbObj})
             .on('go', function(taskID, total) {
                 console.log("SOCKET : taskID is " + taskID);
-                //console.dir(socket)
                 taskPatt = new RegExp(taskID);
-                socket.emit("arDockStart", { id : taskID, total : total });
+                socket.emit("arDockStart", { restoreKey : taskID, total : total, uuid : uuid });
             }) // test is actually useless arDock emitter is created at every call
             .on('jobCompletion', function(res, job) {
                 if (taskPatt.test(job.id)) cnt--;
                 PDB_Lib.bFactorUpdate(pdbObj, res);
-                //socket.emit("arDockChunck", { obj : pdbObj.model(1).dump(), left : cnt });
                 socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'probeMax' : probeMax, 'uuid' : uuid });
             });
     });
 };
+
+// route to handle "ESPript communication"
+var ioESPriptSubmissionCallback = function (key, pdbStream, socket) {
+
+    PDB_Lib.pdbWrite(key, pdbStream)
+    .on('pdbWrote', function(fpath, fname){
+        socket.emit('ESPriptCached', key, HTTP_Lib.ESPriptDirEndPoint() + '/' + fname);
+    })
+    .on('pdbWriteError', function(pdbString, fpath, fname){
+        socket.emit('ESPriptCacheError', key);
+    })
+
+}
 
 // route to handle socket io "keySubmission" packet
 var ioKeySubmissionCallback = function (key, socket) {
@@ -149,6 +161,7 @@ var ioKeySubmissionCallback = function (key, socket) {
         socket.emit('arDockRestoreUnknown', {'uuid' : key});
     });
 }
+
 
 var parseConfig = function (fileName){
     var obj = jsonfile.readFileSync(fileName);
@@ -205,6 +218,7 @@ if (bHttp || bIo || bRest) {
     HTTP_Lib.setRestCallBack(restCallBack);
     HTTP_Lib.setIoPdbSubmissionCallback(ioPdbSubmissionCallback);
     HTTP_Lib.setIoKeySubmissionCallback(ioKeySubmissionCallback);
+    HTTP_Lib.setIoESPriptSubmissionCallback(ioESPriptSubmissionCallback);
     HTTP_Lib.httpStart(bean, bIo, bTest, bRest).on('listening', function() {
         if (bSlurm) {
             HPC_Lib.slurmStart(bLocal).on('ready', function(){

@@ -335,20 +335,43 @@ Loader.prototype.constructor = Loader;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////////// RESTORE COMPONENTS AND LOGIC////////////////////////////////////////////////////////////////////////////////////////
+
+var setUpESPriptConnections = function() {
+    WidgetsUtils.socketApp.on('ESPriptCached', function (key, pdbFileUrl) {
+        console.log("ESP stash Success at \"" + pdbFileUrl + "\"");
+    var hidden_ESPRIT_form =  '<div class="ESP_shadow" style="display:none"><FORM METHOD=POST ACTION=http://endscript.ibcp.fr/ESPript/cgi-bin/ENDscript.cgi TARGET=_blank>'
+                            + '<INPUT TYPE=hidden NAME=FRAMES VALUE=yes>'
+                            + '<INPUT TYPE=hidden NAME=alnfile0 VALUE=http://' + pdbFileUrl + '>'
+                            + '<INPUT TYPE=submit VALUE="Submit to ENDscript">'
+                            + '</FORM></div>';
+    $(WidgetsUtils.tabJobs[key].listWidgets["bookmarkDL"].getNode()).append(hidden_ESPRIT_form);
+    $(WidgetsUtils.tabJobs[key].listWidgets["bookmarkDL"].getNode()).find('.ESP_shadow form').submit();
+    $(WidgetsUtils.tabJobs[key].listWidgets["bookmarkDL"].getNode()).find('.ESP_shadow').remove();
+      //$('body')
+    })
+    .on('ESPriptCacheError', function (){
+        console.log("ESP stash Error");
+    });
+}
+
+
 var setUpRestoreConnections = function (){
 
 // We recover the pdb w/ updated bFactor
 // we want to register the uuid too
     WidgetsUtils.socketApp.on("arDockRestore", function(data){
     // { 'obj' : pdb.model(1).dump(), 'left' : 0, 'uuid' : key }
-        console.log("arDockRestore packet");
-        console.dir(data);
+        /*console.log("arDockRestore packet");
+        console.dir(data);*/
         var displayTabs = WidgetsUtils.displayTabs;
         var s = stream.Readable();
         s.push(data.obj, 'utf-8');
         s.push(null);
         var pdbParse = pdbLib.parse({'rStream': s})
             .on('end', function (pdbObjInp) {
+                /*console.log("RESTORE PDB CONTENT");
+                console.log(pdbObjInp.model(1).dump());*/
+
                 var opt = {
                     fileName: "restored",
                     pdbObj: pdbObjInp,
@@ -361,8 +384,8 @@ var setUpRestoreConnections = function (){
         setTimeout(function(){
             var navDT = displayTabs.addTab(opt);
             WidgetsUtils.currentRestoreJob.on('canvasCompleted', function(job){
-                console.log("Boum");
-                console.log(job);
+               /* console.log("Boum");
+                console.log(job);*/
                 WidgetsUtils.blocker.displaySuccess();
                 WidgetsUtils.jobOperations
                     .onArdockChunck({pdbObj: pdbObjInp, uuid: data.uuid,
@@ -371,7 +394,8 @@ var setUpRestoreConnections = function (){
                                     })
                     .on('display', function(){
                         WidgetsUtils.bookmarkDisplay({job : job});
-                            job.listWidgets.bookmarkDT.on('cellClick', function (d){
+                        job.listWidgets["bookmarkDL"].enable();
+                        job.listWidgets.bookmarkDT.on('cellClick', function (d){
                             WidgetsUtils.datatableInteraction(job.uuid, d.data[2], d.data[1], d.data[0]);
                         });
                     });
@@ -533,7 +557,7 @@ var DisplayTabs = function(opt){
     //this.pdbObj = opt.pdbObj;
 
     setUpRestoreConnections();
-
+    setUpESPriptConnections();
     this.scaffold('<div  class="container-fluid after-head" id="w_' + this.idNum + '">'+
                                 '<ul class="nav nav-tabs" id="tabs" style="border: none;">'+
                                     '<li role="presentation" class="active" id="addFile"><a href="#divAddFile">+ Add .pdb</a><div class="mask"></div></li>'+
@@ -816,6 +840,11 @@ Tab.prototype.addJob = function(pUUID){
 
 //////////////////////////////////////////////////////////////////////////////////////////// JOB //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+// GL the stash function access the pdbObj in a state where only CA are in current selection
+// TO INVESTIGATE
+// GL : it is due to dataTable,
+//
 var Job = function(opt){
 
 
@@ -846,6 +875,12 @@ var Job = function(opt){
     console.log("Job initial State:");
     console.dir(this);
 
+    //console.log("PdbObj State");
+    //console.log( opt.pdbObj.dump() );
+
+    this.stash = function () {
+        WidgetsUtils.socketApp.emit('pdbStashESP', { uuid : self.uuid, data : self.pdbObj.model(1).dump()});
+    };
 
     this.send = function(pdbObj){//Emit after click Submit ('GO')
         console.log("Emiting ardockPdbSubmit w/ " +  self.uuid );
@@ -856,6 +891,23 @@ var Job = function(opt){
     this.canvasNGLChange = function(){
         $(self.canvas).one('mouseover', function(e){ self.stage.handleResize() });
     };
+
+
+
+    this.showProbeTimer = function () {
+        var oldTimerDiv = this.listWidgets["pS"].getNode();
+        var node = $(oldTimerDiv).find('.submitChainsContainer')[0];
+        this.listWidgets['ardockTimer'] = externalCreateAndRegister(tLoader.new, {root: node, width : 50, height : 50});
+            //X = tLoader.new({root : $(".submitChainsContainer")[0], width : 50, height : 50});
+        $(this.listWidgets['ardockTimer'].getNode()).css({'position' : 'absolute'});
+        $(oldTimerDiv).find('.submitChains,.border').hide();
+
+        this.listWidgets['ardockTimer'].display(
+                                        {frac:{num:0, div:100},
+                                        background : { shape:"circle", color:"white"}}
+                                        );
+    };
+
 
     var container = document.createElement('div');
     document.body.appendChild(container);
@@ -886,6 +938,12 @@ var Job = function(opt){
 
         self.listWidgets['bookmarkDL'] = externalCreateAndRegister(arDockDL.new, {root: self.listWidgets["pC"].panel, /*UUID: self.uuid, */ pdbObj: self.pdbObj});
         self.listWidgets['bookmarkDT'] = externalCreateAndRegister(arDockDT.new, {root: self.listWidgets["pC"].panel, /*UUID: self.uuid, */ pdbObj: self.pdbObj});
+
+        self.listWidgets['bookmarkDL'].on('END_click',function(){
+            self.stash();
+        });
+         //pdbStashESP
+
         //WidgetsUtils.tabTabs[0].jobs[1].listWidgets.bookmarkDL.display({ position : 'br', absPosSpecs : {'top' : '200px'}})
        //WidgetsUtils.tabTabs[0].jobs[1].listWidgets.bookmarkDL.display({ position : 'br', absPosSpecs : {'top' : '400px'}, 'pdbObj' : self.pdbObj})
        //WidgetsUtils.tabTabs[0].jobs[0].listWidgets.bookmarkDT.display({ position : 'br', absPosSpecs : {'top' : '300px'}, pdbObj : WidgetsUtils.tabTabs[0].jobs[0].pdbObj })
@@ -930,7 +988,10 @@ var Job = function(opt){
         });
 
         self.listWidgets["pS"].setNavigationRules();
-        self.listWidgets["pS"].on('submit', self.send);
+        self.listWidgets["pS"].on('submit', function(pdbObj){
+            self.showProbeTimer();
+            self.send(pdbObj);
+        });
 
         self.listWidgets['selectRepresentation'].setNavigationRules();
         console.log('Promise and register');
@@ -1146,24 +1207,6 @@ PdbSummary.prototype.setNavigationRules = function() {
                     return;
                 }
 
-
-                // Get Position of current chain circle
-                // append two fa circle to allow for view or suppress
-                // Get y as center of clicked div
-                // Get x as border of pdbSummary
-
-                /*console.log(WidgetsUtils.mousePagePosition.x + ' , ' + WidgetsUtils.mousePagePosition.y);
-                console.log("Clicked Elem content and position");
-                console.dir(this);
-                console.log($(this).position());
-                console.log("Closest parent non abosulte");
-                console.log($(this).closest('.checkChainsContainer').position());
-                console.log("pdbSummary position");
-                console.log($(self.node).position());
-                console.log($(self.node).outerWidth());
-
-                console.log("Spawning point is " + $(this).closest('.checkChainsContainer').position()["top"] + ' , ' + $(self.node).outerWidth() );
-                */
                 var x = $(self.node).outerWidth();
                 var y = $(this).closest('.checkChainsContainer').position()["top"];
                 var html =  '<div class="summaryMenu">'
@@ -1378,6 +1421,10 @@ PdbSummary.prototype.setNavigationRules = function() {
 
 
 PdbSummary.prototype.probeStep = function(chains, probeLeft) {
+
+    return;
+
+
     //console.log("OUHOU " + probeLeft);
     console.log("node ref");
 
@@ -2036,6 +2083,20 @@ WidgetsUtils = {
                 var topDT = 0.25 * spanSpace + topOffset;
                 return [topDL, topDT];
             };
+// By default all bookmark are displayed, specifying components will display only those specified
+            var bDL = true,
+                bDT = true;
+            if ( nArgs.hasOwnProperty("components") ){
+                console.log("Specified components are " + nArgs["components"]);
+
+                bDL = false;
+                bDT = false;
+                nArgs["components"].forEach(function(d){
+                    if (d === "DL") bDL = true;
+                    if (d === "DT") bDT = true;
+                });
+            }
+
 
             if ( nArgs.hasOwnProperty("job") ){
                 var job = nArgs.job;
@@ -2043,21 +2104,20 @@ WidgetsUtils = {
                                 + parseInt( $( job.listWidgets["pS"].getNode() ).position().top);
 
                 var offsets = getOffsets(job);
-
-
-                job.listWidgets["bookmarkDL"].hook(job.pdbObj, job.restoreKey);
-                job.listWidgets["bookmarkDL"].display({ position : 'br', absPosSpecs : {'top' : offsets[0] + 'px' }});
-                job.listWidgets["bookmarkDT"].display({pdbObj:job.pdbObj, position : 'br', absPosSpecs : {'top' : offsets[1] + 'px'}});
-
-
-                // Set z-index rotation delegated to css
-                $(job.listWidgets["bookmarkDL"].getButtonNode()).css('height', 'auto');
-                console.log('shouldbe small');
+                if (bDL) {
+                    job.listWidgets["bookmarkDL"].hook(job.pdbObj, job.restoreKey);
+                    job.listWidgets["bookmarkDL"].display({ position : 'br', absPosSpecs : {'top' : offsets[0] + 'px' }});
+                    $(job.listWidgets["bookmarkDL"].getButtonNode()).css('height', 'auto');
+                }
+                if (bDT)
+                    job.listWidgets["bookmarkDT"].display({pdbObj:job.pdbObj, position : 'br', absPosSpecs : {'top' : offsets[1] + 'px'}});
 
                 var setPositions = function() {
                     var offsets = getOffsets(job);
-                    $(job.listWidgets["bookmarkDL"].getNode()).css('top', offsets[0] + 'px');
-                    $(job.listWidgets["bookmarkDT"].getNode()).css('top', offsets[1] + 'px');
+                    if (bDL)
+                        $(job.listWidgets["bookmarkDL"].getNode()).css('top', offsets[0] + 'px');
+                    if (bDT)
+                        $(job.listWidgets["bookmarkDT"].getNode()).css('top', offsets[1] + 'px');
                 }
                 setPositions();
                 $(window).on('resize', function () {
@@ -2066,6 +2126,10 @@ WidgetsUtils = {
             // Compute offset, set visibility priorities
 
             }
+
+              //  if (!bDL) job.listWidgets["bookmarkDL"].hide();
+              //  if (!bDT) job.listWidgets["bookmarkDT"].hide();
+
     },
      /*job.listWidgets["bookmarkDT"].display({pdbObj:pdbObjInp, position : 'br', absPosSpecs : {'top' : '45%'}});
                         job.listWidgets["bookmarkDL"].hook(pdbObjInp, job.uuid);
@@ -2949,10 +3013,13 @@ WidgetsUtils = {
     jobOperations: {
 
         onArdockStart : function(data) {
+
+            //register a tLoader, externalCreateAndRegister(
             console.log("WU ardockstart");
             console.log(data);
             var job = WidgetsUtils.tabJobs[data.uuid];
             job.restoreKey = data.restoreKey;
+            WidgetsUtils.bookmarkDisplay({job : job, components :["DL"]});
         },
         /*Change the color of residues depending of bfactor
         *
@@ -3014,13 +3081,15 @@ WidgetsUtils = {
                 if (!bRestore) {
                     var job = WidgetsUtils.tabJobs[data.uuid];
                     job.listWidgets.pS.probeStep(nglComponent.currentChainsVisible, nglComponent.probeLeft);
+
+                     job.listWidgets['ardockTimer'].display({frac:{num : (data.probeMax - data.left), div : data.probeMax}});
+
                     if (data.left === 0) {
                         console.log("No more probe to collect");
-                        WidgetsUtils.bookmarkDisplay({job : job});
+                        WidgetsUtils.bookmarkDisplay({job : job, components :["DT"]});
+                        job.listWidgets["bookmarkDL"].enable();
                         job.listWidgets.bookmarkDT.on('cellClick', function (d){
-                            //this.stopPropagation();
                             WidgetsUtils.datatableInteraction(job.uuid, d.data[2], d.data[1], d.data[0]);
-                        //  datatableInteraction = function (uuid, chain, resNum, resName) {
                         });
                     }
                 }

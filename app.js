@@ -18,6 +18,8 @@ var widgets = require('./web/js/widgets');
 var css = require('./app.css');
 var bootstrap = require('bootstrap');
 
+tLoader = require('./web/js/arLoader.js');
+
 
 ////////////////////////////////////////////////////////////////// GLOBAL ///////////////////////////////////////////////////////////////////////////////////
 //var widgetsUtils = null;
@@ -80,7 +82,6 @@ socket.on("arDockStart", function (data) {
 
 $(function () {
 
-//    _Loader = tLoader.new();
 
     //var fastaWidget = require('./Alignment.js');
     //fastaWidget.test();

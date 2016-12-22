@@ -13,6 +13,8 @@ var arDockDownloader = function(opt) {
     var nArgs = opt ? opt : {};
     console.log($(nArgs.root));
     Bookmark.call(this, nArgs);
+
+    this.bDisabled = false;
 }
 
 arDockDownloader.prototype = Object.create(Bookmark.prototype);
@@ -26,10 +28,28 @@ arDockDownloader.prototype.hook = function(pdbObj, uuid) {
     this.uuid = uuid;
 }
 
+arDockDownloader.prototype.enable = function (){
+    if(!this.bDisabled) return;
+    var cNode = this.getContentNode();
+    this.bDisabled = false;
+    $(cNode).find(".cuPdbDl,.cuPEND").removeClass('.disabled');
+}
+
+arDockDownloader.prototype.disable = function (){
+    if(this.bDisabled) return;
+    var cNode = this.getContentNode();
+    this.bDisabled = true;
+    $(cNode).find(".cuPdbDl,.cuPEND").addClass('.disabled');
+}
+
+
+
 arDockDownloader.prototype.display = function(opt) {
     var nArgs = opt ? opt : {};
 
     Bookmark.prototype.display.call(this);
+
+    this.bDisabled = nArgs.hasOwnProperty('disabled') ? nArgs['disabled'] : true;
 
     var cNode = this.getContentNode();
     var bNode = this.getButtonNode();
@@ -40,15 +60,7 @@ arDockDownloader.prototype.display = function(opt) {
                 + '<div class="btn btn-primary cuPdbDl" style="padding : 13px 12px 13px 12px"><img width="125px" src="assets/pdb.png"></img></div>'
                 + '<div class="btn btn-primary faBtnDL" style="padding: 4px 32px 5px 32px;"><i class="fa fa-cloud-upload fa-5x"></i></div>'
                 + '</div>'
-                 /* '<div class="btn-group">'
-                + '<div class="btn btn-primary cuPEND"><img width="125px" src="assets/END_awesome.png"></img></div>'
-                + '<div class="btn btn-primary faBtnDL"><i class="fa fa-cloud-download fa-5x"></i></div>'
-                + '</div>'
-                + '<div class="btn-group" style="margin-top:4px">'
-                + '<div class="btn btn-primary cuPdbDl" style="padding : 13px 12px 13px 12px"><img width="125px" src="assets/pdb.png"></img></div>'
-                + '<div class="btn btn-primary faBtnDL" style="padding: 4px 32px 5px 32px;"><i class="fa fa-file-excel-o fa-5x"></i></div>'
-                + '</div>'*/
-                );//+ '</div>');
+                );
 
     $(cNode).find('.cuPdbDl').mouseout(function(){
         $(this).find('img').attr("src","assets/pdb.png");
@@ -58,9 +70,11 @@ arDockDownloader.prototype.display = function(opt) {
         $(this).find('img').attr("src","assets/pdb_alt.png");
     });
 
-    var self = this;
+    if (this.bDisabled) $(cNode).find(".cuPdbDl,.cuPEND").addClass('.disabled');
 
+    var self = this;
     $(cNode).find('.cuPdbDl').on('click', function (){
+        if (self.bDisabled) return;
         var element = document.createElement('a');
         element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(self.pdbRef.model(1).dump()));
         element.setAttribute('download', 'ardockResults.pdb');
@@ -76,7 +90,10 @@ arDockDownloader.prototype.display = function(opt) {
     $(cNode).find('.cuPEND').mouseover(function(){
         $(this).find('img').attr("src","assets/END_awesome_alt.png");
     });
-
+    $(cNode).find('.cuPEND').on('click', function(){
+        if (self.bDisabled) return;
+        self.emiter.emit('END_click');
+    });
 
     $(cNode).find('.faBtnDL').on('click', function(){
         $(cNode).find('.btn-group').hide();
@@ -86,16 +103,12 @@ arDockDownloader.prototype.display = function(opt) {
         $(cNode).append('<div class="container keyContainer">'
                         + '<div class="row"><div class="input-group keyPaste">'
                         + '<span class="input-group-addon invit"><i class="fa fa-key fa-fw"></i></span>'
-                        //+ '<input class="form-control" type="text" placeholder="' + self.uuid + '"" readonly>'
                         + '<div class="form-control keyPasteForm">' + self.uuid + '</div>'
                         + '<span class="input-group-addon pull-left close"><i class="fa fa-remove"></i></span>'
                         + '</div></div>'
                         + '<div class="row keyComment">Copy the above key to restore present session at any time.</div></div>');
         $(cNode).find('div.container').css({'width' :  w + 'px'});
         $(cNode).find('span.close').on('click', function(){ $(cNode).find('div.keyContainer').remove(); $(cNode).find('.btn-group').show();});
-//        self.emit('keyClick');
-
-
 
     });
 

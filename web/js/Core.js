@@ -62,12 +62,15 @@ Core.prototype.display = function(event, callback) {
 };
 
 
+Core.prototype.show = function(event, callback) {
+    $(this.node).show();
+};
+
 Core.prototype.hide = function(event, callback) {
     $(this.node).hide();
 };
 
 Core.prototype.destroy = function(event, callback) {
-    console.log("destroying loader");
     $(this.node).remove();
 };
 

@@ -19,7 +19,7 @@ var wget = require('wget-improved');
 var stream = require('stream');
 var timeout = require('connect-timeout');
 
-
+var publicESPriptDir = null;
 
 // Default rest callback, receives as arguments the http ans object (expresso : "res") and the data to process
 var restCallBack = function (ans, data){
@@ -53,7 +53,9 @@ var ioKeySubmissionRoute = function (key, socket) {
     console.log('test ioKeySubmissionRoute ' + key);
 }
 
-
+var ioESPriptRoute = function (key, pdbStream, socket) {
+    console.log('test ioESPriptRoute ' + key);
+}
 
 var httpStart = function(bean, bIo, bTest, bRest) {
 
@@ -66,11 +68,15 @@ var httpStart = function(bean, bIo, bTest, bRest) {
     app.use(timeout('120s'));
     app.use(haltOnTimedout);
 
-
-
-
-
     app.use(express.static(staticPath));
+
+
+    // ESPRIPT CACHE SERVING
+    publicESPriptDir = bean.httpVariables.domain + "/ESPript";
+    staticPath = bean.httpVariables.espritDir;
+    console.log("Serving ENDscript cache at " + staticPath);
+    app.use("/ESPript", express.static(staticPath));
+
     if (bTest) {
         app.get('/test', function(req, res){
             var html = testTemplateGenerate();
@@ -161,6 +167,16 @@ var ioActivate = function (fn1) {
         socket.on('keySubmission', function (key) {
             ioKeySubmissionRoute(key, socket);
         });
+        socket.on('pdbStashESP', function (packet) {
+            var uuid = packet.uuid;
+            var data = packet.data;
+            console.log('received pdbStashESP event');
+            var s = stream.Readable();
+            s.push(data, 'utf-8');
+            s.push(null);
+            ioESPriptRoute(uuid, s, socket);
+        })
+
     });
 }
 
@@ -235,10 +251,12 @@ module.exports = {
     setRestCallBack : function (fn) { restCallBack = fn;},
     setIoPdbSubmissionCallback : function (fn_io) { ioPdbSubmissionRoute = fn_io;},
     setIoKeySubmissionCallback : function (fn_io) { ioKeySubmissionRoute = fn_io;},
+    setIoESPriptSubmissionCallback : function (fn_io) { ioESPriptRoute = fn_io;},
     //restRoute : restRoute,
     ioActivate : ioActivate,
     baseTemplateGenerate : baseTemplateGenerate,
     httpStart : httpStart,
+    ESPriptDirEndPoint : function(){return publicESPriptDir;}
     /*restCallBack : function(fn) {
         restCallBack = fn;
     },

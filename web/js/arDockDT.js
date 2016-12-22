@@ -205,13 +205,14 @@ arDockTable.prototype.display = function(opt) {
         console.log($(cNode).find("table"));
 
         var drawButtonDL = function (cNode){
-             $(cNode).find('.dataTables_info').append(
-                '<div class="cFooter"><div class="btn btn-primary xlDL btn-lg">' + '<i class="fa fa-file-excel-o fa-2x" aria-hidden="true"></i><span>Download</span></div></div>');
-                $(cNode).find('.dataTables_info').css({
+             if ($(cNode).find('.dataTables_wrapper.no-footer .xlDL').length >0) return
+             $(cNode).find('.dataTables_wrapper.no-footer').prepend(
+                '<div class="btn btn-primary xlDL btn-md">' + '<i class="fa fa-file-excel-o fa-2x" aria-hidden="true"></i><span>Download</span></div>');
+               /* $(cNode).find('.dataTables_info').css({
                             'float': 'none',
                             'padding': '5px 5px 5px 10px'
-                        })
-                $(cNode).find('.dataTables_info div.btn.xlDL').on("click", function(){self.exportToCsv();});
+                        })*/
+                $(cNode).find('div.btn.xlDL').on("click", function(){self.exportToCsv();});
         };
 
        $(cNode).find("table").DataTable({
@@ -234,9 +235,10 @@ arDockTable.prototype.display = function(opt) {
                     });
 
                     },
-                    "scrollY": "200px",
+                    "scrollY": "125px",
                     "scrollCollapse": true,
-                    "paging": false
+                    "paging": false,
+                    "info": false
                         //data: this.data,
                         //columns: this.header.map(function(e) {return { title : e };}),
                         //bAutoWidth: false

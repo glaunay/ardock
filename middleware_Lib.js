@@ -6,7 +6,6 @@ var bean;
 var uuid = require('node-uuid');
 
 
-
 var pdbLoad = function(bTest, opt) {
     var emitter = new events.EventEmitter();
     if(bTest) {
@@ -48,7 +47,7 @@ var pdbLoad = function(bTest, opt) {
                         }
                     emitter.emit('pdbLoad', pdbObj);
                 });
-        } else if ('ioSocketStream') {
+        } else if ('ioSocketStream' in opt) {
             // If there are several chainIds we dont care client did all the pre process job
             pdbLib.parse({ 'rStream' : opt.ioSocketStream })
                 .on('end', function (pdbObjInp) {
@@ -63,7 +62,30 @@ var pdbLoad = function(bTest, opt) {
     return emitter;
 }
 
+var pdbWrite = function (key, pdbStream) {
+    var emitter = new events.EventEmitter();
+    console.log("attempting to stash pdb content w/ key " + key);
+    /*console.log('pdbWrite input');
+    console.log(pdbStream);
+    */
+    var basePath = bean.httpVariables.espritDir;
+    var fname = key + '.pdb';
+    pdbLib.parse({ 'rStream' : pdbStream })
+                .on('end', function (pdbObjInp) {
+                    var pdbString = "DBREF  ardock_structure  \n"
+                                +   "REMARK    FREE_ESPRIPT MIN= 0 MAX= 9 LIM= 8\n";
+                    pdbString += pdbObjInp.model(1).dump();
+                    fs.writeFile(basePath + "/" + fname, pdbString, function(err) {
+                        if(err) {
+                            emitter.emit('pdbWriteError', pdbString, basePath, fname);
+                            return console.log(err);
+                        }
+                        emitter.emit('pdbWrote', basePath, fname);
+                    });
+                });
 
+    return emitter;
+}
 
 
 // configure the dictionary to pass to the push function
@@ -103,7 +125,8 @@ var configJob = function (bGpu) {
 var arDock = function (jobManager, opt, bGpu) {
     var emitter = new events.EventEmitter();
     var taskId = 'ardockTask_' + uuid.v4();
-    //console.dir(jobManager);
+    console.dir(jobManager);
+    console.dir(jobManager.cacheDir());
     var pdbFilePath = jobManager.cacheDir() + '/' + taskId + '.pdb';
 
     var pdbObj = opt.pdbObj; // implement iosocket interface
@@ -338,8 +361,15 @@ var keyRequest = function (key) {
     console.log(workDir);
     // squeue command before anyting else
     squeue().on('end', function (squeueRes) {
+
         // next line only for tests
-        squeueRes += " ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_7 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_10 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_11 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_12 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_13 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_14 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_15 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_16 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_17 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_18 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_19 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_20 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_21 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_22 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_23 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_24 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_25 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_3 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_4 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_5 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_6 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_8 AZ\n"
+        console.log("SQ BUFFER");
+        console.log(squeueRes);
+        var testTag = " ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_9 AZ\nardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_7 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_10 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_11 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_12 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_13 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_14 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_15 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_16 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_17 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_18 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_19 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_20 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_21 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_22 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_23 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_24 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_25 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_3 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_4 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_5 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_6 AZ\n ardockTask_47d9573b-758a-4b24-a56f-f45654004921_hex_8 AZ\n";
+        squeueRes = squeueRes ? squeueRes + testTag : testTag;
+        console.log(squeueRes);
+
+
 
         // lists all the files and directories in the workDir directory
         fs.readdir(workDir, function (err, workDirContent) {
@@ -383,6 +413,7 @@ var keyRequest = function (key) {
 module.exports = {
     arDock : arDock,
     pdbLoad : pdbLoad,
+    pdbWrite : pdbWrite,
     keyRequest : keyRequest,
     bFactorUpdate : bFactorUpdate,
     configure : function(data){ probeMax = data.probeMax; bean = data.bean;}
