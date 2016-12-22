@@ -407,6 +407,10 @@ var setUpRestoreConnections = function (){
     WidgetsUtils.socketApp.on('errJob', function (data) {
     //{ 'uuid' : key }
         console.log('Error during calculations');
+    });
+    WidgetsUtils.socketApp.on('arDockRestoreUnknown', function (data) { //arDockRestoreUnknown
+    //{ 'uuid' : key }
+        console.log('Error during calculations');
     })
     WidgetsUtils.socketApp.on('arDockRestoreBusy', function (data) {
     /*{ 'uuid' : key, 'status' : {
