@@ -339,7 +339,10 @@ var findPath = function (key) {
         catch (err) { throw 'Error during the reading of the nodeDir content :\n' + err; }
         // for each files/directories of this node session
         nodeDirContent.forEach(function (val) {
-            if (val.match(key)) workDir = nodeDir;
+            //console.log('>' + val + '<');
+            console.log(key);
+            var regKey = new RegExp('^' + key + '_hex_[0-9]{1,}$')
+            if (val.match(regKey)) workDir = nodeDir;
         });
     });
     return workDir;
