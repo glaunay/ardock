@@ -406,10 +406,7 @@ var setUpRestoreConnections = function (){
     });
     WidgetsUtils.socketApp.on('errJob', function (data) {
     //{ 'uuid' : key }
-        console.log('Error during calculations');
-    });
-    WidgetsUtils.socketApp.on('arDockRestoreUnknown', function (data) { //arDockRestoreUnknown
-    //{ 'uuid' : key }
+        WidgetsUtils.blocker.displayJobError();
         console.log('Error during calculations');
     })
     WidgetsUtils.socketApp.on('arDockRestoreBusy', function (data) {
@@ -419,16 +416,24 @@ var setUpRestoreConnections = function (){
         "running" :[]
     }}*/
         //For now we just compute total and completed
+        var key = data.uuid;
         var n = data.status.completed.length,
             t = data.status.completed.length + data.status.pending.length + data.status.running.length;
         console.log('Some jobs are not finished');
 
         WidgetsUtils.blocker.displayProgress({ num : n, div : t });
 
-    })
-    WidgetsUtils.socketApp.on('errKey', function () {
+        setTimeout(function(){
+            console.log("resending key");
+            restore(key);
+            }
+            ,2000);
+    });
+
+    WidgetsUtils.socketApp.on('arDockRestoreUnknown', function () {
     //{'uuid' : key}
         console.log('This key does not exist');
+        WidgetsUtils.blocker.displayUnknown();
     });
     console.log('All restore connection set up');
 };
@@ -436,22 +441,37 @@ var setUpRestoreConnections = function (){
 
 var keySubmitBox = function(tabRef) {
     Core.call(this, {root : 'body', idNum : '-1'});
+    this.keyValue = null;
 }
 keySubmitBox.prototype = Object.create(Core.prototype);
 keySubmitBox.prototype.constructor = keySubmitBox;
 
 
+keySubmitBox.prototype._displayHeader = function (){
+    var node = this.getNode();
+    $(node).find(".keyBox .keyHead").remove();// cleaning
+    $(node).find(".keyBox").prepend( '<div class="keyHead">'
+                                   + '<span><i class="fa fa-times-circle fa-pull-right"></i></span>'
+                                   + '</div>');
+
+    var self = this;
+    $(node).find('.keyHead span').on('click', function() {
+        self.remove();
+    });
+}
 keySubmitBox.prototype.display = function(){
     var node = this.getNode();
     $(node).prependTo("body");
     $(node).addClass('blocker');
-    $(node).append('<div class="keyBox">' + '<div class="keyHead"><span><i class="fa fa-remove fa-pull-right"></i></span></div>' + '<div class="keyBody">' + '<div class="input-group">' + '<span class="input-group-addon"><i class="fa fa-key fa-fw"></i></span>' + '<input class="form-control" type="text" placeholder="Enter a job identifier">' + '</div>' + '</div>' + '<div class="keyFooter"><div class="pull-right btn btn-primary">Submit</div></div>' + '</div>');
-
+    $(node).append( '<div class="keyBox">'
+                  + '<div class="keyBody"><div class="input-group">'
+                  + '<span class="input-group-addon"><i class="fa fa-key fa-fw"></i></span>'
+                  + '<input class="form-control" type="text" placeholder="Enter a job identifier">'
+                  + '</div></div>'
+                  + '<div class="keyFooter"><div class="pull-right btn btn-primary">Submit</div></div>'
+                  + '</div>');
+    this._displayHeader();
     var self = this;
-    $(node).find('.keyHead span').on('click', function() {
-        console.log("erRemove");
-        self.remove();
-    });
     $(node).find('div.keyFooter div.btn').on('click', function() {
         var key = $(node).find('.keyBody input').val();
         if (key == null) return;
@@ -459,6 +479,7 @@ keySubmitBox.prototype.display = function(){
 
         self.displayLoader();
         restore(key);
+        self.keyValue = key;
     });
 };
 
@@ -479,11 +500,8 @@ keySubmitBox.prototype.displayLoader = function() {
     this.currentKey = $(node).find('.keyBody input').val();
     var h = $(node).find('.keyBody').height(),
         w = $(node).find('.keyBody').width();
-    console.log(h + " ,, " + w);
     var $kBody = $(node).find('.keyBody');
-    console.log($kBody);
     $kBody.empty();
-    console.log($kBody);
     $kBody.append('<div class="alert alert-info"><strong>Loading session</strong>' + ' Please wait ' + '<i class="fa fa-refresh fa-pull-right fa-spin fa-3x fa-fw"></i>' + '<span class="sr-only">Loading...</span>' + '</div>');
     $kBody.find('i.fa-refresh').css('line-height', '24px');
     $(node).find('.keyFooter').empty();
@@ -513,6 +531,11 @@ keySubmitBox.prototype.displayProgress = function(data)  {
     console.log("DP INPUT");
     console.log(data);
 
+    if (this._tLoader) {
+        this._tLoader.display({frac : data });
+        return;
+    }
+
     var self = this;
     var node = this.getNode();
     var kBody = $(node).find('.keyBody')[0];
@@ -520,19 +543,46 @@ keySubmitBox.prototype.displayProgress = function(data)  {
         h = $(kBody).height();
 
     $(kBody).empty();
-    $(kBody).append('<div class="alert alert-warning"><strong>Computation under way, please wait</strong><div class="tLoad"></div></div>');
+    $(kBody).append('<div class="alert alert-warning">'
+                    + '<div><strong>Computation under way</strong><br>'
+                    + 'Please wait!</div>'
+                    + '<div class="tLoad"></div>'
+                    + '</div>');
 
     this._tLoader = tLoader.new({root : $(kBody).find(".tLoad")[0], width : h/*w*/, height : h});
-    $(this._tLoader.getNode()).css('float', 'right');
+    $(this._tLoader.getNode()).css({'position': 'absolute', 'right' : '29px', 'top' : '47px'});
     $(kBody).find('div.alert-warning').css('height', h);
 
     $(kBody).find(".tLoad").css('margin-top', '-2.1em');
-    this._tLoader.display({frac : data });
+    this._tLoader.display({frac : data, pulse : true});
 
 }
-keySubmitBox.prototype.displayERROR = function() {
+keySubmitBox.prototype.displayUnknown = function() {
+    var node = this.getNode();
+    var kBody = $(node).find('.keyBody')[0];
 
-    }
+    $(kBody).empty();
+    this._displayHeader();
+    $(kBody).append('<div class="alert alert-danger"><strong>The provided key is not valid</strong>'
+        + '<i class="fa fa-exclamation-triangle pull-right text-alert fa-3x"></i></div>');
+    $(kBody).find("i.fa").css('margin-top', '-11px');
+}
+
+keySubmitBox.prototype.displayJobError = function() {
+     var node = this.getNode();
+    var kBody = $(node).find('.keyBody')[0];
+
+    $(kBody).empty();
+    this._displayHeader();
+    $(kBody).append('<div class="alert alert-danger keyJobError">'
+                  + '<strong>An error has occured</strong> during the processing of your job.<br>'
+                  + 'Please contact us at<br><a href="mailto:ardock-support@ibcp.fr">ardock-support@ibcp.fr</a>'
+                  + '<div class="i-warning">'
+                  + '<i class="fa fa-exclamation-triangle pull-right text-alert fa-3x"></i>'
+                  + '</div>'
+                  + '</div>');
+    //$(kBody).find("i.fa").css('margin-top', '-11px');
+}
     /*
         return {
             node : $node,
@@ -750,8 +800,6 @@ Tab.prototype.constructor = Tab;
 //#######################################Tab.addJob#########################
 // pUUID parameter is provided when restoring from a previous session
 Tab.prototype.addJob = function(pUUID){
-    console.log(">>>>> ADDING JOB <<<<<<");
-    console.log('addJob pUUID--> ' + pUUID);
     var self = this;
 
     /*var len = self.pdbObj.model(1).listChainID().length;
@@ -850,11 +898,6 @@ Tab.prototype.addJob = function(pUUID){
 // GL : it is due to dataTable,
 //
 var Job = function(opt){
-
-
-    console.log("This is job Constructor, parameters are:")
-    console.dir(opt)
-
     var nArgs = opt ? opt : {};
     Core.call(this,nArgs);
 
@@ -875,12 +918,6 @@ var Job = function(opt){
     this.removeAddChainPdb = opt.pdbObj;
     this.structureComponent = null;
     this.baseRepresentation = null;
-
-    console.log("Job initial State:");
-    console.dir(this);
-
-    //console.log("PdbObj State");
-    //console.log( opt.pdbObj.dump() );
 
     this.stash = function () {
         WidgetsUtils.socketApp.emit('pdbStashESP', { uuid : self.uuid, data : self.pdbObj.model(1).dump()});
@@ -908,10 +945,18 @@ var Job = function(opt){
 
         this.listWidgets['ardockTimer'].display(
                                         {frac:{num:0, div:100},
-                                        background : { shape:"circle", color:"white"}}
+                                        background : { shape:"circle", color:"white"},
+                                        pulse : true }
                                         );
     };
+    this.hideProbeTimer = function () {
+        var node = $(this.listWidgets["pS"].getNode());
+        this.listWidgets['ardockTimer'].destroy();
+        $(node).find('.submitChains,.border').show();
+        $(node).find('.submitChainsContainer span').first().text("Surface probed");
+        $(node).find('div.submitChains').first().css({'padding-top' : '8px', 'font-size' : '0.8em'});
 
+    };
 
     var container = document.createElement('div');
     document.body.appendChild(container);
@@ -957,7 +1002,6 @@ var Job = function(opt){
 
     //Actions after creating objects
     $.when(initJobs()).done(function(){
-        console.log("InitJOBS Done promise");
         $(container).appendTo($(self.workspace)[0]).show();
 
 
@@ -998,14 +1042,10 @@ var Job = function(opt){
         });
 
         self.listWidgets['selectRepresentation'].setNavigationRules();
-        console.log('Promise and register');
-        console.log(self.uuid);
+
         //Fill taJobs with self - Key --> uuid
         WidgetsUtils.tabJobs[self.uuid] = self;
-        console.log(WidgetsUtils.tabJobs);
         setTimeout(function(){
-            console.log("FIRE canvasCompleted delayed");
-               // console.dir(self);
             self.emiter.emit('canvasCompleted', self);
         }, 500);
 
@@ -1192,19 +1232,23 @@ PdbSummary.prototype.setNavigationRules = function() {
             .click(function(e){
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('!!!!click!!!!');
-
                 var component = this;
 
+                var icon = '<i class="fa fa-ban fa-stack-2x text-danger"></i>';
+                var iconSel = 'i.fa-ban';
+                var icon_inv = '<i style="color:green" class="fa fa-check-circle-o fa-stack-2x"></i>';
+                var icon_invSel = 'i.fa-check-circle-o';
+                var icon_swp;
+                if (! $("#" + $(component).parent(".checkChains").attr("for")).prop("checked")) {
+                    icon_swp = icon;
+                    icon = icon_inv;
+                    icon_inv = icon_swp;
+                    icon_swp = iconSel;
+                    iconSel = icon_invSel;
+                    icon_invSel = icon_swp;
+                }
                 $(self.nodeRoot).find('div.summaryMenu').remove();
-
-
-                console.log("who am i ? ");
-                console.log($(component).parent(".checkChains").attr("for"));
-                console.log("latest known is " + this.latest);
-
-                //this.latest = this.latest ? $(component).parent(".checkChains").attr("for") :
-                if( !this.latest ){
+               if( !this.latest ){
                     this.latest = $(component).parent(".checkChains").attr("for");
                 } else if (this.latest === $(component).parent(".checkChains").attr("for")){
                     this.latest = null;
@@ -1221,7 +1265,7 @@ PdbSummary.prototype.setNavigationRules = function() {
                             + '<div class="ban">'
                             + '<span class="fa-stack fa-lg">'
                             + '<i class="fa fa-circle fa-stack-2x fa-inverse"></i>'
-                            + '<i class="fa fa-ban fa-stack-2x text-danger"></i>'
+                            + icon
                             + '</span></div>'
                             + '</div>'
 
@@ -1234,26 +1278,29 @@ PdbSummary.prototype.setNavigationRules = function() {
                     var $checkboxElement = $("#" + $(component).parent(".checkChains").attr("for"));
                     var targetChain = $checkboxElement.attr('id').split("-")[0];
 
-                    if($(self.nodeRoot).find('#arDockSQ_' + targetChain).length > 0) {
-                        console.log("fastawidget already displayed");
+                    if($(self.nodeRoot).find('#arDockSQ_' + targetChain).length > 0)
                         return;
-                    }
-                    console.log("--->");console.dir(self.nodeRoot);
+
                     var windowSeq = fastaWidget.new(
                         {   pdbObj : self.pdbObj,
                             chain : targetChain, node : self.nodeRoot
                         });
                     windowSeq._draw({ shape : [90, 402]});
                     windowSeq.on('aminoAcidClick', function(i, c, resName, resNum, chain){
-                        console.log("CLONG : " + i + ", " + resName + ", " + resNum + ", " + chain);
                         WidgetsUtils.datatableInteraction(self.UUID, chain, resNum, resName);
-                        //  datatableInteraction = function (uuid, chain, resNum, resName) {
-                        //HERE
                     });
                 });
 
             $(self.nodeRoot).find('div.summaryMenu div.ban').on('click', function() {
 
+                if( $(this).find('i.fa-ban').size() > 0) {
+                    $(this).find(iconSel).remove();
+                    $(this).find('span.fa-stack').append(icon_inv);
+                } else if ($(this).find(icon_invSel).size() > 0) {
+                    $(this).find(icon_invSel).remove();
+                    $(this).find('span.fa-stack').append(icon);
+                }
+                //<i class="fa fa-ban fa-stack-2x text-danger"></i>
 
                 if (self.NGLComponent === null) {
                     self.NGLComponent = WidgetsUtils.tabNGLComponents[self.UUID];
@@ -1272,7 +1319,6 @@ PdbSummary.prototype.setNavigationRules = function() {
                 var targetChain = $checkboxElement.attr('id').split("-")[0];
 
                 if ($("#" + $(component).parent(".checkChains").attr("for")).prop("checked")) {
-
                     //Uncheck chain
                     $("#" + $(component).parent(".checkChains").attr("for")).prop("checked", false);
 
@@ -2081,7 +2127,6 @@ WidgetsUtils = {
             var getOffsets = function(job) {
                 var totalH = $(job.storeDiv).height();
                 var spanSpace = totalH - topOffset;
-                console.log('Available space to display bookmarks is ' + spanSpace);
                 var topDL = topOffset + 5
                 spanSpace = spanSpace > 0 ? spanSpace : topDL + 10;
                 var topDT = 0.25 * spanSpace + topOffset;
@@ -2091,7 +2136,6 @@ WidgetsUtils = {
             var bDL = true,
                 bDT = true;
             if ( nArgs.hasOwnProperty("components") ){
-                console.log("Specified components are " + nArgs["components"]);
 
                 bDL = false;
                 bDT = false;
@@ -2407,26 +2451,44 @@ WidgetsUtils = {
 
                     listRepresentationAvailable[rType].setSelection(':');
 
-                    WidgetsUtils.tabNGLComponents[uuid] = { stage: stage,
-                                                            structureComponent: structureComponent,
-                                                            baseRepresentation: listRepresentationAvailable[rType], // On-screen representation
-                                                            listRepresentationAvailable : listRepresentationAvailable,
-                                                            baseChain: pdbObj.model(1).listChainID(),
-                                                            currentChainsVisible: pdbObj.model(1).listChainID(),
-                                                            changeReprOngoing: false,
-                                                            addRemoveReprOngoing: 0,
-                                                            lastSchemeId: schemeId, // current whole protein color
-                                                            storeDiv: storeDiv,
-                                                            $canvas: canvas,
-                                                            lastSelection: ":", // ':' means all in NGL selection language
-                                                            probe: 0,
-                                                            probeLeft: 0,
-                                                            probeSchemeId: null,
-                                                            probeStart: false,
-                                                            probeEnd: false,
-                                                            pdbObj: pdbObj,
-                                                            objectAtoms: null, // Dictionnary w/ key as ATOM serial
-                                                          };
+
+                    var nglComponentObject = {
+                        stage: stage,
+                        structureComponent: structureComponent,
+                        baseRepresentation: listRepresentationAvailable[rType], // On-screen representation
+                        listRepresentationAvailable : listRepresentationAvailable,
+                        baseChain: pdbObj.model(1).listChainID(),
+                        currentChainsVisible: pdbObj.model(1).listChainID(),
+                        changeReprOngoing: false,
+                        addRemoveReprOngoing: 0,
+                        lastSchemeId: schemeId, // current whole protein color
+                        storeDiv: storeDiv,
+                        $canvas: canvas,
+                        lastSelection: ":", // ':' means all in NGL selection language
+                        probe: 0,
+                        probeLeft: 0,
+                        probeSchemeId: null,
+                        probeStart: false,
+                        probeEnd: false,
+                        pdbObj: pdbObj,
+                        setObjectAtoms : function (array) {
+                            this._objectAtoms = array;
+                        },
+                        objectAtoms : function () {
+                            var tabAtoms = this.pdbObj.model(1).currentSelection;
+                            if (! this._objectAtoms) {
+                                this._objectAtoms = {};
+                                for( i = 0 ; i < tabAtoms.length ; i++){
+                                    this._objectAtoms[tabAtoms[i].serial] = {chainID : tabAtoms[i].chainID, tempFactor : tabAtoms[i].tempFactor};
+                                }
+                            }
+                            return this._objectAtoms;
+                        },
+                        _objectAtoms: null, // Dictionnary w/ key as ATOM serial
+                        };
+
+
+                    WidgetsUtils.tabNGLComponents[uuid] = nglComponentObject;
                     stage.centerView();
 
                     WidgetsUtils.setNGLClickedFunction(uuid); // Example of coloration on-click
@@ -2535,18 +2597,13 @@ WidgetsUtils = {
         if(additionalRange === undefined){ additionalRange = null }
 
         var nglComponent = WidgetsUtils.tabNGLComponents[uuid];
-        var objectAtoms = nglComponent.objectAtoms;
+        var objectAtoms = nglComponent.objectAtoms();
         var maxTempFactor = 0;
         var rgbPercent = 2.55;
 
         for(var key in objectAtoms){ maxTempFactor = ( objectAtoms[key].tempFactor > maxTempFactor ) ? objectAtoms[key].tempFactor : maxTempFactor }
 
         var tempFactorPercent = maxTempFactor / 100;
-
-
-        console.log(">>>>> THIS IS GET NGL CUSTOM<<<<<<<");
-        console.log(additionalRange);
-
 
         var schemeId = NGL.ColorMakerRegistry.addScheme( function( params ){
                 this.atomColor = function( atom ){
@@ -2685,9 +2742,9 @@ WidgetsUtils = {
                     .fadeOut(6000)
                 ;
 
-                if(nglComponent.objectAtoms){
-                    if(nglComponent.objectAtoms[pd.atom.serial]){
-                        $magnify.append('<p>Bfactor : ' + nglComponent.objectAtoms[pd.atom.serial].tempFactor + '</p>');
+                if(nglComponent.objectAtoms()){ // This test is deprecated now
+                    if(nglComponent.objectAtoms()[pd.atom.serial]){
+                        $magnify.append('<p>Bfactor : ' + nglComponent.objectAtoms()[pd.atom.serial].tempFactor + '</p>');
                     }
                 }
 
@@ -2965,8 +3022,6 @@ WidgetsUtils = {
         var schemeId = null;
         var tabAtoms = [];
 
-        console.log("NtD" + uuid + ", " + chainName + ", " + resno + ", " + resName);
-
         tabAtoms.push("CHAIN: " + chainName + " RES: " + resName + "-" + resno);
 
         //nglComponent.stage.signals.clicked.removeAll();
@@ -2981,8 +3036,7 @@ WidgetsUtils = {
                     console.log(el);*/
                     tabAtoms.push("ATOM: " + el.name) }
                 });
-                console.log("atom set to highlight");
-                console.dir(tabAtoms);
+
                 //Set Range
                 if(afterProbe){
                     additionalRange = {chainName: chainName, resno: resno, color: "0xffc0cb"}
@@ -2998,7 +3052,7 @@ WidgetsUtils = {
             }else{
                 schemeId = WidgetsUtils.getNGLScheme(nglComponent.baseChain, additionalRange);
             }
-            console.dir(schemeId);
+
             //Update SchemeId
             nglComponent.baseRepresentation.setParameters({'colorScheme': schemeId});
             nglComponent.baseRepresentation.update({'color':true});
@@ -3018,9 +3072,6 @@ WidgetsUtils = {
 
         onArdockStart : function(data) {
 
-            //register a tLoader, externalCreateAndRegister(
-            console.log("WU ardockstart");
-            console.log(data);
             var job = WidgetsUtils.tabJobs[data.uuid];
             job.restoreKey = data.restoreKey;
             WidgetsUtils.bookmarkDisplay({job : job, components :["DL"]});
@@ -3034,23 +3085,12 @@ WidgetsUtils = {
         */
         onArdockChunck: function(data){
             var emiter = new events.EventEmitter();
-            console.log('arDockChunk ==> data in');
-            console.dir(data);
 
             var bRestore = data.hasOwnProperty('restore') ? data.restore : false;
 
             var tabAtoms = data.pdbObj.model(1).currentSelection;
             //var tabchains = data.pdbObj.model(1).listChainID();
             var nglComponent = WidgetsUtils.tabNGLComponents[data.uuid];
-            console.log("AOEAO---EZO");
-
-            console.dir(WidgetsUtils.tabNGLComponents);
-
-
-            console.log(data.uuid);
-
-            console.log(nglComponent);
-
 
             nglComponent.stage.signals.clicked.removeAll();
             nglComponent.probeMax = data.hasOwnProperty('probeMax') ? data['probeMax'] : 3 ;
@@ -3064,37 +3104,37 @@ WidgetsUtils = {
             }
 
             //Fill objectAtoms to nglComponent
-            nglComponent.objectAtoms = objectAtoms;
-            console.dir(data);
-            console.log("probeLeft Count ==> " + data.left);
-            console.dir(this);
+            nglComponent.setObjectAtoms(objectAtoms);
+
             //Handle probe left, waiting backend upgrade
             if(data.hasOwnProperty('left')) {
                 console.log("We have dataleft  --> " + data.left);
                 nglComponent.probeLeft = data.left;
-                console.log("setting  nglComponent.probeLeft  to " + nglComponent.probeLeft);
+               // console.log("setting  nglComponent.probeLeft  to " + nglComponent.probeLeft);
             } else {
-                console.log("We have no dataleft using 3 - " + nglComponent.probe);
+               // console.log("We have no dataleft using 3 - " + nglComponent.probe);
                 nglComponent.probeleft = 3 - nglComponent.probe;
                 //nglComponent.probeleft = data.probeMax - nglComponent.probe;
             }
 
             //Get Job Object by uuid to signal Probe operation is starting
             try {
-                console.log("calling probeStep with [" + nglComponent.currentChainsVisible + ',' + nglComponent.probeLeft + ']');
+               // console.log("calling probeStep with [" + nglComponent.currentChainsVisible + ',' + nglComponent.probeLeft + ']');
                 if (!bRestore) {
                     var job = WidgetsUtils.tabJobs[data.uuid];
                     job.listWidgets.pS.probeStep(nglComponent.currentChainsVisible, nglComponent.probeLeft);
 
-                     job.listWidgets['ardockTimer'].display({frac:{num : (data.probeMax - data.left), div : data.probeMax}});
+                     job.listWidgets['ardockTimer'].display({frac:{num : (data.probeMax - data.left), div : data.probeMax}, pulse :true});
 
                     if (data.left === 0) {
-                        console.log("No more probe to collect");
                         WidgetsUtils.bookmarkDisplay({job : job, components :["DT"]});
                         job.listWidgets["bookmarkDL"].enable();
                         job.listWidgets.bookmarkDT.on('cellClick', function (d){
                             WidgetsUtils.datatableInteraction(job.uuid, d.data[2], d.data[1], d.data[0]);
                         });
+                        setTimeout(function(){
+                            job.hideProbeTimer();
+                        }, 500);
                     }
                 }
                 //WidgetsUtils.tabJobs[data.uuid].listWidgets.pS.probeStep(nglComponent.currentChainsVisible, data.probeleft);

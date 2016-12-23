@@ -281,6 +281,7 @@ var FastaDuo = function(data, node, anchor) {
     console.dir(node);
 
     this.code = {
+        'A': 'ALA',
         'L': 'LEU',
         'V': 'VAL',
         'I': 'ILE',
@@ -383,9 +384,11 @@ FastaDuo.prototype._draw = function(opt) {
                     if (d > 99) return '8px';
                 }
                 return "10px";
-            }).on('click', function (d,i){
+            });
+            this.sequences[i].selectAll('g.letter').on('click', function (d,i){
                 self.fire('cellClick', this, d, i);
                 console.dir(this);
+                console.dir(d);
             });
         this.sequences[i].attr('transform', 'translate(' + 0 + ', ' + (i * self.cellDim()[0]) + ')');
     };

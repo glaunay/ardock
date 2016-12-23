@@ -32,14 +32,14 @@ arDockDownloader.prototype.enable = function (){
     if(!this.bDisabled) return;
     var cNode = this.getContentNode();
     this.bDisabled = false;
-    $(cNode).find(".cuPdbDl,.cuPEND").removeClass('.disabled');
+    $(cNode).find(".cuPdbDl,.cuPEND").removeClass('disabled');
 }
 
 arDockDownloader.prototype.disable = function (){
     if(this.bDisabled) return;
     var cNode = this.getContentNode();
     this.bDisabled = true;
-    $(cNode).find(".cuPdbDl,.cuPEND").addClass('.disabled');
+    $(cNode).find(".cuPdbDl,.cuPEND").addClass('disabled');
 }
 
 
@@ -61,18 +61,20 @@ arDockDownloader.prototype.display = function(opt) {
                 + '<div class="btn btn-primary faBtnDL" style="padding: 4px 32px 5px 32px;"><i class="fa fa-cloud-upload fa-5x"></i></div>'
                 + '</div>'
                 );
-
+    var self = this;
     $(cNode).find('.cuPdbDl').mouseout(function(){
+        if (self.bDisabled) return;
         $(this).find('img').attr("src","assets/pdb.png");
         });
 
     $(cNode).find('.cuPdbDl').mouseover(function(){
+        if (self.bDisabled) return;
         $(this).find('img').attr("src","assets/pdb_alt.png");
     });
 
-    if (this.bDisabled) $(cNode).find(".cuPdbDl,.cuPEND").addClass('.disabled');
+    if (this.bDisabled) $(cNode).find(".cuPdbDl,.cuPEND").addClass('disabled');
 
-    var self = this;
+
     $(cNode).find('.cuPdbDl').on('click', function (){
         if (self.bDisabled) return;
         var element = document.createElement('a');
@@ -85,9 +87,11 @@ arDockDownloader.prototype.display = function(opt) {
     });
 
     $(cNode).find('.cuPEND').mouseout(function(){
+        if (self.bDisabled) return;
         $(this).find('img').attr("src","assets/END_awesome.png");
     });
     $(cNode).find('.cuPEND').mouseover(function(){
+        if (self.bDisabled) return;
         $(this).find('img').attr("src","assets/END_awesome_alt.png");
     });
     $(cNode).find('.cuPEND').on('click', function(){
@@ -148,6 +152,7 @@ arDockDownloader.prototype.display = function(opt) {
             param['sizeUpAbs'] = -1;
             //param['sizeLowAbs'] =     $('.willSlide.content.ardockDLctrl').outerWidth();
             param['sizeLowAbs'] = $(this.getContentNode()).outerWidth();
+            console.log(">>>>>>>=========================<<<<<<<<<<<<<<");
             console.log($(this.getContentNode()).outerWidth())
             console.log($('.willSlide.content.ardockDLctrl').outerWidth());
             /*param['sizeLowAbs'] = $(cNode).outerWidth()
@@ -155,7 +160,11 @@ arDockDownloader.prototype.display = function(opt) {
                             + parse($(this.node).css('padding-right'));// + $(bNode).css('padding-left');
             */
         }
+        console.log("arDockDL parameters");
+        console.log(param);
+
         this.putAt(param);
+        console.log("--->" + $('.willSlide.content.ardockDLctrl').outerWidth());
     }
 }
 

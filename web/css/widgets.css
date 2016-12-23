@@ -71,3 +71,18 @@ div.widget.bookmarkable div.btn.willSlide i.fa{
 div.widget.bookmarkable:hover {
     z-index : 8;
 }
+
+div.keyBox .keyHead i.fa {
+    cursor : pointer;
+    font-size: 1.5em;
+}
+
+div.keyBox .keyJobError {
+    padding-top:2px;
+    padding-bottom:2px;
+}
+div.keyBox .keyJobError .i-warning {
+    position: absolute;
+    right: 30px;
+    top: 50%;
+}

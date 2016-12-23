@@ -287,7 +287,7 @@ var checkQueue = function (jobList, squeueRes) {
 
     // for running jobs
     jobList.forEach(function (job) {
-        console.log(job)
+        //console.log(job)
         var reg = new RegExp(job + ' ([A-Z]{1,2})\n');
         if (! reg.test(squeueRes)) { // the job is not in the queue
             console.log('Error : the job ' + job + ' is not finished AND is not in the queue...');
@@ -340,7 +340,7 @@ var findPath = function (key) {
         // for each files/directories of this node session
         nodeDirContent.forEach(function (val) {
             //console.log('>' + val + '<');
-            console.log(key);
+            //console.log(key);
             var regKey = new RegExp('^' + key + '_hex_[0-9]{1,}$')
             if (val.match(regKey)) workDir = nodeDir;
         });

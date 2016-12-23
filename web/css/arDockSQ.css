@@ -3,3 +3,7 @@ div.arDockSQ {
     position:absolute;
     z-index : 7;
 }
+
+div.arDockSQ g.letter {
+    cursor : pointer;
+}

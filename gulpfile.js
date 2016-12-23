@@ -86,7 +86,7 @@ gulp.task('compress', function() {
 
 gulp.task('server', function (cb) {
 
-    spawn('node', ['index.js', '--conf', '../default.conf', '--http','--slurm','-p','3'], { stdio: 'inherit' })
+    spawn('node', ['index.js', '--conf', '../default.conf', '--http','--slurm','-p','6'], { stdio: 'inherit' })
 
  /*
  exec('node index.js --conf ../default.conf --http', function (err, stdout, stderr) {

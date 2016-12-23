@@ -18,7 +18,7 @@ var widgets = require('./web/js/widgets');
 var css = require('./app.css');
 var bootstrap = require('bootstrap');
 
-tLoader = require('./web/js/arLoader.js');
+//tLoader = require('./web/js/arLoader.js');
 
 
 ////////////////////////////////////////////////////////////////// GLOBAL ///////////////////////////////////////////////////////////////////////////////////
