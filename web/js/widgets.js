@@ -369,10 +369,7 @@ var setUpRestoreConnections = function (){
         s.push(null);
         var pdbParse = pdbLib.parse({'rStream': s})
             .on('end', function (pdbObjInp) {
-                /*console.log("RESTORE PDB CONTENT");
-                console.log(pdbObjInp.model(1).dump());*/
-
-                var opt = {
+                 var opt = {
                     fileName: "restored",
                     pdbObj: pdbObjInp,
                     pdbText: data.obj,
@@ -654,16 +651,29 @@ DisplayTabs.prototype.addTab = function(opt){
     }
 
     //Check if file is already open, return if true
+    // We skip it for now
     var alreadyExist = false;
     WidgetsUtils.tabTabs.forEach(function(el){
         if(name === el.name){
-            alert("File already open !");
+            //alert("File already open !");
             alreadyExist = true;
             return false;
         }
     });
-    if(alreadyExist){return false};
-
+    if(alreadyExist){
+        var i = 0;
+        var bool = false;
+        while (!bool) {
+            bool = true;
+            i += 1;
+            WidgetsUtils.tabTabs.forEach(function(el){
+                if(el.name === name + '_' + i)
+                    bool = false;
+            });
+        }
+        name += '_' + i;
+     }
+     console.log("Assigned name --> " + name);
     //Create a new Tab and push it in Array
     var param = {name:name,pdbObj: opt.pdbObj,tabList: '#tabs',tabAdd:'#addFile',container: '.tab-content', pdbText : opt.pdbText};
     if (opt.hasOwnProperty("pUUID")) param["pUUID"] = opt.pUUID;
@@ -953,8 +963,7 @@ var Job = function(opt){
         var node = $(this.listWidgets["pS"].getNode());
         this.listWidgets['ardockTimer'].destroy();
         $(node).find('.submitChains,.border').show();
-        $(node).find('.submitChainsContainer span').first().text("Surface probed");
-        $(node).find('div.submitChains').first().css({'padding-top' : '8px', 'font-size' : '0.8em'});
+        this.listWidgets["pS"].setToDone();
 
     };
 
@@ -1162,6 +1171,8 @@ var PdbSummary = function(opt) {
     this.$submitText = null;
     this.fileName = nArgs.fileName;
 
+    this.collapseH = '175px';
+
     var chains = this.pdbObj.model(1).listChainID();
 
     var scaffold = '<div class="widget pdbSummary" id="w_' + this.idNum + '">';//draggable="true"
@@ -1206,8 +1217,27 @@ var PdbSummary = function(opt) {
     this.scaffold (scaffold);
 }
 
+
 PdbSummary.prototype = Object.create(Core.prototype);
 PdbSummary.prototype.constructor = PdbSummary;
+
+PdbSummary.prototype.setToDone = function(){
+    var txt = $(this.node).find(".submitChainsContainer span").first();
+    txt.text("Surface probed");
+    $(this.node).find('div.submitChains').first().css({'padding-top' : '8px', 'font-size' : '0.8em'});
+}
+
+PdbSummary.prototype.collapse = function () {
+    $(this.node).css({'max-height' : this.collapseH, 'overflow-y': 'hidden'});
+}
+
+PdbSummary.prototype.expand = function () {
+    $(this.node).css({'max-height' : 'none', 'overflow-y': 'visible'});
+}
+
+
+
+
 
 PdbSummary.prototype.setNavigationRules = function() {
 
@@ -2158,7 +2188,7 @@ WidgetsUtils = {
                     $(job.listWidgets["bookmarkDL"].getButtonNode()).css('height', 'auto');
                 }
                 if (bDT)
-                    job.listWidgets["bookmarkDT"].display({pdbObj:job.pdbObj, position : 'br', absPosSpecs : {'top' : offsets[1] + 'px'}});
+                    job.listWidgets["bookmarkDT"].display({/*draggable : true, */pdbObj:job.pdbObj, position : 'br', absPosSpecs : {'top' : offsets[1] + 'px'}});
 
                 var setPositions = function() {
                     var offsets = getOffsets(job);
@@ -3136,6 +3166,8 @@ WidgetsUtils = {
                             job.hideProbeTimer();
                         }, 500);
                     }
+                } else {
+                    WidgetsUtils.tabJobs[data.uuid].listWidgets["pS"].setToDone();
                 }
                 //WidgetsUtils.tabJobs[data.uuid].listWidgets.pS.probeStep(nglComponent.currentChainsVisible, data.probeleft);
             } catch(e) {

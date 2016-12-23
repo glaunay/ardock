@@ -282,6 +282,26 @@ arDockTable.prototype.display = function(opt) {
     console.log("display Out");
     console.dir(this);
 
+    if (nArgs.hasOwnProperty('draggable')) {
+        $(self.getContentNode()).prepend('<div style="height:1.5em;cursor:crosshair" class="dragTarget"></div>')
+        Draggable.create(self.node, {
+   // type:"y",
+            bounds: self.nodeRoot,
+            trigger : $(self.getContentNode()).find(".dragTarget")[0],
+        //throwProps:true,
+            onClick:function() {
+            /*console.log("clicked");
+            self.fire('onDragClick');*/
+        },
+        onDragEnd:function() {
+            console.log("drag ended");
+            /*self.fire('onDragEnd');*/
+        }
+
+    });
+    }
+
+
 }
 /*
 arDockTable.prototype._display = function(opt) {
