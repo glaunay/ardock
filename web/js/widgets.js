@@ -3206,6 +3206,11 @@ WidgetsUtils = {
 
             var bRestore = data.hasOwnProperty('restore') ? data.restore : false;
 
+            console.log('ardokChunk operation !!!');
+            console.dir(data.uuid);
+            console.dir(data);
+
+            //console.log(data.pdbObj.model(1).dump());
             var tabAtoms = data.pdbObj.model(1).currentSelection;
             //var tabchains = data.pdbObj.model(1).listChainID();
             var nglComponent = WidgetsUtils.tabNGLComponents[data.uuid];
@@ -3245,6 +3250,7 @@ WidgetsUtils = {
                      job.listWidgets['ardockTimer'].display({frac:{num : (data.probeMax - data.left), div : data.probeMax}, pulse :true});
 
                     if (data.left === 0) {
+                        job.pdbObj = data.pdbObj;
                         WidgetsUtils.bookmarkDisplay({job : job, components :["DT"]});
                         job.listWidgets["bookmarkDL"].enable();
                         job.listWidgets.bookmarkDT.on('cellClick', function (d){

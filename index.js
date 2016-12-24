@@ -79,7 +79,12 @@ var restCallBack = function (ans, data) {
             //ans.send("<h1>HOurrah</h1>\n" + pdbObj.dump());
 
             PDB_Lib.arDock(HPC_Lib.jobManager(), {'pdbObj' : pdbObj})
-            .on('go', function(taskID) {taskPatt = new RegExp(taskID);}) // test is actually useless arDock emitter is created at every call
+            .on('go', function(taskID) {
+                console.log('##TaskID Start ' + taskID);
+
+                taskPatt = new RegExp(taskID);
+
+                }) // test is actually useless arDock emitter is created at every call
             .on('jobCompletion', function(res, job) {
                         if (taskPatt.test(job.id)) cnt--;
                         PDB_Lib.bFactorUpdate(pdbObj, res);
@@ -109,7 +114,7 @@ var ioPdbSubmissionCallback = function (data, uuid, socket){
     var cnt = probeMax;
     PDB_Lib.pdbLoad(bTest, {'ioSocketStream' : data, 'chain' : pdbChainList})
         .on('pdbLoad', function (pdbObj) {
-            var TaskPatt = null;
+            var taskPatt = null;
             pdbObj.model(1).bFactor(0);
             console.log("Routing to ardock a " + pdbObj.selecSize() + " atoms structure");
             PDB_Lib.arDock(HPC_Lib.jobManager(), {'pdbObj' : pdbObj})
@@ -119,6 +124,10 @@ var ioPdbSubmissionCallback = function (data, uuid, socket){
                 socket.emit("arDockStart", { restoreKey : taskID, total : total, uuid : uuid });
             }) // test is actually useless arDock emitter is created at every call
             .on('jobCompletion', function(res, job) {
+                /*console.log('Job Completion pattern checking:');
+                console.log(taskPatt);*/
+                console.log("JobDecount TESTING " + taskPatt + " VS " + job.id);
+
                 if (taskPatt.test(job.id)) cnt--;
                 PDB_Lib.bFactorUpdate(pdbObj, res);
                 socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'probeMax' : probeMax, 'uuid' : uuid });
