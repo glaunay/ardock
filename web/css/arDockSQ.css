@@ -7,3 +7,7 @@ div.arDockSQ {
 div.arDockSQ g.letter {
     cursor : pointer;
 }
+
+div.arDockSQ {
+    opacity : 0;
+}

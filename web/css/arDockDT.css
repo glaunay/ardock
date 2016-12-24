@@ -1,3 +1,67 @@
+
+div.ardockDT.zFixed {
+    position: absolute;
+    left:0px;
+    top:100px;
+    font-size: 0.7em;
+    border-radius: 0px 4px 4px 0px;
+    width: 210px;
+    padding-right:5px;
+}
+
+
+div.ardockDT.zFixed div.datatableW {
+    background-color: #008552;
+    opacity:0.6;
+    width: 205px;
+    border-radius: inherit;
+}
+
+div.ardockDT.zFixed div.datatableW tbody tr:nth-child(odd) {
+   background-color: #ccc;
+}
+
+div.ardockDT.zFixed div.datatableW .dataTables_filter {
+    width : auto;
+}
+
+div.ardockDT.zFixed .dtFooter {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 21%;
+}
+
+div.ardockDT.zFixed div.datatableW table.dataTable tbody>tr>td {
+    padding : 0px 0px 0px 0px;
+    border-top:none;
+    border-left: none;
+    cursor:pointer;
+}
+div.ardockDT.zFixed div.datatableW table.dataTable tbody>tr>td:last-child {
+    border-right: none;
+}
+
+div.ardockDT.zFixed div.datatableW table.dataTable thead th {
+    padding : 0px 0px 0px 0px;
+}
+div.ardockDT.zFixed div.datatableW table.dataTable thead td {
+    padding : 0px 0px 0px 0px;
+}
+
+div.ardockDT.zFixed div.datatableW label input {
+    width: 130px;
+}
+
+div.ardockDT.zFixed .btn.xlDL {
+   /* width : 75%;*/
+    background-color: #008552;
+    float:left;
+    width: 65%;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    font-size: 10px;
+}
+
 div.ardockDT div.datatableW {
     padding: 0.5em;
 }
@@ -13,6 +77,7 @@ div.ardockDT .btn.xlDL {
     width: 42%;
     margin-top: -4px;
     margin-bottom: 5px;
+    color:black;
 }
 
 div.ardockDT .btn.xlDL span{
@@ -21,7 +86,7 @@ div.ardockDT .btn.xlDL span{
 
 div.ardockDT div.btn.willSlide {
    /* background-color: rgba(204, 204, 204, 0.88)!important;*/
-    background-color: rgb(192, 192, 192)!important;
+    background-color: rgb(192, 192, 192);
 }
 
 div.ardockDT div.datatableW {
@@ -35,7 +100,7 @@ div.ardockDT div.datatableW tbody tr td{
 }
 div.ardockDT div.dataTables_scrollBody {
     overflow-x: hidden!important;
-    border-bottom : none!important;
+  /*  border-bottom : none!important;*/
 }
 div.ardockDT div.datatableW tbody tr:first-child{
     border-top: none;

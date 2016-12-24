@@ -13,7 +13,7 @@ var arDockDownloader = function(opt) {
     var nArgs = opt ? opt : {};
     console.log($(nArgs.root));
     Bookmark.call(this, nArgs);
-
+    this.mode = null;
     this.bDisabled = false;
 }
 
@@ -50,15 +50,16 @@ arDockDownloader.prototype.display = function(opt) {
     Bookmark.prototype.display.call(this);
 
     this.bDisabled = nArgs.hasOwnProperty('disabled') ? nArgs['disabled'] : true;
+    this.mode = nArgs.hasOwnProperty('mode') ? nArgs.mode : null;
 
     var cNode = this.getContentNode();
     var bNode = this.getButtonNode();
     $(cNode).addClass("ardockDLctrl");
     $(cNode).append(//$('body').append('<div class="ardockDLctrl">'
                  '<div class="btn-group">'
-                + '<div class="btn btn-primary cuPEND"><img width="125px" src="assets/END_awesome.png"></img></div>'
-                + '<div class="btn btn-primary cuPdbDl" style="padding : 13px 12px 13px 12px"><img width="125px" src="assets/pdb.png"></img></div>'
-                + '<div class="btn btn-primary faBtnDL" style="padding: 4px 32px 5px 32px;"><i class="fa fa-cloud-upload fa-5x"></i></div>'
+                + '<div class="btn btn-primary cuPEND"><img width="45px" src="assets/END_awesome.png"></img></div>'
+                + '<div class="btn btn-primary cuPdbDl" ><img width="45px" src="assets/pdb.png"></img></div>'
+                + '<div class="btn btn-primary faBtnDL" ><i class="fa fa-cloud-upload fa-2x"></i></div>'
                 + '</div>'
                 );
     var self = this;
@@ -71,6 +72,13 @@ arDockDownloader.prototype.display = function(opt) {
         if (self.bDisabled) return;
         $(this).find('img').attr("src","assets/pdb_alt.png");
     });
+
+    $(cNode).find('.faBtnDL').on('mouseover', function() {
+        $(this).css('color','white');
+    })
+    .on('mouseout', function() {
+        $(this).css('color','black');
+    })
 
     if (this.bDisabled) $(cNode).find(".cuPdbDl,.cuPEND").addClass('disabled');
 
@@ -100,9 +108,18 @@ arDockDownloader.prototype.display = function(opt) {
     });
 
     $(cNode).find('.faBtnDL').on('click', function(){
-        $(cNode).find('.btn-group').hide();
-        var w =  $(cNode).find('.btn-group').width(),
+        var w,h;
+
+        if (self.mode === 'pill') {
+            $(bNode).hide();
+            w =  $(self.node).find('.btn-group').width(),
+            h =  $(self.node).outerHeight();
+        } else {
+            w =  $(cNode).find('.btn-group').width(),
             h =  $(cNode).find('.btn-group').height();
+        }
+
+        $(cNode).find('.btn-group').hide();
 
         $(cNode).append('<div class="container keyContainer">'
                         + '<div class="row"><div class="input-group keyPaste">'
@@ -110,11 +127,33 @@ arDockDownloader.prototype.display = function(opt) {
                         + '<div class="form-control keyPasteForm">' + self.uuid + '</div>'
                         + '<span class="input-group-addon pull-left close"><i class="fa fa-remove"></i></span>'
                         + '</div></div>'
-                        + '<div class="row keyComment">Copy the above key to restore present session at any time.</div></div>');
-        $(cNode).find('div.container').css({'width' :  w + 'px'});
-        $(cNode).find('span.close').on('click', function(){ $(cNode).find('div.keyContainer').remove(); $(cNode).find('.btn-group').show();});
+                        + '<div class="row keyComment">Use this key to restore current session in the future.</div></div>');
+        if (self.mode !== 'pill')
+            $(cNode).find('div.container').css({'width' :  w + 'px'});
+        $(cNode).find('span.close').on('click', function(){
+            var _h = $(self.node).outerHeight();
+            console.log(_h + ' -> ' + h + ' transition');
+            $(self.node).css('height', _h);
+            $(cNode).find('div.keyContainer').remove();
+            $(cNode).find('.btn-group').show();
+            $(bNode).show();
+            $(self.node).animate({
+                height: h ,
+                }, 500, function() {
+                    $(self.node).css('height', 'auto');
+    // Animation complete.
+                });
+        });
 
     });
+
+
+    // HACK GL -- no time
+    if (nArgs.hasOwnProperty('position'))
+        if (nArgs.position === 'tm' && this.mode === 'pill') {
+                $(this.node).addClass('ardockDLcontainer pill topCenter');
+                $(this.getButtonNode()).unbind('click');
+        }
 
 
     //We want all button in single line

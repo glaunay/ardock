@@ -1,0 +1,10 @@
+body {
+    background-color: steelblue;
+}
+
+div.main {
+    margin: 10%;
+    padding : 2em 2em 2em 2em;
+    border-radius: 5px 5px 5px 5px;
+    background-color: white;
+}

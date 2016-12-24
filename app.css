@@ -242,15 +242,19 @@ body {
 
 .pdbSummary{
     position: absolute;
-    top: 7px;
+    /*top: 7px;*/
+    top: -7px;
+    /*left: 217px;*/
     /*left: 106px;*/
     right: 0px;
     padding: 10px;
     display: inline-block;
+    /*border : 3px solid grey;*/
     border-top: 3px solid grey;
     border-left: 3px solid grey;
     border-bottom: 3px solid grey;
-    border-radius: 10px 0px 0px 10px;
+
+    border-radius: 0px 0px 0px 10px;
     color: black;
 	background-color: transparent;
     z-index: 7;

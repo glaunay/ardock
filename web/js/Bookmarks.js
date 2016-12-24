@@ -98,9 +98,9 @@ Bookmarkable.prototype.setButtonContent = function(unSelectedContent, unSelected
     selectedDynamic(this.node, this.getContentNode(), $(btn).children()[0]);
     var node = this.getContentNode();
    // var w = $(node).css('width') === "" ? $(node).width() + 'px' : $(node).css('width');
-    var h = $(node).css('height') === "" ? $(node).height() + 'px': $(node).css('height');
+    //var h = $(node).css('height') === "" ? $(node).height() + 'px': $(node).css('height');
 
-    $(btn).css( 'height', h);
+    //$(btn).css( 'height', h);
 
     $(btn).prependTo($(btn).parent());
 }

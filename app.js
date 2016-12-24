@@ -20,7 +20,6 @@ var bootstrap = require('bootstrap');
 
 //tLoader = require('./web/js/arLoader.js');
 
-
 ////////////////////////////////////////////////////////////////// GLOBAL ///////////////////////////////////////////////////////////////////////////////////
 //var widgetsUtils = null;
 WidgetUtils = null;
@@ -82,7 +81,7 @@ socket.on("arDockStart", function (data) {
 
 $(function () {
 
-
+    //DL.display({ position : 'tm', mode : 'pill'});
     //var fastaWidget = require('./Alignment.js');
     //fastaWidget.test();
     //fastaWidget.testSolo();
@@ -201,7 +200,6 @@ $(function () {
         root: $('#divAddFile')
     });
     uploadBox.on('change', upload);
-
 
 });
 

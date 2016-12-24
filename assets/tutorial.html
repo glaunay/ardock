@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bootstrap Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="./tutorial.css" />
+ </head>
+<body>
+
+<div class="container main">
+
+<div class="tutorialP">
+  <h1>What is the <strong>AR</strong>bitrary <strong>DOCK</strong>ing server?</h1>
+  <p><strong>ARDOCK</strong> is a web-service for the study of protein surfaces. Arbitrary docking can reveal potential interaction sites on the surface of a protein using docking with a set of 25 random protein “probes”.
+    We have shown that the random probes interact in a non-random manner on protein surfaces, and that targeted regions are enriched in biological interfaces.</p>
+    <p><strong>ARDOCK</strong> uses PDB structures as inputs. The web-client provides the interactive vizualisation of protein structures and sequences. The back-end server performs the protein surface study computations. ARDOCK uses the webGL <a href="https://github.com/arose/ngl"> NGL library</a> for molecular rendering and the <a href="http://hex.loria.fr/">HeX</a> software for fast docking computations.</p>
+</div>
+
+<div class="tutorialP">
+<h1>Submitting structures</h1>
+<p> Any file following <a href="http://www.wwpdb.org/documentation/file-format">the PDB standard</a> can be processed. In its current state, the <strong>ARDOCK</strong> server only treat natural amino-acids, any other compound will be discarded.
+</p>
+
+<div class="pictureWrapper">
+<figure>
+    <img src = "img/pdb_tabs_min.png" alt = "Generic placeholder thumbnail" width=350>
+
+    <figcaption style="width:350px"> Each submitted protein structure file is open in a distinct tab allowing different proteins to be processed simultaneously.
+    </figcaption>
+</figure>
+</div>
+
+</div>
+
+<div class="tutorialP">
+<h1>Working with proteins</h1>
+<p>For multimeric proteins, each oligomeric state will give different results because the ARDOCK method is sensitive to the overall shape of the protein. If the protein you are working on contains several chains, any oligomeric state can be constructed by selectively deleting chains. If you press the <strong>+</strong> tab button, a copy of the current structure will be opend in a new tab, allowing you to work on a different oligomeric state.
+</p>
+<div class="pictureWrapper">
+<figure>
+    <img src = "img/oligomeric.png" alt = "Generic placeholder thumbnail" width=350>
+
+    <figcaption style="width:350px"> For a given multimeric structure, alternative set of protein chains can be analysed with the second tab-level (red square).
+    Chains view can be toggled on and off using the upper right controller (yellow square). Here the chain B is hidden, and pressing the ban icon will hide the chain D.
+    </figcaption>
+</figure>
+</div>
+</div>
+<div class="tutorialP">
+<h1>Visualizing proteins</h1>
+<p></p>
+</div>
+</body>
+</html>

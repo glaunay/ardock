@@ -943,6 +943,10 @@ var Job = function(opt){
         $(self.canvas).one('mouseover', function(e){ self.stage.handleResize() });
     };
 
+    this.closeViews = function() {
+        console.log(this.workspace);
+        $(this.workspace).find('.summaryMenu,.arDockSQ').remove();
+    }
 
 
     this.showProbeTimer = function () {
@@ -996,7 +1000,10 @@ var Job = function(opt){
 
         self.listWidgets['bookmarkDL'] = externalCreateAndRegister(arDockDL.new, {root: self.listWidgets["pC"].panel, /*UUID: self.uuid, */ pdbObj: self.pdbObj});
         self.listWidgets['bookmarkDT'] = externalCreateAndRegister(arDockDT.new, {root: self.listWidgets["pC"].panel, /*UUID: self.uuid, */ pdbObj: self.pdbObj});
-
+//DVL
+       // self.listWidgets["bookmarkDL"].display({ position : 'tm', mode : 'pill'});
+        //$(self.listWidgets["bookmarkDL"].node).addClass('ardockDLcontainer bookmarkable topCenter pill')
+//
         self.listWidgets['bookmarkDL'].on('END_click',function(){
             self.stash();
         });
@@ -1046,6 +1053,7 @@ var Job = function(opt){
 
         self.listWidgets["pS"].setNavigationRules();
         self.listWidgets["pS"].on('submit', function(pdbObj){
+            self.closeViews();
             self.showProbeTimer();
             self.send(pdbObj);
         });
@@ -1260,6 +1268,9 @@ PdbSummary.prototype.setNavigationRules = function() {
                 $(this).css("backgroundColor", "");
             })
             .click(function(e){
+
+
+
                 e.preventDefault();
                 e.stopPropagation();
                 var component = this;
@@ -1285,7 +1296,7 @@ PdbSummary.prototype.setNavigationRules = function() {
                     return;
                 }
 
-                var x = $(self.node).outerWidth();
+                var x = $(self.node).outerWidth()/* + $(self.node).position().left*/;
                 var y = $(this).closest('.checkChainsContainer').position()["top"];
                 var html =  '<div class="summaryMenu">'
                             + '<div class="view"><span class="fa-stack fa-lg">'
@@ -1305,6 +1316,7 @@ PdbSummary.prototype.setNavigationRules = function() {
 
 
                 $(self.nodeRoot).find('div.summaryMenu div.view').on('click', function() {
+
                     var $checkboxElement = $("#" + $(component).parent(".checkChains").attr("for"));
                     var targetChain = $checkboxElement.attr('id').split("-")[0];
 
@@ -1316,6 +1328,9 @@ PdbSummary.prototype.setNavigationRules = function() {
                             chain : targetChain, node : self.nodeRoot
                         });
                     windowSeq._draw({ shape : [90, 402]});
+                    var xWin = $(self.nodeRoot).find('div.summaryMenu').outerWidth() + x;
+                    $(windowSeq.node).css({top: y, right : xWin});
+                    $(windowSeq.node).animate({opacity : 1}, 250);
                     windowSeq.on('aminoAcidClick', function(i, c, resName, resNum, chain){
                         WidgetsUtils.datatableInteraction(self.UUID, chain, resNum, resName);
                     });
@@ -2152,8 +2167,79 @@ WidgetsUtils = {
 
         return (isChrome || isFirefox || isSafari);//Here we define wich browser we want to access the application    || isIE || isEdge
     },
-    // Display as percentage in space above pdb Summary, setting as responsive
+    // Trying a simpler layout
+    // We guess the max height of magnify
+
+/*
+    .centered {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+    }
+*/
     bookmarkDisplay : function (nArgs) {
+            /*
+            var getOffsets = function(job) {
+                var totalH = $(job.storeDiv).height();
+                var totalW = $(job.storeDiv).width();
+                var datatableOffsets = $(job.listWidgets["pC"]).outerHeight();
+
+            };
+            */
+// By default all bookmark are displayed, specifying components will display only those specified
+            var bDL = true,
+                bDT = true;
+            if ( nArgs.hasOwnProperty("components") ){
+
+                bDL = false;
+                bDT = false;
+                nArgs["components"].forEach(function(d){
+                    if (d === "DL") bDL = true;
+                    if (d === "DT") bDT = true;
+                });
+            }
+
+
+            if ( nArgs.hasOwnProperty("job") ){
+                var job = nArgs.job;
+               /*
+                var topOffset =   parseInt( $( job.listWidgets["pS"].getNode() ).outerHeight() )
+                                + parseInt( $( job.listWidgets["pS"].getNode() ).position().top);
+
+                var offsets = getOffsets(job);
+                */
+                if (bDL) {
+                    job.listWidgets["bookmarkDL"].hook(job.pdbObj, job.restoreKey);
+                    job.listWidgets["bookmarkDL"].display({ position : 'tm', mode : 'pill'});
+                }
+                if (bDT)
+                    job.listWidgets["bookmarkDT"].display({pdbObj:job.pdbObj, mode : 'zFixed'});
+
+               /* var setPositions = function() {
+                    var offsets = getOffsets(job);
+                    if (bDL)
+                        $(job.listWidgets["bookmarkDL"].getNode()).css('top', offsets[0] + 'px');
+                    if (bDT)
+                        $(job.listWidgets["bookmarkDT"].getNode()).css('top', offsets[1] + 'px');
+                }
+                setPositions();
+                $(window).on('resize', function () {
+                    setPositions();
+                });
+                */
+            // Compute offset, set visibility priorities
+
+            }
+
+              //  if (!bDL) job.listWidgets["bookmarkDL"].hide();
+              //  if (!bDT) job.listWidgets["bookmarkDT"].hide();
+
+    },
+
+
+    // Display as percentage in space above pdb Summary, setting as responsive
+    _bookmarkDisplay : function (nArgs) {
             var getOffsets = function(job) {
                 var totalH = $(job.storeDiv).height();
                 var spanSpace = totalH - topOffset;
@@ -2184,11 +2270,13 @@ WidgetsUtils = {
                 var offsets = getOffsets(job);
                 if (bDL) {
                     job.listWidgets["bookmarkDL"].hook(job.pdbObj, job.restoreKey);
-                    job.listWidgets["bookmarkDL"].display({ position : 'br', absPosSpecs : {'top' : offsets[0] + 'px' }});
-                    $(job.listWidgets["bookmarkDL"].getButtonNode()).css('height', 'auto');
+                    //job.listWidgets["bookmarkDL"].display({ position : 'br', absPosSpecs : {'top' : offsets[0] + 'px' }});
+                    job.listWidgets["bookmarkDL"].display({ position : 'tm', mode : 'pill'});
+
+                   // $(job.listWidgets["bookmarkDL"].getButtonNode()).css('height', 'auto');
                 }
                 if (bDT)
-                    job.listWidgets["bookmarkDT"].display({/*draggable : true, */pdbObj:job.pdbObj, position : 'br', absPosSpecs : {'top' : offsets[1] + 'px'}});
+                    job.listWidgets["bookmarkDT"].display({pdbObj:job.pdbObj, mode : 'zFixed'});
 
                 var setPositions = function() {
                     var offsets = getOffsets(job);
@@ -2355,7 +2443,7 @@ WidgetsUtils = {
                 "background-color": "transparent",
                 "padding": "10px",
                 "width": "200px",//"auto",
-                "height": (WidgetsUtils.getHeightLeft() - heightNotAvailable) + "px",
+                "height": "1em",//(WidgetsUtils.getHeightLeft() - heightNotAvailable) + "px",
                 "font-size": "10px",
                 "color": "white",
                 "cursor": "default",

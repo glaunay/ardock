@@ -33,7 +33,7 @@ var arDockTable = function(opt) {
 
     Bookmark.call(this, nArgs);
     this.pdbRef = 'pdbObj' in nArgs ? nArgs['pdbObj'] : null;
-
+    this.mode = null;
 
     $(this.getNode()).addClass('ardockDT');
     //widgets.Core.call(this, nArgs);
@@ -179,6 +179,13 @@ arDockTable.prototype.display = function(opt) {
         var nArgs = opt ? opt : {};
         Bookmark.prototype.display.call(this);
 
+        this.mode = nArgs.hasOwnProperty('mode') ? nArgs.mode : null;
+
+        if(this.mode === 'zFixed') {
+            $(this.getButtonNode()).remove();
+            $(this.node).addClass('zFixed');
+        }
+
 
         var parse = function(s) {
             if (s === "") return 0;
@@ -205,20 +212,25 @@ arDockTable.prototype.display = function(opt) {
         console.log($(cNode).find("table"));
 
         var drawButtonDL = function (cNode){
-             if ($(cNode).find('.dataTables_wrapper.no-footer .xlDL').length >0) return
-             $(cNode).find('.dataTables_wrapper.no-footer').prepend(
-                '<div class="btn btn-primary xlDL btn-md">' + '<i class="fa fa-file-excel-o fa-2x" aria-hidden="true"></i><span>Download</span></div>');
+            // if ($(cNode).find('.dataTables_wrapper.no-footer .xlDL').length >0) return
+            // $(cNode).find('.dataTables_wrapper.no-footer').prepend(
+                $(cNode).append(
+                '<div class="dtFooter">'
+                + '<div class="btn btn-primary xlDL btn-md">'
+                + '<i class="fa fa-file-excel-o fa-2x" aria-hidden="true"></i><span>Download</span></div>'
+                + '</div>');
                /* $(cNode).find('.dataTables_info').css({
                             'float': 'none',
                             'padding': '5px 5px 5px 10px'
                         })*/
                 $(cNode).find('div.btn.xlDL').on("click", function(){self.exportToCsv();});
         };
-
+        if (this.mode === 'zFixed')
+            drawButtonDL(cNode);
        $(cNode).find("table").DataTable({
                 drawCallback : function (){
                     self.dtObj = this.api();
-                    drawButtonDL( cNode );
+                  //  drawButtonDL( cNode );
                 },
                 initComplete: function() {
                    $(this)
@@ -248,8 +260,8 @@ arDockTable.prototype.display = function(opt) {
 
     var w = $(cNode).children().first().width();
     var h = $(cNode).children().first().height();
-
-    $(cNode).css({"width" : w + 'px'});
+    if (this.mode !== 'zFixed')
+        $(cNode).css({"width" : w + 'px'});
     var unSelContent = '<span><i class="fa fa-table fa-3x"></i></span>';
     var unSelDynamic = function(selDomElement){};
 
