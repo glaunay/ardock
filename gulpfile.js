@@ -21,6 +21,8 @@ const
     util         = require("gulp-util"),
     watchify     = require("watchify"),
     minify = require('gulp-minify'),
+    concat = require('gulp-concat'),
+    uglify = require('gulp-uglify'),
     src = {
         js: ["./app.js"]
     },
@@ -70,6 +72,7 @@ gulp.task("watch", function () {
     bundler.on("update", bundle.bind(null));
 });
 
+/*
 gulp.task('compress', function() {
   gulp.src('./js/bundleTest.js')
     .pipe(minify({
@@ -82,11 +85,24 @@ gulp.task('compress', function() {
     }).on('error', util.log))
     .pipe(gulp.dest('./js/bundleTest-min.js'))
 });
+*/
+
+
+
+gulp.task('compress', function() {
+    return gulp.src('./js/bundleTest.js')
+        .pipe(concat('./js/scripts.js'))
+        .pipe(gulp.dest('./js/scripts-tmp.js'))
+        .pipe(rename('scripts.min.js'))
+        .pipe(uglify())
+        .pipe(gulp.dest('scripts.min2.js'));
+});
+
 
 
 gulp.task('server', function (cb) {
 
-    spawn('node', ['index.js', '--conf', '../default.conf', '--http','--slurm','-p','6'], { stdio: 'inherit' })
+    spawn('node', ['index.js', '--conf', '../default.conf', '--http','--slurm','-p','3'], { stdio: 'inherit' })
 
  /*
  exec('node index.js --conf ../default.conf --http', function (err, stdout, stderr) {

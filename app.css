@@ -1000,3 +1000,19 @@ div.veil {
     height: 3em;
 }
 
+div.safariBaner {
+    background-color: rgba(0,133,82,0.9);
+    color:black;
+    height:4em;
+    position :absolute;
+    top : 0px;
+    font-size:1.5em;
+    z-index:1000;
+    width:100%;
+    padding:15px;
+    font-family: antipasto, Helvetica, Arial, sans-serif;
+}
+
+div.safariBaner span{
+    cursor : pointer;
+}

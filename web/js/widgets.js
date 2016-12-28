@@ -390,10 +390,11 @@ var setUpRestoreConnections = function (){
                                         'restore' : true
                                     })
                     .on('display', function(){
+
                         WidgetsUtils.bookmarkDisplay({job : job});
                         job.listWidgets["bookmarkDL"].enable();
                         job.listWidgets.bookmarkDT.on('cellClick', function (d){
-                            WidgetsUtils.datatableInteraction(job.uuid, d.data[2], d.data[1], d.data[0]);
+                            WidgetsUtils.userInterfaceInteraction(job.uuid, d.data[2], d.data[1], d.data[0]);
                         });
                     });
             });
@@ -913,6 +914,7 @@ var Job = function(opt){
 
     var self = this;
 
+
     this.workspace = opt.node;
     this.nbJob = nArgs.nbJob;
     this.name = opt.name;
@@ -928,6 +930,7 @@ var Job = function(opt){
     this.removeAddChainPdb = opt.pdbObj;
     this.structureComponent = null;
     this.baseRepresentation = null;
+    this.colorScheme = 'base';
 
     this.stash = function () {
         WidgetsUtils.socketApp.emit('pdbStashESP', { uuid : self.uuid, data : self.pdbObj.model(1).dump()});
@@ -1269,7 +1272,7 @@ PdbSummary.prototype.setNavigationRules = function() {
             })
             .click(function(e){
 
-
+                //HERE ??
 
                 e.preventDefault();
                 e.stopPropagation();
@@ -1323,16 +1326,19 @@ PdbSummary.prototype.setNavigationRules = function() {
                     if($(self.nodeRoot).find('#arDockSQ_' + targetChain).length > 0)
                         return;
 
+                    self.pdbObj.model(1).chain(targetChain);
                     var windowSeq = fastaWidget.new(
                         {   pdbObj : self.pdbObj,
-                            chain : targetChain, node : self.nodeRoot
+                            chain : targetChain,
+                            node : self.nodeRoot
                         });
                     windowSeq._draw({ shape : [90, 402]});
+                    self.pdbObj.model(1)
                     var xWin = $(self.nodeRoot).find('div.summaryMenu').outerWidth() + x;
                     $(windowSeq.node).css({top: y, right : xWin});
                     $(windowSeq.node).animate({opacity : 1}, 250);
                     windowSeq.on('aminoAcidClick', function(i, c, resName, resNum, chain){
-                        WidgetsUtils.datatableInteraction(self.UUID, chain, resNum, resName);
+                        WidgetsUtils.userInterfaceInteraction(self.UUID, chain, resNum, resName);
                     });
                 });
 
@@ -1433,84 +1439,86 @@ PdbSummary.prototype.setNavigationRules = function() {
 
     //Click Submit
     $(this.node).find(".submitChains")
-            .find(".overlay")
-                .click(function() {
-                    var chains = [];
-                    var $chainSeparatorChecked = [];
-                    var timeFadeOut = 1000;
-                    var $inputUnchecked = [];
+        .find(".overlay")
+        .click(function() {
+            var chains = [];
+            var $chainSeparatorChecked = [];
+            var timeFadeOut = 1000;
+            var $inputUnchecked = [];
 
-                    $(self.node).find('input[type=checkbox]').each(function(i, el){//input[name=chainBox]:checked
+            $(self.node).find('input[type=checkbox]').each(function(i, el){//input[name=chainBox]:checked
                         //Fill array unchecked chain(s)
-                        if(!($(this).prop("checked"))){ $inputUnchecked.push($(this)) }
-                        else{
+                if(!($(this).prop("checked"))){ $inputUnchecked.push($(this)) }
+                else{
                             //Fill chain(s) checked
-                            chains.push((($(this).attr('id')).split("-"))[0]);
+                        chains.push((($(this).attr('id')).split("-"))[0]);
 
                             //Push element(s) visible to hide after
-                            $chainSeparatorChecked.push($(this).parent().find(".chainSeparator"));
-                        }
-                    });
+                        $chainSeparatorChecked.push($(this).parent().find(".chainSeparator"));
+                    }
+                });
 
-                    if(chains.length){
+                if(chains.length){
                         //When probe operation start, click is disabled
-                        if(WidgetsUtils.tabNGLComponents[self.UUID].probeStart){ return false }
-                        WidgetsUtils.tabNGLComponents[self.UUID].probeStart = true;
+                    if(WidgetsUtils.tabNGLComponents[self.UUID].probeStart){ return false }
+                    WidgetsUtils.tabNGLComponents[self.UUID].probeStart = true;
 
                         //Hide unchecked chain(s)
-                        $inputUnchecked.forEach(function(el,i){
-                                setTimeout(function(){
-                                    el.parent().find(".chainSeparator").remove();
-                                    el.parent().find(".checkChainsContainer").remove();
-                                },i * 100);
-                        });
+                    $inputUnchecked.forEach(function(el,i){
+                            setTimeout(function(){
+                                el.parent().find(".chainSeparator").remove();
+                                el.parent().find(".checkChainsContainer").remove();
+                            },i * 100);
+                    });
 
                         //Hide the latest chainSeparator
-                        if($chainSeparatorChecked.length){
-                            $chainSeparatorChecked[$chainSeparatorChecked.length - 1].remove();
-                        }
+                    if($chainSeparatorChecked.length){
+                        $chainSeparatorChecked[$chainSeparatorChecked.length - 1].remove();
+                    }
 
                         //One probeStep and query server
-                        setTimeout(function(){
+                    setTimeout(function(){
                             //Change the representation type to "surface"
-                            if(WidgetsUtils.tabNGLComponents[self.UUID].baseRepresentation.name !== "surface"){
-                                //WidgetsUtils.changeRepresentation(self.UUID, "surface");
-                                $(self.node).parent().find('label').each(function(i,el){
-                                    var valFor = $(this).attr("for");
-                                   if( valFor.includes("surface") ){ $(this).find('.overlay').trigger("click") }
-                                });
-                            }
+                        /*if(WidgetsUtils.tabNGLComponents[self.UUID].baseRepresentation.name !== "surface"){
+                            console.log("--> not a surface repr")
+                                WidgetsUtils.changeRepresentation(self.UUID, "surface");
+                            $(self.node).parent().find('label').each(function(i,el){
+                                var valFor = $(this).attr("for");
+                                if( valFor.includes("surface") ){ $(this).find('.overlay').trigger("click") }                                });
+                        }*/
                             // triggered by clic on go
-                            self.probeStep(chains);
+                        //self.probeStep(chains);
 
                             //Change name of the job tab buton
                             /*var len = chains.length;
                             var plural = len > 1 ? "chains" : "chain";*/
-                            var text = chains.join("");
-                            $('.job-text' + self.job.nbJob).text(text);
+                        var text = chains.join("");
+                        $('.job-text' + self.job.nbJob).text(text);
 
                             //Get new version of pdbobj without chain(s) unchecked
-                            var pdbObj = self.pdbObj.model(1).chain(chains).pull();
+                        var pdbObj = self.pdbObj.model(1).chain(chains).pull();
 
                             //Clear self PdbObj chains after a pull
-                            self.pdbObj.model(1).listChainID();
+                        self.pdbObj.model(1).listChainID();
 
-                            self.emiter.emit('submit', pdbObj);
+                        self.emiter.emit('submit', pdbObj);
 
-                        },110 * $inputUnchecked.length);
+                    },110 * $inputUnchecked.length);
 
-                    }else{
-                        alert("Neither chain selected !");
-                        return false;
-                    }
 
-                })
-                .hover(function(e){
-                        $(this).css("backgroundColor", "rgba(0,0,0,0.1)");
-                })
-                .mouseout(function(e){
-                        $(this).css("backgroundColor", "");
-                })
+
+                }else{
+                    alert("Neither chain selected !");
+                    return false;
+                }
+
+            })
+            .hover(function(e){
+                $(this).css("backgroundColor", "rgba(0,0,0,0.1)");
+            })
+            .mouseout(function(e){
+                $(this).css("backgroundColor", "");
+            })
         ;
 };
 
@@ -1813,6 +1821,7 @@ SelectRepresentation.prototype.setNavigationRules = function() {
                     //$(this).parent().css("background-color", "dimgray");
 
                     //Change the representation
+                    console.log("OUHOUH");
                     WidgetsUtils.changeRepresentation(self.UUID, targetRepresentation);
                 }
             })
@@ -2200,107 +2209,22 @@ WidgetsUtils = {
                 });
             }
 
-
             if ( nArgs.hasOwnProperty("job") ){
                 var job = nArgs.job;
-               /*
-                var topOffset =   parseInt( $( job.listWidgets["pS"].getNode() ).outerHeight() )
-                                + parseInt( $( job.listWidgets["pS"].getNode() ).position().top);
 
-                var offsets = getOffsets(job);
-                */
                 if (bDL) {
                     job.listWidgets["bookmarkDL"].hook(job.pdbObj, job.restoreKey);
-                    job.listWidgets["bookmarkDL"].display({ position : 'tm', mode : 'pill'});
+                    job.listWidgets["bookmarkDL"].display({ position : 'tm', mode : 'pill', effect : 'shadowOut'});
                 }
                 if (bDT)
                     job.listWidgets["bookmarkDT"].display({pdbObj:job.pdbObj, mode : 'zFixed'});
-
-               /* var setPositions = function() {
-                    var offsets = getOffsets(job);
-                    if (bDL)
-                        $(job.listWidgets["bookmarkDL"].getNode()).css('top', offsets[0] + 'px');
-                    if (bDT)
-                        $(job.listWidgets["bookmarkDT"].getNode()).css('top', offsets[1] + 'px');
-                }
-                setPositions();
-                $(window).on('resize', function () {
-                    setPositions();
-                });
-                */
-            // Compute offset, set visibility priorities
-
             }
-
-              //  if (!bDL) job.listWidgets["bookmarkDL"].hide();
-              //  if (!bDT) job.listWidgets["bookmarkDT"].hide();
-
     },
-
-
-    // Display as percentage in space above pdb Summary, setting as responsive
-    _bookmarkDisplay : function (nArgs) {
-            var getOffsets = function(job) {
-                var totalH = $(job.storeDiv).height();
-                var spanSpace = totalH - topOffset;
-                var topDL = topOffset + 5
-                spanSpace = spanSpace > 0 ? spanSpace : topDL + 10;
-                var topDT = 0.25 * spanSpace + topOffset;
-                return [topDL, topDT];
-            };
-// By default all bookmark are displayed, specifying components will display only those specified
-            var bDL = true,
-                bDT = true;
-            if ( nArgs.hasOwnProperty("components") ){
-
-                bDL = false;
-                bDT = false;
-                nArgs["components"].forEach(function(d){
-                    if (d === "DL") bDL = true;
-                    if (d === "DT") bDT = true;
-                });
-            }
-
-
-            if ( nArgs.hasOwnProperty("job") ){
-                var job = nArgs.job;
-                var topOffset =   parseInt( $( job.listWidgets["pS"].getNode() ).outerHeight() )
-                                + parseInt( $( job.listWidgets["pS"].getNode() ).position().top);
-
-                var offsets = getOffsets(job);
-                if (bDL) {
-                    job.listWidgets["bookmarkDL"].hook(job.pdbObj, job.restoreKey);
-                    //job.listWidgets["bookmarkDL"].display({ position : 'br', absPosSpecs : {'top' : offsets[0] + 'px' }});
-                    job.listWidgets["bookmarkDL"].display({ position : 'tm', mode : 'pill'});
-
-                   // $(job.listWidgets["bookmarkDL"].getButtonNode()).css('height', 'auto');
-                }
-                if (bDT)
-                    job.listWidgets["bookmarkDT"].display({pdbObj:job.pdbObj, mode : 'zFixed'});
-
-                var setPositions = function() {
-                    var offsets = getOffsets(job);
-                    if (bDL)
-                        $(job.listWidgets["bookmarkDL"].getNode()).css('top', offsets[0] + 'px');
-                    if (bDT)
-                        $(job.listWidgets["bookmarkDT"].getNode()).css('top', offsets[1] + 'px');
-                }
-                setPositions();
-                $(window).on('resize', function () {
-                    setPositions();
-                });
-            // Compute offset, set visibility priorities
-
-            }
-
-              //  if (!bDL) job.listWidgets["bookmarkDL"].hide();
-              //  if (!bDT) job.listWidgets["bookmarkDT"].hide();
-
-    },
-     /*job.listWidgets["bookmarkDT"].display({pdbObj:pdbObjInp, position : 'br', absPosSpecs : {'top' : '45%'}});
+    /*
+    job.listWidgets["bookmarkDT"].display({pdbObj:pdbObjInp, position : 'br', absPosSpecs : {'top' : '45%'}});
                         job.listWidgets["bookmarkDL"].hook(pdbObjInp, job.uuid);
                         job.listWidgets["bookmarkDL"].display({ position : 'br', absPosSpecs : {'top' : '25%'}});
-*/
+    */
 
     /*
     *Return an object Magnify
@@ -2771,6 +2695,9 @@ WidgetsUtils = {
 
     */
     setNGLClickedFunction : function(uuid, afterProbe){
+
+        console.log(">>>>CLICKED<<<<<");
+
         //Handle Safari
         if(afterProbe === undefined){ afterProbe = false }
 
@@ -2897,6 +2824,8 @@ WidgetsUtils = {
     changeRepresentation : function(uuid, targetRepresentation){
 
         var nglComponent = WidgetsUtils.tabNGLComponents[uuid];
+
+        console.log("Changing repr to " + targetRepresentation);
 
         //Fill change is ongoing
         nglComponent.changeReprOngoing = true;
@@ -3128,8 +3057,7 @@ WidgetsUtils = {
 
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
     },
-
-    datatableInteraction : function (uuid, chain, resNum, resName) {
+    userInterfaceInteraction : function (uuid, chain, resNum, resName) {
         //Handle Safari
 //        if(afterProbe === undefined){ afterProbe = false }
         var afterProbe = true; // We keep it in case additonal component would like to interact w/ WEBGL rendering
@@ -3140,8 +3068,15 @@ WidgetsUtils = {
         var schemeId = null;
         var tabAtoms = [];
 
-        tabAtoms.push("CHAIN: " + chainName + " RES: " + resName + "-" + resno);
 
+
+        var job = WidgetsUtils.tabJobs[uuid];
+
+          console.log('--->' + job.colorScheme);
+
+        afterProbe = job.colorScheme === 'arbitraryDocking' ? true : false;
+
+        tabAtoms.push("CHAIN: " + chainName + " RES: " + resName + "-" + resno);
         //nglComponent.stage.signals.clicked.removeAll();
         //tabAtoms.push("CHAIN: " + chainName + " RES: " + pd.atom.resname + "-" + resno);
         WidgetsUtils.tabNGLComponents[uuid].pdbObj.model(1)
@@ -3192,6 +3127,7 @@ WidgetsUtils = {
 
             var job = WidgetsUtils.tabJobs[data.uuid];
             job.restoreKey = data.restoreKey;
+            job.colorScheme = 'arbitraryDocking';
             WidgetsUtils.bookmarkDisplay({job : job, components :["DL"]});
         },
         /*Change the color of residues depending of bfactor
@@ -3205,6 +3141,8 @@ WidgetsUtils = {
             var emiter = new events.EventEmitter();
 
             var bRestore = data.hasOwnProperty('restore') ? data.restore : false;
+
+            WidgetsUtils.tabJobs[data.uuid].colorScheme = 'arbitraryDocking';
 
             console.log('ardokChunk operation !!!');
             console.dir(data.uuid);
@@ -3253,8 +3191,9 @@ WidgetsUtils = {
                         job.pdbObj = data.pdbObj;
                         WidgetsUtils.bookmarkDisplay({job : job, components :["DT"]});
                         job.listWidgets["bookmarkDL"].enable();
+                        job.listWidgets["bookmarkDL"].hook(job.pdbObj, job.uuid);
                         job.listWidgets.bookmarkDT.on('cellClick', function (d){
-                            WidgetsUtils.datatableInteraction(job.uuid, d.data[2], d.data[1], d.data[0]);
+                            WidgetsUtils.userInterfaceInteraction(job.uuid, d.data[2], d.data[1], d.data[0]);
                         });
                         setTimeout(function(){
                             job.hideProbeTimer();
@@ -3268,9 +3207,11 @@ WidgetsUtils = {
                 console.warn(e);
             }
 
+
+
             //Set the time when display the representation
-            var timeOut = nglComponent.probe === 1 ? 0 : 1500 * nglComponent.probe;
-            //var timeOut = 1;
+            //var timeOut = nglComponent.probe === 1 ? 0 : 1500 * nglComponent.probe;
+            var timeOut = 1;
             //Display the representation
             setTimeout(function(){
                 //Create the SchemeId with coloring bFactor/tempFactor

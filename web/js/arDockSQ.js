@@ -21,8 +21,10 @@ var arDockSQ = function(opt){
      if (!opt.hasOwnProperty('chain'))
         throw "chain identifier required";
 
-    this.pdbRef = opt['pdbObj']
+    this.pdbRef = opt['pdbObj'];//.pull();
+
     this.chainID = opt['chain'];
+//    this.pdbRef.model(1).chain(this.chainID);
     this.sequence = this.pdbRef.sequence();
     this.pdbnum = this.pdbRef.pdbnum();
 

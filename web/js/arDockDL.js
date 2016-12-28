@@ -3,6 +3,9 @@ var Bookmark = require('./Bookmarks.js').Bookmark;
 var $  = require( 'jquery' );
 var events = require('events');
 
+
+
+
 // This module control all the export procedures
 // Download file as PDB, as EXCEL, PIPE TO ENDSCRIPT and SESSION save.
 // All w/ proper button
@@ -88,6 +91,10 @@ arDockDownloader.prototype.display = function(opt) {
         var element = document.createElement('a');
         element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(self.pdbRef.model(1).dump()));
         element.setAttribute('download', 'ardockResults.pdb');
+        var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0 || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || safari.pushNotification);
+        if (isSafari) element.setAttribute('target', '_blank');
+
+
         element.style.display = 'none';
         document.body.appendChild(element);
         element.click();
@@ -204,6 +211,17 @@ arDockDownloader.prototype.display = function(opt) {
 
         this.putAt(param);
         console.log("--->" + $('.willSlide.content.ardockDLctrl').outerWidth());
+    }
+
+
+    if (nArgs.hasOwnProperty('effect')) {
+        if (nArgs.effect === 'shadowOut') {
+            $(self.node).css('opacity',0);
+            setTimeout( function() {
+                console.log('appearing');
+                $(self.node).animate({opacity : 1}, 2500);
+            }, 250);
+        }
     }
 }
 

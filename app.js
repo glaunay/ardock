@@ -81,6 +81,15 @@ socket.on("arDockStart", function (data) {
 
 $(function () {
 
+
+    var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0 || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || safari.pushNotification);
+    if (isSafari) {
+        $('body').prepend( '<div class="safariBaner">You are using SAFARI. In its current state the '
+                         + 'ARDOCK server requires pop-up windows to be enabled in order to be fully functional.'
+                         + '<span class="pull-right"><i class="fa fa-times" style="color:black"></i></span></div>');
+        $('div.safariBaner i').on('click', function(){$('body .safariBaner').remove();});
+    }
+
     //DL.display({ position : 'tm', mode : 'pill'});
     //var fastaWidget = require('./Alignment.js');
     //fastaWidget.test();

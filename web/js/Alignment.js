@@ -147,8 +147,9 @@ var WindowComponent = function(elem, anchor) { // anchor elem for minification O
 */
 // Now we use GreenSock
     var self = this;
-    Draggable.create($(this.div[0][0]), {
+    var selfBox = Draggable.create($(this.div[0][0]), {
    // type:"y",
+        zIndexBoost:false,
         bounds: this.container,
         trigger : this.header[0][0],
         //throwProps:true,
@@ -161,9 +162,14 @@ var WindowComponent = function(elem, anchor) { // anchor elem for minification O
             self.fire('onDragEnd');
         }
     });
-//gasp.Draggable()
+    /*
+    console.log("GASPP");
+    console.dir(selfBox[0]);
+    */
 
-
+    //Safari translate3d 'bug'
+    var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0 || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || safari.pushNotification);
+    if (isSafari) $(self.node).css('z-index', 7);
 
 
     this.svgHead.on('mouseenter', function() {

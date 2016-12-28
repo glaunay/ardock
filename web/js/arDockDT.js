@@ -118,12 +118,17 @@ arDockTable.prototype.exportToCsv = function (){
         navigator.msSaveBlob(blob, filename);
     } else {
         var link = document.createElement("a");
-        if (link.download !== undefined) { // feature detection
+
+        var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0 || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || safari.pushNotification);
+
+        if (link.download !== undefined || isSafari) { // feature detection
             // Browsers that support HTML5 download attribute
             var url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
             link.setAttribute("download", filename);
             link.style.visibility = 'hidden';
+            if (isSafari) link.setAttribute('target', '_blank');
+
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
