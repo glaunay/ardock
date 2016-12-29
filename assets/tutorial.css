@@ -2,9 +2,16 @@ body {
     background-color: steelblue;
 }
 
+span.AR {
+    font-weight: 800;
+    color: #6565d8;
+}
 div.main {
     margin: 10%;
     padding : 2em 2em 2em 2em;
     border-radius: 5px 5px 5px 5px;
     background-color: white;
+}
+div.tutorialP {
+    margin-top: 2em;
 }

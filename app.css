@@ -90,6 +90,9 @@ body {
     background-color: #335585;
     /*margin-bottom: 10px;*/
 }
+.header-head a[href="http://www.univ-lyon1.fr/"] img{
+    margin-top: -20px;
+}
 
 .header-slide{
     position: absolute;
