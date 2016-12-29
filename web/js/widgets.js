@@ -76,8 +76,10 @@ var Header = function(opt){
                                     +'<p>We have shown that the random probes interact in a non-random manner on protein surfaces, and that targeted regions are enriched in biological interfaces.</br>Docking is made using the Hex software using spherical polar Fourier Correlations.</p>'
                                     +'<quote>Reference: <span class="text-number">1</span>. Martin J, Lavery R. Arbitrary protein-protein docking targets biologically relevant interfaces. BMC Biophysics <span class="text-number">2012;5(1):7.</span>'
                                     +'</quote>'
-                                    +'<div class="overlay">'
-                                    +'</div>'
+                                    + '<div class="browserSupport">Supported Browsers<img src="assets/browser-icons.png" style="height:2em"></div>'
+                                    + '<div class="tutorial"><a href="tutorial" target="_blank"><span>Tutorial</span><i class="fa fa-graduation-cap" aria-hidden="true"></i></a></div>'
+                                    + '<div class="overlay">'
+                                    + '</div>'
                                 +'</div>'
 
                                 +'<div class="header-slide">'
@@ -2154,7 +2156,7 @@ WidgetsUtils = {
     *@Return Boolean
     *
     */
-    getBrowserCompatibility(){
+    getBrowserCompatibility : function(){
         //Handle browser compatibility with WEBGL hard use
 
         // Opera 8.0+
@@ -2257,7 +2259,7 @@ WidgetsUtils = {
     *@appendTo (Dom element wich will receive magnifyError)
     *@position (Object ex:"{top: "5px", left:"5px", bottom:"0px", right: "0px"}")
     */
-    magnifyError(message, timeOut, appendTo, position){
+    magnifyError:function(message, timeOut, appendTo, position){
         //Handle Safari
         if(timeOut === undefined){ timeOut = null }
         if(appendTo === undefined){ appendTo = null }

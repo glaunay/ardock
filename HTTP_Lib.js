@@ -76,6 +76,10 @@ var httpStart = function(bean, bIo, bTest, bRest) {
     staticPath = bean.httpVariables.espritDir;
     console.log("Serving ENDscript cache at " + staticPath);
     app.use("/ESPript", express.static(staticPath));
+    app.get('/tutorial', function(req, res) {
+             res.sendFile(__dirname + '/assets/tutorial.html');
+    });
+
 
     if (bTest) {
         app.get('/test', function(req, res){
@@ -86,6 +90,10 @@ var httpStart = function(bean, bIo, bTest, bRest) {
     } else {
         if (bIo) {
             app.get('/io', function(req, res){
+                var html = baseTemplateGenerate();
+                res.send(html);
+            });
+            app.get('/', function(req, res){
                 var html = baseTemplateGenerate();
                 res.send(html);
             });
@@ -122,7 +130,17 @@ var testTemplateGenerate = function () {
 
 var baseTemplateGenerate = function () {
     var header = '<!DOCTYPE html><html class="ocks-org do-not-copy"><meta charset="utf-8">'
-                    +  '<head><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">'
+                    + '<head>'
+                    + '<title>Arbitrary Docking Server</title>'
+                    + '<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">'
+                    + '<link rel="icon" type="image/png" href="assets/favicon-32x32.png" sizes="32x32">'
+                    + '<link rel="icon" type="image/png" href="assets/favicon-16x16.png" sizes="16x16">'
+                    + '<link rel="manifest" href="assets/manifest.json">'
+                    + '<link rel="mask-icon" href="assets/safari-pinned-tab.svg" color="#5bbad5">'
+                    + '<link rel="shortcut icon" href="assets/favicon.ico">'
+                    + '<meta name="msapplication-config" content="assets/browserconfig.xml">'
+                    + '<meta name="theme-color" content="#ffffff">'
+                    + '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">'
                     + '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/TweenLite.min.js"></script>'
                     + '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/utils/Draggable.min.js"></script>'
                     + '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/plugins/CSSPlugin.min.js"></script>'

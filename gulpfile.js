@@ -91,14 +91,13 @@ gulp.task('compress', function() {
 
 gulp.task('compress', function() {
     return gulp.src('./js/bundleTest.js')
-        .pipe(concat('./js/scripts.js'))
+        /*.pipe(concat('./js/scripts.js'))
         .pipe(gulp.dest('./js/scripts-tmp.js'))
-        .pipe(rename('scripts.min.js'))
+        .pipe(rename('scripts.min.js'))*/
         .pipe(uglify())
-        .pipe(gulp.dest('scripts.min2.js'));
+        .on('error',  util.log)
+        .pipe(gulp.dest('./js/minified'));
 });
-
-
 
 gulp.task('server', function (cb) {
 
