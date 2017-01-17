@@ -223,32 +223,51 @@ var statusJob_ardock = function (jobStatus, workDir, content) {
 
     var regKey = /^ardockTask_[-0-9a-zA-Z]{1,}_hex_[0-9]{1,}$/;
     var outFile = dir + '/' + content + '.out';
+
+    if (! fs.existsSync(outFile)) {
+        var d = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+        //console.log("[" + d + "] _ardockJobStatus:outputfile not found : " + outFile);
+        jobStatus.pending = jobStatus.pending.concat(content);
+        return jobStatus;
+    }
     // check the existence of the .out file
+    /*
     try { var stat = fs.statSync(outFile); }
     catch (err) {
         if ((err + '').match('no such file or directory')) {
+            var d = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+            console.log("[" + d + "] ardockJobStatus:outputfile not found : " + outFile);
             // no .out file > pending status
             jobStatus.pending = jobStatus.pending.concat(content);
             return jobStatus;
         } else console.log('' + err); // other errors
 
-    }
+    }*/
+
+
+
+    var stat = fs.statSync(outFile);
     // check the size of the .out file
     if (stat.size === 0) {
-        console.log('CASE3');
+        var d = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+        console.log("[" + d + "] ardockJobStatus:empty File : " + outFile);
         // .out file is empty > running status
         jobStatus.running = jobStatus.running.concat(content);
         return jobStatus;
     }
     // check the good format of the .out file
-    try { var dict = jsonfile.readFileSync(outFile); }
+    try {
+        console.log('Trying to sync read ' + outFile);
+        var dict = jsonfile.readFileSync(outFile); }
     catch (e) {
-        console.log('CASE4');
+        var d = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+        console.log("[" + d + "] ardockJobStatus:wrong format : " + outFile);
         // .out file is not a JSON format (writing not finished for ex.) > running status
         jobStatus.running = jobStatus.running.concat(content);
         return jobStatus;
     }
-    console.log('CASE COMPLETE');
+    var d = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+    console.log("[" + d + "] ardockJobStatus:Complete at " + outFile);
     // else > completed status
     jobStatus.completed = jobStatus.completed.concat(content);
     return jobStatus;
