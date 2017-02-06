@@ -8,7 +8,7 @@ var socket = io.connect('http://ardock.ibcp.fr');
 
 //var ss = require('socket.io-stream');
 
-var pdbLib = require("pdb-lib");
+var pdbLib = require("./pdb-lib");
 var stream = require('stream');
 var events = require('events');
 var widgets = require('./web/js/widgets');
@@ -134,10 +134,12 @@ $(function () {
                                 'rStream': s
                             })
                             .on('end', function (pdbObjInp) {
-
+                                //pdbObjInp.model(1).naturalAminoAcidOnly().clone();
+                                //var clone = pdbObjInp.model(1).naturalAminoAcidOnly().pull();
+                                console.log("Coucou");
                                 var opt = {
                                     fileName: f.name,
-                                    pdbObj: pdbObjInp,
+                                    pdbObj:  pdbObjInp.model(1).naturalAminoAcidOnly().pull(),
                                     pdbText: reader.result
                                 };
 
