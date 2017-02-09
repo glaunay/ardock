@@ -18,7 +18,7 @@ var bLocal = false;
 var bIo = false;
 var bRest = false;
 var bGpu = false; // to run on GPU
-
+var forceCache = null;
 var HTTP_Lib = require('./HTTP_Lib');
 var HPC_Lib = require('./HPC_Lib');
 var PDB_Lib = require('./middleware_Lib');
@@ -196,6 +196,11 @@ process.argv.forEach(function (val, index, array){
             throw("usage : ");
         pdbChainList = array[index + 1].split(',');
     }
+    if (val === '-d'){
+        if (! array[index + 1])
+            throw("usage : ");
+        forceCache = array[index + 1];
+    }
     if (val === '--conf') {
         if (! array[index + 1])
             throw("usage : ");
@@ -230,7 +235,7 @@ if (bHttp || bIo || bRest) {
     HTTP_Lib.setIoESPriptSubmissionCallback(ioESPriptSubmissionCallback);
     HTTP_Lib.httpStart(bean, bIo, bTest, bRest).on('listening', function() {
         if (bSlurm) {
-            HPC_Lib.slurmStart(bLocal).on('ready', function(){
+            HPC_Lib.slurmStart(bLocal, forceCache).on('ready', function(){
 
             });
         }
