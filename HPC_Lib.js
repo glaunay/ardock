@@ -1,4 +1,4 @@
-var jobManager = require('nslurm');
+var jobManager = require('./nslurm');
 var events = require('events');
 var Random = require("random-js")
 var bean, probeMax;
@@ -68,15 +68,18 @@ var slurmStop = function() {
     .on('errSqueue', function () {
         emitter.emit('errSqueue');
     });
-    
+
     //console.log(emitter);
     return emitter;
 }
 
 
-var slurmStart = function(bLocal) {
+var slurmStart = function(bLocal, forceCache) {
     var emitter = new events.EventEmitter();
-
+    if (forceCache) {
+        console.log ("You provided a predefined cache path for scheduler as " + forceCache);
+        bean.managerSettings["forceCache"] = forceCache;
+    }
     jobManager.start(bean.managerSettings);
     if(bLocal)
         jobManager.emulate();
