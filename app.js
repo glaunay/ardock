@@ -3,12 +3,12 @@ window.$ = window.jQuery = require('jquery');
 var Backbone = require('backbone');
 Backbone.$ = $;
 var io = require('socket.io-client/socket.io.js');
-var socket = io.connect('http://ardock.ibcp.fr');
+var socket = io.connect('http://ardock-dev.ibcp.fr');
 //var socket = io.connect('http://92.222.65.71:3000');
 
 //var ss = require('socket.io-stream');
 
-var pdbLib = require("./pdb-lib");
+var pdbLib = require("pdb-lib");
 var stream = require('stream');
 var events = require('events');
 var widgets = require('./web/js/widgets');

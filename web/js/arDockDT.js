@@ -27,7 +27,7 @@ var fieldNames = ['resName', 'resSeq', 'chainID', 'tempFactor']
 
 
 var arDockTable = function(opt) {
-    console.log("ardockTable constructor");
+    console.log("ardockTable constructor w/ Normalization");
 
     var nArgs = opt ? opt : {};
 
@@ -74,8 +74,31 @@ arDockTable.prototype.read = function(dataArray) {
                 mapper['chain ID'](e),
                 mapper['Score'](e) ];
     });
-    this.header = ['residue Name', 'residue Number', 'chain ID', 'Score'];
+    this.header = ['residue Name', 'residue Number', 'chain ID', 'Score', 'Norm'];
     this.emiter.emit('parsed', this.data);
+}
+// Perform score standardization
+arDockTable.prototype.normalize = function() {
+    console.log("Normalizing");
+
+    var mean = 0,
+        sigma = 0,
+        N = this.data.length;
+
+    this.data.forEach(function(e){
+        mean += e[3];
+    });
+    mean /= N;
+
+    this.data.forEach(function(e){
+        sigma += (e[3] - mean) * (e[3] - mean);
+    });
+
+    sigma = Math.sqrt(sigma / N);
+
+    this.data.forEach(function(e){
+        e.append( (e[3] - mean) / sigma );
+    });
 }
 
 

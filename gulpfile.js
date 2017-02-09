@@ -112,5 +112,5 @@ gulp.task('server', function (cb) {
   */
 });
 
-
+gulp.task("compile", ["watch","js"]);
 gulp.task("default", ["watch", "js", "server"]);
