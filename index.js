@@ -126,7 +126,7 @@ var ioPdbSubmissionCallback = function (data, uuid, socket){
             .on('jobCompletion', function(res, job) {
                 /*console.log('Job Completion pattern checking:');
                 console.log(taskPatt);*/
-                console.log("JobDecount TESTING " + taskPatt + " VS " + job.id);
+                //console.log("JobDecount TESTING " + taskPatt + " VS " + job.id);
 
                 if (taskPatt.test(job.id)) cnt--;
                 PDB_Lib.bFactorUpdate(pdbObj, res);
