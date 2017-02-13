@@ -21,7 +21,7 @@
     "ngl": "^0.10.0-dev.3",
     "nglview-js": "^0.5.3-dev.0",
     "node-uuid": "^1.4.7",
-    "nslurm": "^0.1.0",
+    "nslurm": "^0.6.0",
     "pdb-lib": "^2.0.2",
     "random-js": "^1.0.8",
     "serve-favicon": "2.3.2",
