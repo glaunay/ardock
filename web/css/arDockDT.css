@@ -113,6 +113,10 @@ div.ardockDT div.datatableW thead th[colspan="3"]{
     text-align:center;
     border-bottom: none;
 }
+div.ardockDT div.datatableW thead th[colspan="2"]{
+    text-align:center;
+    border-bottom: none;
+}
 div.ardockDT div.datatableW thead{
     border-bottom: 1px solid grey;
 }

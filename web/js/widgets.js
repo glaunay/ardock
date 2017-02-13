@@ -2660,6 +2660,9 @@ WidgetsUtils = {
                         }
 
                         if(atom2.tempFactor > 0){
+
+                            /*console.log(atom2.tempFactor);
+                            console.log(atom2);*/
                             //var colorRGB = "255," + (255 / atom2.tempFactor) + ",0";
                             var colorRGB = "255," + Math.floor( ( 100 - ( atom2.tempFactor / tempFactorPercent ) )  * rgbPercent ) + ",0";
                             colorRGB = colorRGB.split(",");
@@ -2673,6 +2676,7 @@ WidgetsUtils = {
 
                             return colorHex;
                         }else{
+                            return "0x778899";
                             var index = nglComponent.baseChain.indexOf(atom2.chainID);
                             var colorHex = WidgetsUtils.tabColorScheme[WidgetsUtils.tabColorSchemePrefered[index]].replace("#", "0x");
                             return colorHex;
@@ -2777,7 +2781,7 @@ WidgetsUtils = {
                     .css("background-color", "rgba(255,255,255,0.8)")
                     .css("padding", "10px")
                     .css("width", "auto")
-                    .css("height", "auto")
+                    .css("height", "1em")
                     .css("border-radius", "15px")
                     .css("font-size", "14px")
                     .css("color", "black")
@@ -2912,20 +2916,27 @@ WidgetsUtils = {
 
             if( !selectionVisible.length ){ selectionVisible = "NOT:" }
 
+            console.log("Updating lastSelection w/ " + selectionVisible);
+
             //Update last selection
             nglComponent.lastSelection = selectionVisible;
 
-            if(!addOrRemove){ nglComponent.baseRepresentation.setSelection(selectionVisible.valueOf()) }
+            if(!addOrRemove){
+                console.log("addOrRemove is false settig setSelection w/ " + selectionVisible.valueOf());
+                nglComponent.baseRepresentation.setSelection(selectionVisible.valueOf());
+            }
 
             //Get a new scheme for the new representation chain
             var schemeId = WidgetsUtils.getNGLScheme(null,[[chainAddRemoveColor , ":" + targetChain]]);
 
             //Create the selection of the layer representation
-            var sele = "";
-            if(addOrRemove){sele = ":NOT"}else{sele = ":" + targetChain}
-
+            //var sele = "";
+            //if(addOrRemove){sele = ":NOT"}else{sele = ":" + targetChain}
+            var sele = addOrRemove ? ":NOT" : ":" + targetChain;
             //Get the type of the ongoing representation
             var rType = nglComponent.baseRepresentation.name;
+
+            console.log("rType is " + rType);
 
             //Variable for fading
             var iteration = 60;//40
@@ -2966,7 +2977,7 @@ WidgetsUtils = {
                 var lastSelection = nglComponent.lastSelection;
 
                 if(i === iteration - 1){
-                    if(addOrRemove){
+                    if(addOrRemove){ // Adding a chain
                         setTimeout(function(){
                             selectionVisible += " OR :" + targetChain;
                             nglComponent.structureComponent.removeRepresentation(chainAddRemoveRepresentation);
@@ -2977,8 +2988,9 @@ WidgetsUtils = {
                             if(surface){ setTimeout(function(){nglComponent.addRemoveReprOngoing--}, timeOutSurfaceOngoing) }else{ nglComponent.addRemoveReprOngoing-- }
                             //nglComponent.addRemoveReprOngoing--;
                         },timeOuty);
-                    }else{
+                    }else{ // Removing a chain
                         setTimeout(function(){
+                            console.log("1)" + chainAddRemoveRepresentation);
                             nglComponent.structureComponent.removeRepresentation(chainAddRemoveRepresentation);
                             chainAddRemoveRepresentation.setSelection('NOT:');
                             chainAddRemoveRepresentation = null;
@@ -2989,15 +3001,15 @@ WidgetsUtils = {
                 }else{
                     setTimeout(function(){
 
-                        if(addOrRemove && i === 0){
+                        if(addOrRemove && i === 0){ // add a chain intial step
                         chainAddRemoveRepresentation.setParameters({'opacity': opacity});
                         chainAddRemoveRepresentation.update({'opacity':true});
                         chainAddRemoveRepresentation.setSelection(":" + targetChain);
-                        }else if(!addOrRemove){
+                        }else if(!addOrRemove){ // remove a chain
                             nglComponent.baseRepresentation.setSelection(lastSelection);
                             chainAddRemoveRepresentation.setParameters({'opacity': opacity});
                             chainAddRemoveRepresentation.update({'opacity':true});
-                        }else{
+                        }else{ // add a chain not initial step
                             chainAddRemoveRepresentation.setParameters({'opacity': opacity});
                             chainAddRemoveRepresentation.update({'opacity':true});
                         }

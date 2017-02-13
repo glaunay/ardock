@@ -3,12 +3,11 @@ var pdbLib = require("pdb-lib");
 var Bookmark = require('./Bookmarks.js').Bookmark;
 var $  = require( 'jquery' );
 var DataTable = require( 'datatables.net' )();
-$.fn.DataTable = DataTable
+$.fn.DataTable = DataTable;
 var events = require('events');
 
 var fs = require('fs'),
     byline = require('byline');
-
 
 /*
 var css = require('./app.css');
@@ -21,7 +20,7 @@ ardock dataTable initial draft
 */
 
 // Fields display order
-var fieldNames = ['resName', 'resSeq', 'chainID', 'tempFactor']
+var fieldNames = ['resName', 'resSeq', 'chainID', 'tempFactor'];
 // Define a mapper to columnheaders
 
 
@@ -74,8 +73,11 @@ arDockTable.prototype.read = function(dataArray) {
                 mapper['chain ID'](e),
                 mapper['Score'](e) ];
     });
+    this.normalize();
     this.header = ['residue Name', 'residue Number', 'chain ID', 'Score', 'Norm'];
     this.emiter.emit('parsed', this.data);
+
+
 }
 // Perform score standardization
 arDockTable.prototype.normalize = function() {
@@ -97,8 +99,10 @@ arDockTable.prototype.normalize = function() {
     sigma = Math.sqrt(sigma / N);
 
     this.data.forEach(function(e){
-        e.append( (e[3] - mean) / sigma );
+        var x = (e[3] - mean) / sigma;
+        e.push(Math.round(x * 100) / 100);
     });
+    console.log(this.data);
 }
 
 
@@ -230,7 +234,10 @@ arDockTable.prototype.display = function(opt) {
         $(cNode).addClass("datatableW");
         $(cNode).append('<table class="table table-striped table-bordered"></table>');
 
-        $(cNode).find("table").append('<thead>' + '<tr><th colspan="3">Residue</th><th rowspan="2">Score</th></tr>' + '<tr><th>name</th><th>number</th><th>chain</th></tr></thead><tbody></tbody>');
+       // $(cNode).find("table").append('<thead>' + '<tr><th colspan="3">Residue</th><th rowspan="2">Score</th></tr>' + '<tr><th>name</th><th>number</th><th>chain</th></tr></thead><tbody></tbody>');
+        $(cNode).find("table").append('<thead>' + '<tr><th colspan="3">Residue</th><th colspan="2">Score</th></tr>' +
+                                      '<tr><th>name</th><th>number</th><th>chain</th><th>raw</th><th>norm</th></tr></thead><tbody></tbody>');
+
         $tBody = $(cNode).find("table tbody");
         this.data.forEach(function(e) {
             var tr = e.join('</td><td>');
