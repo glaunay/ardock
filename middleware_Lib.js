@@ -185,7 +185,7 @@ var naccess = function (jobManager, opt) {
     .on("saved", function(){
         var jName = taskId + '_nac';
         var scriptFile = bean.scriptVariables.BIN_DIR + '/run_naccess_CPU.sh';
-        var jobOpt = configJob("gpu"); // on CPU
+        var jobOpt = configJob("cpu"); // on CPU
 
         var exportVar = {
             targetPdbFile : pdbFilePath,
