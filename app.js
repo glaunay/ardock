@@ -2,7 +2,7 @@ window.$ = window.jQuery = require('jquery');
 //var Promise = require("bluebird")
 var Backbone = require('backbone');
 Backbone.$ = $;
-var io = require('socket.io-client/socket.io.js');
+var io = require('socket.io-client/dist/socket.io.js');
 var serverDomain='http://ardock-dev.ibcp.fr'
 var socket = io.connect(serverDomain);
 //var socket = io.connect('http://92.222.65.71:3000');
