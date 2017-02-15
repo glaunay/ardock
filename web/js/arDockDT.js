@@ -69,7 +69,11 @@ arDockTable.prototype.read = function(dataArray) {
     this.inputHeader = dataArray.shift();
     /* We exclude amino acid w/ negative score, ie non-accesible*/
     this.data = []
+    var self = this;
     dataArray.forEach(function(e){
+        //console.log(e);
+        /*console.log("oo" + mapper['Score'](e));
+        console.log("oo" + typeof(mapper['Score'](e)));*/
         if (mapper['Score'](e) === -1) {
             console.log("discarding "
                     + mapper['residue Name'](e) + ' '
@@ -77,7 +81,7 @@ arDockTable.prototype.read = function(dataArray) {
                     + mapper['chain ID'](e) );
             return;
         }
-        this.data.push([ mapper['residue Name'](e),
+        self.data.push([ mapper['residue Name'](e),
                     mapper['residue Number'](e),
                     mapper['chain ID'](e),
                     mapper['Score'](e)
