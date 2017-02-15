@@ -3,7 +3,8 @@ window.$ = window.jQuery = require('jquery');
 var Backbone = require('backbone');
 Backbone.$ = $;
 var io = require('socket.io-client/socket.io.js');
-var socket = io.connect('http://ardock-dev.ibcp.fr');
+var serverDomain='http://ardock-dev.ibcp.fr'
+var socket = io.connect(serverDomain);
 //var socket = io.connect('http://92.222.65.71:3000');
 
 //var ss = require('socket.io-stream');
@@ -32,7 +33,7 @@ socket.on('news', function (data) {
     });
 });
 socket.on('connect', function () {
-    console.log('Opening socket ...');
+    console.log('Opening socket w/ ' + serverDomain);
 })
 
 socket.on('greetings', function () {

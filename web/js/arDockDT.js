@@ -67,12 +67,29 @@ arDockTable.prototype.read = function(dataArray) {
 
     };
     this.inputHeader = dataArray.shift();
-    this.data = dataArray.map(function(e){
+    /* We exclude amino acid w/ negative score, ie non-accesible*/
+    this.data = []
+    dataArray.forEach(function(e){
+        if (mapper['Score'](e) === -1) {
+            console.log("discarding "
+                    + mapper['residue Name'](e) + ' '
+                    + mapper['residue Number'](e) + ' '
+                    + mapper['chain ID'](e) );
+            return;
+        }
+        this.data.push([ mapper['residue Name'](e),
+                    mapper['residue Number'](e),
+                    mapper['chain ID'](e),
+                    mapper['Score'](e)
+                    ]);
+    });
+
+    /*this.data = dataArray.map(function(e){
         return [ mapper['residue Name'](e),
                 mapper['residue Number'](e),
                 mapper['chain ID'](e),
                 mapper['Score'](e) ];
-    });
+    });*/
     this.normalize();
     this.header = ['residue Name', 'residue Number', 'chain ID', 'Score', 'Norm'];
     this.emiter.emit('parsed', this.data);
