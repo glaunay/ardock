@@ -88,41 +88,45 @@ var pdbWrite = function (key, pdbStream) {
 }
 
 
-// configure the dictionary to pass to the push function
-var configJob = function (bGpu) {
-    /**
-    * According to bGpu, make a configuration or another.
-    */
+/*
+* Configure the dictionary to pass to the push function,
+* according to "mode", make a configuration or another
+* "mode" must be "cpu" or "gpu"
+*/
+var configJob = function (mode) {
     jobOpt = {
         'tWall' : '0-00:15',
         'gid' : 'ws_users',
         'uid' : 'ws_ardock'
     };
-    if (bGpu) {
-        // on GPU
+    if (mode === "gpu") {
         jobOpt['partition'] = 'gpu',
         jobOpt['qos'] = 'gpu';
         jobOpt['nCores'] = 1;
-        jobOpt['modules'] = ['hex_gpu', 'naccess'];
+        jobOpt['modules'] = ['hex_gpu', 'naccess', 'cuda/5.0'];
         jobOpt['hexFlags'] = "";
         jobOpt['gres'] = "gpu:1";
-    } else {
-        // on CPU
-        jobOpt['partition'] = 'ws-dev';
-        jobOpt['qos'] = 'ws-dev';
+    } else if (mode === "cpu") {
+        if ('partition' in bean.managerSettings) jobOpt['partition'] = bean.managerSettings.partition;
+        else jobOpt['partition'] = 'ws-dev';
+        if ('qos' in bean.managerSettings) jobOpt['qos'] = bean.managerSettings.qos;
+        else jobOpt['qos'] = 'ws-dev';
         jobOpt['nCores'] = 16;
         jobOpt['modules'] = ['hex', 'naccess'];
         jobOpt['hexFlags'] = "\" -nocuda -ncpu " + jobOpt.nCores + " \"";
         // no gres option on CPU
+    } else {
+        console.log("ERROR in configJob : mode not recognized. It must be \"cpu\" or \"gpu\" !");
     }
 
     return jobOpt;
 }
 
 
-
-// new function to test (GPU or CPU)
-var arDock = function (jobManager, opt, bGpu) {
+/*
+* config and run ardock on CPU
+*/
+var arDock = function (jobManager, opt) {
     var emitter = new events.EventEmitter();
     var taskId = 'ardockTask_' + uuid.v4();
     console.dir(jobManager);
@@ -144,7 +148,7 @@ var arDock = function (jobManager, opt, bGpu) {
             var scriptFile = bean.scriptVariables.BIN_DIR + '/run_ar_dock_WEB.sh';
 
             // dictionary for the push function
-            jobOpt = configJob(bGpu);
+            jobOpt = configJob("cpu");
             jobOpt['id'] = jName;
             jobOpt['script'] = scriptFile;
 
@@ -192,6 +196,149 @@ var arDock = function (jobManager, opt, bGpu) {
     return emitter;
 }
 
+
+/*
+* config and run a naccess job
+* can be used in any context
+*/
+var naccess = function (jobManager, opt) {
+    var emitter = new events.EventEmitter();
+    var taskId = 'naccessTask_' + uuid.v4();
+    var pdbFilePath = jobManager.cacheDir() + '/' + taskId + '.pdb';
+    var pdbObj = opt.pdbObj;
+    pdbLib.fWrite(pdbObj, pdbFilePath)
+    .on("saved", function(){
+        var jName = taskId + '_nac';
+        var scriptFile = bean.scriptVariables.BIN_DIR + '/run_naccess_CPU.sh';
+        var jobOpt = configJob("gpu"); // on CPU
+
+        var exportVar = {
+            targetPdbFile : pdbFilePath,
+        };
+        // add to dictionary
+        jobOpt['id'] = jName;
+        jobOpt['script'] = scriptFile;
+        jobOpt['exportVar'] = exportVar;
+
+        var nac = jobManager.push(jobOpt);
+        nac.on('completed', function (stdout, stderr, jobObject) {
+            if(stderr) {
+                stderr.on('data', function(buf){
+                    console.log("stderr content:");
+                    console.log(buf.toString());
+                });
+            }
+            var results = '';
+            stdout.on('data', function(buf){
+                results += buf.toString();
+            })
+            .on('end', function (){
+                var jsonRes = JSON.parse(results);
+                emitter.emit('jobCompletion', jsonRes, jobObject);
+                //if(cnt === 0) emitter.emit('allComplete');
+            });
+
+
+        })
+        .on('error', function (e,j) {
+            console.log("job " + j.id + " : " + e);
+        });
+    });
+    return emitter;
+}
+
+
+/*
+* call naccess method & change the bFactors at -1 for accessibility 0
+*/
+var process_naccess = function (jobManager, opt) {
+    var emitter = new events.EventEmitter();
+    naccess(jobManager, opt).on('jobCompletion', function (jsonRes, jobObject) {
+        //console.log(opt.pdbObj.dump());
+        jsonRes.listRES.forEach(function (resiTab, i, array) {
+            var resi = resiTab[0]; // residue name
+            var chain = resiTab[1]; // chain
+            var num = resiTab[2]; // residue number
+            var access = resiTab[3]; // accessibility
+            //console.log(resi, chain, num, access);
+            if (access === 0) {
+                opt.pdbObj.chain(chain).resName(resi).resSeq(num).bFactor(-1);
+            }
+            opt.pdbObj.model(1); // reinitialize
+        });
+        emitter.emit('finished');
+    });
+    return emitter;
+}
+
+
+/*
+* config and run ardock on GPU (GPU_dp or GPU_sp)
+*/
+var arDock_gpu = function (jobManager, opt) {
+    var emitter = new events.EventEmitter();
+    var taskId = 'ardockTask_' + uuid.v4(); // unique ID
+    //console.dir(jobManager);
+    var pdbFilePath = jobManager.cacheDir() + '/' + taskId + '.pdb';
+
+    var pdbObj = opt.pdbObj; // implement iosocket interface
+
+    pdbLib.fWrite(pdbObj, pdbFilePath) // save the pdb file in the cache directory
+    .on("saved", function(){
+        emitter.emit('go', taskId, probeMax);
+
+        // run only once the coreScript containing the nProbes computations
+        var jName = taskId + '_hex';
+        var probeDir = bean.scriptVariables.DATA_DIR;
+        var scriptFile = bean.scriptVariables.BIN_DIR + '/run_ar_dock_GPU_sp_dp.sh';
+
+        // dictionary for the push function
+        var jobOpt = configJob("gpu"); // on GPU
+        // list of variables which will be exported in the sbatch
+        var exportVar = {
+            targetPdbFile : pdbFilePath,
+            probeDir : probeDir,
+            nProbe : probeMax, // the coreScript need the number of probes
+            hexFlags : jobOpt.hexFlags // defined in the jconfigJob() function
+        };
+
+        // to simulate computations
+        if(jobManager.isEmulated()) {
+            jName = taskId + '_emul';
+            exportVars = { 'residueHitsDir' : bean.scriptVariables.TEST_DIR + '/residue_hits' };
+            scriptFile = bean.scriptVariables.BIN_DIR + '/run_ar_dock_EMUL.sh';
+        }
+
+        // add to dictionary
+        jobOpt['id'] = jName;
+        jobOpt['script'] = scriptFile;
+        jobOpt['exportVar'] = exportVar;
+        delete jobOpt['hexFlags']; // and then remove because it's already defined in exportVar
+
+        var j = jobManager.push(jobOpt); // creation of a job and setUp (creation of its sbatch file & submition)
+        j.on('completed', function(stdout, stderr, jobObject){ // event in nslurm._pull()
+            if(stderr) {
+                stderr.on('data', function(buf){
+                    console.log("stderr content:");
+                    console.log(buf.toString());
+                });
+            }
+            var results = '';
+            stdout.on('data', function(buf){
+                results += buf.toString();
+            })
+            .on('end', function (){
+                var jsonRes = JSON.parse(results);
+                emitter.emit('jobCompletion', jsonRes, jobObject);
+                //if(cnt === 0) emitter.emit('allComplete');
+            });
+        })
+        .on('error', function (e,j) {
+            console.log("job " + j.id + " : " + e);
+        });
+    });
+    return emitter;
+}
 
 
 // emiting pdb structure update, return emitter
@@ -431,6 +578,8 @@ var keyRequest = function (key) {
 
 module.exports = {
     arDock : arDock,
+    arDock_gpu : arDock_gpu,
+    process_naccess : process_naccess,
     pdbLoad : pdbLoad,
     pdbWrite : pdbWrite,
     keyRequest : keyRequest,

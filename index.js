@@ -111,12 +111,13 @@ var restCallBack = function (ans, data) {
 
 var ioPdbSubmissionCallback = function (data, uuid, socket){
     console.log('received ' + uuid);
-    var cnt = probeMax;
+    var cnt = probeMax; // for CPU
     PDB_Lib.pdbLoad(bTest, {'ioSocketStream' : data, 'chain' : pdbChainList})
-        .on('pdbLoad', function (pdbObj) {
-            var taskPatt = null;
-            pdbObj.model(1).bFactor(0);
-            console.log("Routing to ardock a " + pdbObj.selecSize() + " atoms structure");
+    .on('pdbLoad', function (pdbObj) {
+        var taskPatt = null;
+        pdbObj.model(1).bFactor(0);
+        console.log("Routing to ardock a " + pdbObj.selecSize() + " atoms structure");
+        PDB_Lib.process_naccess(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}).on('finished', function () {
             PDB_Lib.arDock(HPC_Lib.jobManager(), {'pdbObj' : pdbObj})
             .on('go', function(taskID, total) {
                 console.log("SOCKET : taskID is " + taskID);
@@ -126,12 +127,13 @@ var ioPdbSubmissionCallback = function (data, uuid, socket){
             .on('jobCompletion', function(res, job) {
                 /*console.log('Job Completion pattern checking:');
                 console.log(taskPatt);*/
-                //console.log("JobDecount TESTING " + taskPatt + " VS " + job.id);
+                console.log("JobDecount TESTING " + taskPatt + " VS " + job.id);
 
-                if (taskPatt.test(job.id)) cnt--;
+                if (taskPatt.test(job.id)) cnt--; // for CPU
                 PDB_Lib.bFactorUpdate(pdbObj, res);
                 socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'probeMax' : probeMax, 'uuid' : uuid });
             });
+        });
     });
 };
 
@@ -246,11 +248,13 @@ if (bHttp || bIo || bRest) {
             PDB_Lib.pdbLoad(bTest, {'file' : fPdb, 'chain' : pdbChainList}).on('pdbLoad', function (pdbObj) {
                 pdbObj.model(1).bFactor(0);
                 if(!bTest)
-                    // CAUTION : arDock calling with bGpu variable
-                    PDB_Lib.arDock(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}, bGpu).on('jobCompletion', function(res) {
-                        console.log("Results of a slurm and pdb custom");
-                        PDB_Lib.bFactorUpdate(pdbObj, res);
-                        //console.log(pdbObj.model(1).dump()); // to write the results (PDB)
+                    PDB_Lib.process_naccess(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}).on('finished', function () {
+                        //console.log(pdbObj.model(1).dump());
+                        PDB_Lib.arDock_gpu(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}).on('jobCompletion', function(res) {
+                            console.log("Results of a slurm and pdb custom");
+                            PDB_Lib.bFactorUpdate(pdbObj, res);
+                            console.log(pdbObj.model(1).dump()); // to write the results (PDB)
+                        });
                     });
                 else
                     HPC_Lib.slurmTest()
