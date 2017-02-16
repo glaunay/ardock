@@ -59,16 +59,16 @@ socket.on('arDockChunck', function (data) {
         .on('end', function (pdbObjInp) {
             //console.log('this is ardock  chunk ' + pdbObjInp.model(1).selecSize());
             //console.log(pdbObjInp.model(1).dump());
-            console.log('this is ardock  chunk ');
-            console.dir(data);
+            /*console.log('this is ardock  chunk ');
+            console.dir(data);*/
             WidgetsUtils.jobOperations.onArdockChunck({pdbObj: pdbObjInp, uuid: data.uuid, probeMax : data.probeMax, left : data.left});
         });
     //socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'uuid' : uuid });
 
 });
 socket.on("arDockStart", function (data) {
-    console.log('starting ardock task ');
-    console.log(data)
+    /*console.log('starting ardock task ');
+    console.log(data)*/
     WidgetsUtils.jobOperations.onArdockStart(data);
 });
 

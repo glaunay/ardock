@@ -378,36 +378,38 @@ var setUpRestoreConnections = function (){
                     pUUID : data.uuid
                     };
                 //Slide the header description once
-        if( displayTabs.nbTabs === 1 && !WidgetsUtils.header.slided ){ WidgetsUtils.header.slide() }
+                if( displayTabs.nbTabs === 1 && !WidgetsUtils.header.slided ){ WidgetsUtils.header.slide() }
 
-        setTimeout(function(){
-            var navDT = displayTabs.addTab(opt);
-            WidgetsUtils.currentRestoreJob.on('canvasCompleted', function(job){
+                setTimeout(function(){
+                    var navDT = displayTabs.addTab(opt);
+                    WidgetsUtils.currentRestoreJob.on('canvasCompleted', function(job){
                /* console.log("Boum");
                 console.log(job);*/
-                WidgetsUtils.blocker.displaySuccess();
-                WidgetsUtils.jobOperations
-                    .onArdockChunck({pdbObj: pdbObjInp, uuid: data.uuid,
+                        WidgetsUtils.blocker.displaySuccess();
+                        WidgetsUtils.jobOperations
+                            .onArdockChunck({pdbObj: pdbObjInp, uuid: data.uuid,
                                         probeMax : data.probeMax, left : data.left,
                                         'restore' : true
                                     })
-                    .on('display', function(){
+                            .on('display', function(){
 
-                        WidgetsUtils.bookmarkDisplay({job : job});
-                        job.listWidgets["bookmarkDL"].enable();
-                        job.listWidgets.bookmarkDT.on('cellClick', function (d){
-                            WidgetsUtils.userInterfaceInteraction(job.uuid, d.data[2], d.data[1], d.data[0]);
-                        });
+                                WidgetsUtils.bookmarkDisplay({job : job});
+                                job.listWidgets["bookmarkDL"].enable();
+                                job.listWidgets.bookmarkDT.on('cellClick', function (d){
+                                    WidgetsUtils.userInterfaceInteraction(job.uuid, d.data[2], d.data[1], d.data[0]);
+                                });
+                            });
                     });
+                }, 1000 * 1);
             });
-        }, 1000 * 1);
-        });
     });
+
     WidgetsUtils.socketApp.on('errJob', function (data) {
     //{ 'uuid' : key }
         WidgetsUtils.blocker.displayJobError();
         console.log('Error during calculations');
-    })
+    });
+
     WidgetsUtils.socketApp.on('arDockRestoreBusy', function (data) {
     /*{ 'uuid' : key, 'status' : {
         "completed" : [],
@@ -527,9 +529,9 @@ keySubmitBox.prototype.displaySuccess = function() {
     })
 }
 keySubmitBox.prototype.displayProgress = function(data)  {
-    console.log("DP INPUT");
+    /*console.log("DP INPUT");
     console.log(data);
-
+*/
     if (this._tLoader) {
         this._tLoader.display({frac : data });
         return;
@@ -942,7 +944,7 @@ var Job = function(opt){
     };
 
     this.send = function(pdbObj){//Emit after click Submit ('GO')
-        console.log("Emiting ardockPdbSubmit w/ " +  self.uuid );
+        //console.log("Emiting ardockPdbSubmit w/ " +  self.uuid );
         WidgetsUtils.socketApp.emit('ardockPdbSubmit', {data : pdbObj.dump(), uuid: self.uuid});
         //WidgetsUtils.socketApp.emit('ardockPdbSubmit', pdbObj.dump());
     };
@@ -952,7 +954,7 @@ var Job = function(opt){
     };
 
     this.closeViews = function() {
-        console.log(this.workspace);
+        //console.log(this.workspace);
         $(this.workspace).find('.summaryMenu,.arDockSQ').remove();
     }
 
@@ -1674,8 +1676,6 @@ PdbSummary.prototype.probeStep = function(chains, probeLeft) {
         }
     } else {//Others step(s) from ardockchunck
 
-        console.log("this is not 1st probeStep")
-        console.log("probe Left is " + probeLeft);
 
         if(probeLeft === 0){
             //Change text to "1"
@@ -2193,6 +2193,8 @@ WidgetsUtils = {
     }
 */
     bookmarkDisplay : function (nArgs) {
+      //  console.log("bookmarkDisplay arg");
+       // console.dir(nArgs);
             /*
             var getOffsets = function(job) {
                 var totalH = $(job.storeDiv).height();
@@ -2216,9 +2218,12 @@ WidgetsUtils = {
 
             if ( nArgs.hasOwnProperty("job") ){
                 var job = nArgs.job;
-
+                var key = job.hasOwnProperty("restoreKey") ? job.restoreKey : job.uuid;
+             /*   console.log("JOB reference");
+                console.dir(job);
+                console.log("key is --> " + key + '<<<<');*/
                 if (bDL) {
-                    job.listWidgets["bookmarkDL"].hook(job.pdbObj, job.restoreKey);
+                    job.listWidgets["bookmarkDL"].hook(job.pdbObj, key);
                     job.listWidgets["bookmarkDL"].display({ position : 'tm', mode : 'pill', effect : 'shadowOut'});
                 }
                 if (bDT)
@@ -3230,7 +3235,10 @@ WidgetsUtils = {
                         job.pdbObj = data.pdbObj;
                         WidgetsUtils.bookmarkDisplay({job : job, components :["DT"]});
                         job.listWidgets["bookmarkDL"].enable();
-                        job.listWidgets["bookmarkDL"].hook(job.pdbObj, job.uuid);
+
+                        //job.listWidgets["bookmarkDL"].hook(job.pdbObj, job.uuid);
+                        job.listWidgets["bookmarkDL"].hook(job.pdbObj);
+
                         job.listWidgets.bookmarkDT.on('cellClick', function (d){
                             WidgetsUtils.userInterfaceInteraction(job.uuid, d.data[2], d.data[1], d.data[0]);
                         });

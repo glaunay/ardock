@@ -27,7 +27,8 @@ arDockDownloader.prototype.constructor = arDockDownloader;
 
 arDockDownloader.prototype.hook = function(pdbObj, uuid) {
     this.pdbRef = pdbObj;
-    this.uuid = uuid;
+    if (uuid !== undefined)
+        this.uuid = uuid;
 }
 
 arDockDownloader.prototype.enable = function (){
