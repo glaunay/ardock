@@ -510,7 +510,6 @@ var keyRequest = function (key) {
             if (! inputName) throw 'No PDB file in the working directory'; // check the existence of a PDB file
             console.log(workDir + '/' + inputName);
             pdbLib.parse({file : workDir + '/' + inputName}).on('end', function(pdb) { // parse the PDB file
-                pdb.model(1).bFactor(0);
                 bFactorUpdate(pdb, dict);
                 emitter.emit('completed', pdb, jobStatus.completed.length);
             });
