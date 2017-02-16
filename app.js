@@ -137,7 +137,7 @@ $(function () {
                             .on('end', function (pdbObjInp) {
                                 //pdbObjInp.model(1).naturalAminoAcidOnly().clone();
                                 //var clone = pdbObjInp.model(1).naturalAminoAcidOnly().pull();
-                                console.log("Coucou");
+
                                 var opt = {
                                     fileName: f.name,
                                     pdbObj:  pdbObjInp.model(1).naturalAminoAcidOnly().pull(),

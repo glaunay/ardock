@@ -108,7 +108,7 @@ Bookmarkable.prototype.setButtonContent = function(unSelectedContent, unSelected
 Bookmarkable.prototype.putAt = function(opt) {
     var nArgs = opt ? opt : {};
     var node = this.getContentNode();
-    console.log('***' + $(node).css('width'));
+    //console.log('***' + $(node).css('width'));
 
 
 
@@ -140,11 +140,11 @@ Bookmarkable.prototype.putAt = function(opt) {
                 var up = nArgs['sizeUpAbs']
                 $(this.node).css('right', ((-1) * off  ) + 'px');
                 bClickCallback = function () {
-                    if ($(this).hasClass('clicked'))
+                    /*if ($(this).hasClass('clicked'))
                         console.log ("is clicked");
                     else
                         console.log ("is NOT clicked");
-
+                    */
                     if ($(this).hasClass('clicked'))
                         $(self.node).animate({"right": ((-1) * off) + 'px'}, 500, 'swing');
                     else
@@ -160,13 +160,13 @@ Bookmarkable.prototype.putAt = function(opt) {
         if (nArgs['border'] === 'right') {
             var p_pad = $container.css('padding-left') === "" ? 0 : $container.css('padding-left');
             p_pad = parseInt(String(p_pad).replace('px', ''));
-            console.log("offset Right is " + p_w + '-' +  $(btn).outerWidth() + '-' + p_pad);
+            //console.log("offset Right is " + p_w + '-' +  $(btn).outerWidth() + '-' + p_pad);
 
             this.offset_rest = p_w - $(btn).outerWidth() - p_pad;
             var l = slider_len ? slider_len : w;
             this.offset_show = p_w - l - p_pad;
-            console.log("offset Right show is " + p_w + '-' + l + '-' + p_pad);
-            console.log("offset rest is " +  this.offset_rest + 'offset show is' + this.offset_show);
+            //console.log("offset Right show is " + p_w + '-' + l + '-' + p_pad);
+            //console.log("offset rest is " +  this.offset_rest + 'offset show is' + this.offset_show);
             $(this.node).css('margin-left', this.offset_rest + 'px');
 
 

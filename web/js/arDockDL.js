@@ -11,10 +11,9 @@ var events = require('events');
 // All w/ proper button
 
 var arDockDownloader = function(opt) {
-    console.log("ardock Download constructor");
-    console.dir(opt);
+  //  console.dir(opt);
     var nArgs = opt ? opt : {};
-    console.log($(nArgs.root));
+   // console.log($(nArgs.root));
     Bookmark.call(this, nArgs);
     this.mode = null;
     this.bDisabled = false;
@@ -139,7 +138,7 @@ arDockDownloader.prototype.display = function(opt) {
             $(cNode).find('div.container').css({'width' :  w + 'px'});
         $(cNode).find('span.close').on('click', function(){
             var _h = $(self.node).outerHeight();
-            console.log(_h + ' -> ' + h + ' transition');
+            //console.log(_h + ' -> ' + h + ' transition');
             $(self.node).css('height', _h);
             $(cNode).find('div.keyContainer').remove();
             $(cNode).find('.btn-group').show();
@@ -184,8 +183,8 @@ arDockDownloader.prototype.display = function(opt) {
     this.setButtonContent(unSelContent, unSelDynamic, selContent, selDynamic);
     $(bNode).addClass("ardockDLcBut");
     if (nArgs.hasOwnProperty('position')) {
-        console.log('putting at w/');
-        console.dir(nArgs);
+        //console.log('putting at w/');
+        //console.dir(nArgs);
 
         var param = {};
         if (nArgs.hasOwnProperty('absPosSpecs'))
@@ -198,19 +197,19 @@ arDockDownloader.prototype.display = function(opt) {
             param['sizeUpAbs'] = -1;
             //param['sizeLowAbs'] =     $('.willSlide.content.ardockDLctrl').outerWidth();
             param['sizeLowAbs'] = $(this.getContentNode()).outerWidth();
-            console.log(">>>>>>>=========================<<<<<<<<<<<<<<");
-            console.log($(this.getContentNode()).outerWidth())
-            console.log($('.willSlide.content.ardockDLctrl').outerWidth());
+            //console.log(">>>>>>>=========================<<<<<<<<<<<<<<");
+            //console.log($(this.getContentNode()).outerWidth())
+            //console.log($('.willSlide.content.ardockDLctrl').outerWidth());
             /*param['sizeLowAbs'] = $(cNode).outerWidth()
                             + parse($(this.node).css('padding-left'))
                             + parse($(this.node).css('padding-right'));// + $(bNode).css('padding-left');
             */
         }
-        console.log("arDockDL parameters");
-        console.log(param);
+        //console.log("arDockDL parameters");
+        //console.log(param);
 
         this.putAt(param);
-        console.log("--->" + $('.willSlide.content.ardockDLctrl').outerWidth());
+        //console.log("--->" + $('.willSlide.content.ardockDLctrl').outerWidth());
     }
 
 
@@ -218,7 +217,7 @@ arDockDownloader.prototype.display = function(opt) {
         if (nArgs.effect === 'shadowOut') {
             $(self.node).css('opacity',0);
             setTimeout( function() {
-                console.log('appearing');
+                //console.log('appearing');
                 $(self.node).animate({opacity : 1}, 2500);
             }, 250);
         }

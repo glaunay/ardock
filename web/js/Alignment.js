@@ -99,22 +99,22 @@ var WindowComponent = function(elem, anchor) { // anchor elem for minification O
 
     this.events = {
         close: function() {
-            console.log('window closing');
+            //console.log('window closing');
         },
         minimize: function() {
-            console.log('window minimizing');
+            //console.log('window minimizing');
         },
         magnify: function() {
-            console.log('window magnifying');
+            //console.log('window magnifying');
         },
         handlerIn: function() {
-            console.log('handlerIn');
+            //console.log('handlerIn');
         },
         handlerOut: function() {
-            console.log('handlerOut');
+            //console.log('handlerOut');
         },
         cellClick : function() {
-            console.log('cellClick');
+            //console.log('cellClick');
         },
         onDragClick : function() {
 
@@ -154,11 +154,11 @@ var WindowComponent = function(elem, anchor) { // anchor elem for minification O
         trigger : this.header[0][0],
         //throwProps:true,
         onClick:function() {
-            console.log("clicked");
+            //console.log("clicked");
             self.fire('onDragClick');
         },
         onDragEnd:function() {
-            console.log("drag ended");
+            //console.log("drag ended");
             self.fire('onDragEnd');
         }
     });
@@ -282,9 +282,9 @@ var FastaDuo = function(data, node, anchor) {
     this.cellW = 20;
     this.cellH = 20;
     this.nElem = this.data.length;
-    console.log("FataDuo constructor");
-    console.dir(this.data);
-    console.dir(node);
+    //console.log("FataDuo constructor");
+    //console.dir(this.data);
+    //console.dir(node);
 
     this.code = {
         'A': 'ALA',
@@ -318,7 +318,7 @@ FastaDuo.prototype.cellDim = function() {
     return [this.cellW, this.cellH];
 };
 FastaDuo.prototype._draw = function(opt) {
-    console.log("drawing");
+    //console.log("drawing");
     var self = this;
     if (opt) {
         if (opt.hasOwnProperty('shape')) {
@@ -329,7 +329,7 @@ FastaDuo.prototype._draw = function(opt) {
     //     this.svgHead.append('circle').attr('class', 'close').attr('r', 10).attr('rx, 5').attr('ry', 25).style('fill', 'red');
     //     this.svgHead.append('circle').attr('class', 'reduce').attr('r', 10).attr('rx, 35').attr('ry, 25').style('fill', 'orange');
 
-    console.log('-->' + this.shape()[0]);
+    //console.log('-->' + this.shape()[0]);
     this.svg = this.body.append('svg').attr('height', this.shape()[0]).attr('width', this.shape()[1]);
     this.z = this.svg.append('g').attr('class', 'frame').append('g').attr('class', 'zLayer');
     this.sH = 10;
@@ -354,7 +354,7 @@ FastaDuo.prototype._draw = function(opt) {
         } else if (i == 3) {
             data = this.index[1];
         } else {
-            console.log(i);
+            //console.log(i);
             data = self.data[i - 1]['aa'].split('');
         }
         this.sequences[i] = this.z.append('g').attr('class', 'word');
@@ -393,8 +393,8 @@ FastaDuo.prototype._draw = function(opt) {
             });
             this.sequences[i].selectAll('g.letter').on('click', function (d,i){
                 self.fire('cellClick', this, d, i);
-                console.dir(this);
-                console.dir(d);
+                //console.dir(this);
+                //console.dir(d);
             });
         this.sequences[i].attr('transform', 'translate(' + 0 + ', ' + (i * self.cellDim()[0]) + ')');
     };
@@ -414,9 +414,9 @@ FastaDuo.prototype._draw = function(opt) {
     var drag = d3.behavior.drag();
     drag.on('drag', function() {
         var coor = d3.mouse(self.svg[0][0]);
-        console.log(coor);
+        //console.log(coor);
         d3.event.sourceEvent.stopPropagation();
-        console.log('dragging');
+        //console.log('dragging');
 
         var x = mouseToRail(coor[0]);
         d3.select(this)
@@ -426,7 +426,7 @@ FastaDuo.prototype._draw = function(opt) {
     this.svg.selectAll('g.slider-handler').call(drag);
     this.svg.selectAll('g.slider-handler').on("click", function() {
         if (d3.event.defaultPrevented) return; // click suppressed
-        console.log("clicked!");
+        //console.log("clicked!");
 
     });
     this.svg.selectAll('g.slider-background').on('click', function() {
@@ -443,7 +443,7 @@ FastaDuo.prototype._draw = function(opt) {
 };
 
 var customNumberIndexing = function(list){
-    console.log("custom indexing");
+    //console.log("custom indexing");
     var index = _.map(list, function(d, i) {
         if (i > 0 && i % 5 == 0) {
             return d;
@@ -479,10 +479,10 @@ FastaDuo.prototype._generateIndex = function() {
 FastaDuo.prototype.scroll = function(pos) {
     var self = this;
 
-    console.log('pouet');
-    console.log(self.sMin);
-    console.log(self.sMax);
-    console.log('pouet');
+    //console.log('pouet');
+    //console.log(self.sMin);
+    //console.log(self.sMax);
+    //console.log('pouet');
 
     var offset = self.shape()[1] / self.cellW
 
@@ -494,9 +494,9 @@ FastaDuo.prototype.scroll = function(pos) {
           .rangeRound([0, (-1) * self.shape()[1] ]);*/
     }
 
-    console.log(this.sliderScale(pos));
+    //console.log(this.sliderScale(pos));
     this.z.attr("transform", "translate( " + this.sliderScale(pos) + ", 0)");
-    console.log('scroll');
+    //console.log('scroll');
     //'get current posiiotn of slider';
     //trCoor();
 
@@ -568,7 +568,7 @@ FastaDuo.prototype.createLabels = function() {
         if (step > 0) {
             //              d3.select(this.parentNode).translate
         }
-        console.log("--->" + width);
+        //console.log("--->" + width);
     });
 
 };
@@ -602,7 +602,7 @@ FastaDuo.prototype.__createLabel = function() {
 
     this.svg.selectAll('g.push').on('click', function()  {
         if (d3.select(this).classed('active')) {
-            console.log("Active -> Inactive");
+            //console.log("Active -> Inactive");
             d3.select(this).classed('active', false);
             self.shape(self.shape()[0], self.shape()[1] - Extended_wOffset);
             self.svg.attr("width", self.shape()[1]);
@@ -613,7 +613,7 @@ FastaDuo.prototype.__createLabel = function() {
             //self.svg.selectAll('g.frame').attr('transform', 'translate( 0, 0)');
 
         } else if (!d3.select(this).classed('active')) {
-            console.log("Inactive -> Active");
+            //console.log("Inactive -> Active");
             d3.select(this).classed('active', true);
             self.shape(self.shape()[0], self.shape()[1] + Extended_wOffset);
             self.svg.attr("width", self.shape()[1]);
@@ -641,7 +641,7 @@ FastaDuo.prototype.toggleSse = function() {
     if (this.sse) {
         //'hhhhhhh----cccccceeeeeeeeccccccchhhhhhhhhhhh-----
         words.each(function(d, i) {
-            console.log("------>" + i);
+            //console.log("------>" + i);
             if (!self.data[i].hasOwnProperty('ss2')) return;
             var spec = self.data[i].ss2.split('');
             var x = 0;
@@ -675,7 +675,7 @@ FastaDuo.prototype.toggleSse = function() {
         });
     } else {
         words.selectAll('g.letter').style("visibility", 'visible').selectAll("path").each(function() {
-                console.log("toot");
+                //console.log("toot");
             })
             .attr('d', function() {
                 return rectangle(0, 0, self.cellDim()[1], self.cellDim()[0], 0, 0, 0, 0);

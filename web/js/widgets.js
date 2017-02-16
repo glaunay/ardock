@@ -160,7 +160,7 @@ var UploadBox = function (opt) {
 
     var uploadBoxId = "W_" + this.idNum;
 
-    console.log("-->" + uploadBoxId);
+    //console.log("-->" + uploadBoxId);
 
     this.targetInput = null;
 
@@ -340,7 +340,7 @@ Loader.prototype.constructor = Loader;
 
 var setUpESPriptConnections = function() {
     WidgetsUtils.socketApp.on('ESPriptCached', function (key, pdbFileUrl) {
-        console.log("ESP stash Success at \"" + pdbFileUrl + "\"");
+        //console.log("ESP stash Success at \"" + pdbFileUrl + "\"");
     var hidden_ESPRIT_form =  '<div class="ESP_shadow" style="display:none"><FORM METHOD=POST ACTION=http://endscript.ibcp.fr/ESPript/cgi-bin/ENDscript.cgi TARGET=_blank>'
                             + '<INPUT TYPE=hidden NAME=FRAMES VALUE=yes>'
                             + '<INPUT TYPE=hidden NAME=alnfile0 VALUE=http://' + pdbFileUrl + '>'
@@ -401,7 +401,6 @@ var setUpRestoreConnections = function (){
                     });
             });
         }, 1000 * 1);
-        console.log("RESTORE PDB PARSED");
         });
     });
     WidgetsUtils.socketApp.on('errJob', function (data) {
@@ -435,7 +434,7 @@ var setUpRestoreConnections = function (){
         console.log('This key does not exist');
         WidgetsUtils.blocker.displayUnknown();
     });
-    console.log('All restore connection set up');
+    //console.log('All restore connection set up');
 };
 
 
@@ -593,7 +592,7 @@ keySubmitBox.prototype.displayJobError = function() {
     }
     */
 var restore = function(key) {
-    console.log("emitting key " + key);
+    //console.log("emitting key " + key);
     WidgetsUtils.socketApp.emit("keySubmission", key);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -676,7 +675,7 @@ DisplayTabs.prototype.addTab = function(opt){
         }
         name += '_' + i;
      }
-     console.log("Assigned name --> " + name);
+    //console.log("Assigned name --> " + name);
     //Create a new Tab and push it in Array
     var param = {name:name,pdbObj: opt.pdbObj,tabList: '#tabs',tabAdd:'#addFile',container: '.tab-content', pdbText : opt.pdbText};
     if (opt.hasOwnProperty("pUUID")) param["pUUID"] = opt.pUUID;
@@ -687,6 +686,7 @@ DisplayTabs.prototype.addTab = function(opt){
         $("." + name + " a").click();
 
         $("." + name + " i").on('click',function(){
+
 
             var index = WidgetsUtils.tabTabs.findIndex(function(element){return element.name == name}),
                       nextClassName = (WidgetsUtils.tabTabs.length > 1 && index !== WidgetsUtils.tabTabs.length - 1) ? WidgetsUtils.tabTabs[index +1].name : false,
@@ -715,7 +715,10 @@ DisplayTabs.prototype.addTab = function(opt){
     }
 
     $(".nav-tabs a").click(function(){
-
+        /*console.log("coucou");
+        if( $(this).attr("href") !== "#divAddFile" && $(this).parent(".active").length > 0 ) {
+            console.log("erase me");
+        }*/
         //If Addfile div --> no border
         if($(this).attr("href") === "#divAddFile"){ $("#tabs").css("border", "none") }
         else{ $("#tabs").css("border-bottom", "1px solid #ddd") }
@@ -1823,7 +1826,7 @@ SelectRepresentation.prototype.setNavigationRules = function() {
                     //$(this).parent().css("background-color", "dimgray");
 
                     //Change the representation
-                    console.log("OUHOUH");
+                    //console.log("OUHOUH");
                     WidgetsUtils.changeRepresentation(self.UUID, targetRepresentation);
                 }
             })
@@ -2498,6 +2501,7 @@ WidgetsUtils = {
 
                     var nglComponentObject = {
                         stage: stage,
+                        ardockPickerRepr : null,
                         structureComponent: structureComponent,
                         baseRepresentation: listRepresentationAvailable[rType], // On-screen representation
                         listRepresentationAvailable : listRepresentationAvailable,
@@ -2515,6 +2519,13 @@ WidgetsUtils = {
                         probeStart: false,
                         probeEnd: false,
                         pdbObj: pdbObj,
+                        removeArdockPicker : function() {
+                            if (this.ardockPickerRepr == null) return;
+                            //console.log("Removing previous opacity picker method");
+                            this.structureComponent.removeRepresentation(this.ardockPickerRepr);
+                            this.ardockPickerRepr.setSelection('NOT:');
+                            this.ardockPickerRepr = null;
+                        },
                         setObjectAtoms : function (array) {
                             this._objectAtoms = array;
                         },
@@ -2701,9 +2712,6 @@ WidgetsUtils = {
 
     */
     setNGLClickedFunction : function(uuid, afterProbe){
-
-        console.log(">>>>CLICKED<<<<<");
-
         //Handle Safari
         if(afterProbe === undefined){ afterProbe = false }
 
@@ -2747,7 +2755,7 @@ WidgetsUtils = {
             }else{
                 schemeId = WidgetsUtils.getNGLScheme(nglComponent.baseChain, (pd.atom)? additionalRange : null);
             }
-            console.dir(schemeId);
+            //console.dir(schemeId);
             //Update SchemeId
             nglComponent.baseRepresentation.setParameters({'colorScheme': schemeId});
             nglComponent.baseRepresentation.update({'color':true});
@@ -2831,8 +2839,8 @@ WidgetsUtils = {
 
         var nglComponent = WidgetsUtils.tabNGLComponents[uuid];
 
-        console.log("Changing repr to " + targetRepresentation);
-
+        //console.log("Changing repr to " + targetRepresentation);
+        nglComponent.removeArdockPicker();
         //Fill change is ongoing
         nglComponent.changeReprOngoing = true;
 
@@ -2916,13 +2924,13 @@ WidgetsUtils = {
 
             if( !selectionVisible.length ){ selectionVisible = "NOT:" }
 
-            console.log("Updating lastSelection w/ " + selectionVisible);
+            //console.log("Updating lastSelection w/ " + selectionVisible);
 
             //Update last selection
             nglComponent.lastSelection = selectionVisible;
 
             if(!addOrRemove){
-                console.log("addOrRemove is false settig setSelection w/ " + selectionVisible.valueOf());
+                //console.log("addOrRemove is false settig setSelection w/ " + selectionVisible.valueOf());
                 nglComponent.baseRepresentation.setSelection(selectionVisible.valueOf());
             }
 
@@ -2936,7 +2944,7 @@ WidgetsUtils = {
             //Get the type of the ongoing representation
             var rType = nglComponent.baseRepresentation.name;
 
-            console.log("rType is " + rType);
+            //console.log("rType is " + rType);
 
             //Variable for fading
             var iteration = 60;//40
@@ -2990,7 +2998,7 @@ WidgetsUtils = {
                         },timeOuty);
                     }else{ // Removing a chain
                         setTimeout(function(){
-                            console.log("1)" + chainAddRemoveRepresentation);
+                            //console.log("1)" + chainAddRemoveRepresentation);
                             nglComponent.structureComponent.removeRepresentation(chainAddRemoveRepresentation);
                             chainAddRemoveRepresentation.setSelection('NOT:');
                             chainAddRemoveRepresentation = null;
@@ -3086,7 +3094,7 @@ WidgetsUtils = {
 
         var job = WidgetsUtils.tabJobs[uuid];
 
-          console.log('--->' + job.colorScheme);
+        //console.log('--->' + job.colorScheme);
 
         afterProbe = job.colorScheme === 'arbitraryDocking' ? true : false;
 
@@ -3102,30 +3110,47 @@ WidgetsUtils = {
                     /*console.log("got it");
                     console.log(el);*/
                     tabAtoms.push("ATOM: " + el.name) }
-                });
+        });
 
                 //Set Range
-                if(afterProbe){
-                    additionalRange = {chainName: chainName, resno: resno, color: "0xffc0cb"}
-                    }//pink
-                else{
-                    additionalRange = [["red", ":" + chainName + " and " + resno]] //Specify as many color and chain--residue coordinates as needed
-                }
+        if(afterProbe){
+            additionalRange = {chainName: chainName, resno: resno, color: "0xffc0cb"}
+        }//pink
+        else{
+            additionalRange = [["red", ":" + chainName + " and " + resno]] //Specify as many color and chain--residue coordinates as needed
+        }
 
-            WidgetsUtils.magnifyResidue(tabAtoms.length > 0 ? tabAtoms : null);
+        WidgetsUtils.magnifyResidue(tabAtoms.length > 0 ? tabAtoms : null);
 
-            if(afterProbe){
-                schemeId = WidgetsUtils.getNGLCustomScheme(uuid, additionalRange);
-            }else{
-                schemeId = WidgetsUtils.getNGLScheme(nglComponent.baseChain, additionalRange);
-            }
+        if(afterProbe){
+            schemeId = WidgetsUtils.getNGLCustomScheme(uuid, additionalRange);
+        }else{
+            schemeId = WidgetsUtils.getNGLScheme(nglComponent.baseChain, additionalRange);
+        }
 
             //Update SchemeId
-            nglComponent.baseRepresentation.setParameters({'colorScheme': schemeId});
-            nglComponent.baseRepresentation.update({'color':true});
+        nglComponent.baseRepresentation.setParameters({'colorScheme': schemeId});
+        nglComponent.baseRepresentation.update({'color':true});
 
             //Fill the last schemeId to keep the selected residue display when representation is changing
-            nglComponent.lastSchemeId = schemeId;
+        nglComponent.lastSchemeId = schemeId;
+
+        //DVL
+        if(afterProbe){
+            //console.log("on screen Repr is " + nglComponent.baseRepresentation.name);
+            nglComponent.removeArdockPicker();
+            if (nglComponent.baseRepresentation.name === "ball+stick") {
+            //console.log("on screen Repr is " + nglComponent.baseRepresentation.name);
+
+                var sel = ":" + chainName + " and " + resName + " and " + resno;
+                //console.log("Trying to mod opacity for " + sel);
+                nglComponent.listRepresentationAvailable["ball+stick"].setParameters({"opacity" : 0.2})
+                nglComponent.ardockPickerRepr = nglComponent.structureComponent.addRepresentation("ball+stick",
+                                                                      {'sele': sel,
+                                                                        'color': 0xffc0cb,//0xff0000,
+                                                                       'opacity': 1});
+            }
+        }
 
         },
 
@@ -3158,9 +3183,9 @@ WidgetsUtils = {
 
             WidgetsUtils.tabJobs[data.uuid].colorScheme = 'arbitraryDocking';
 
-            console.log('ardokChunk operation !!!');
-            console.dir(data.uuid);
-            console.dir(data);
+            //console.log('ardokChunk operation !!!');
+            //console.dir(data.uuid);
+            //console.dir(data);
 
             //console.log(data.pdbObj.model(1).dump());
             var tabAtoms = data.pdbObj.model(1).currentSelection;
@@ -3183,7 +3208,7 @@ WidgetsUtils = {
 
             //Handle probe left, waiting backend upgrade
             if(data.hasOwnProperty('left')) {
-                console.log("We have dataleft  --> " + data.left);
+                //console.log("We have dataleft  --> " + data.left);
                 nglComponent.probeLeft = data.left;
                // console.log("setting  nglComponent.probeLeft  to " + nglComponent.probeLeft);
             } else {

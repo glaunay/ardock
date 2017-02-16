@@ -26,7 +26,7 @@ var fieldNames = ['resName', 'resSeq', 'chainID', 'tempFactor'];
 
 
 var arDockTable = function(opt) {
-    console.log("ardockTable constructor w/ Normalization");
+    //console.log("ardockTable constructor w/ Normalization");
 
     var nArgs = opt ? opt : {};
 
@@ -75,10 +75,10 @@ arDockTable.prototype.read = function(dataArray) {
         /*console.log("oo" + mapper['Score'](e));
         console.log("oo" + typeof(mapper['Score'](e)));*/
         if (mapper['Score'](e) === -1) {
-            console.log("discarding "
+            /*console.log("discarding "
                     + mapper['residue Name'](e) + ' '
                     + mapper['residue Number'](e) + ' '
-                    + mapper['chain ID'](e) );
+                    + mapper['chain ID'](e) );*/
             return;
         }
         self.data.push([ mapper['residue Name'](e),
@@ -102,7 +102,7 @@ arDockTable.prototype.read = function(dataArray) {
 }
 // Perform score standardization
 arDockTable.prototype.normalize = function() {
-    console.log("Normalizing");
+    //console.log("Normalizing");
 
     var mean = 0,
         sigma = 0,
@@ -123,7 +123,6 @@ arDockTable.prototype.normalize = function() {
         var x = (e[3] - mean) / sigma;
         e.push(Math.round(x * 100) / 100);
     });
-    console.log(this.data);
 }
 
 
@@ -133,7 +132,7 @@ arDockTable.prototype.hook = function(pdbObj) {
 arDockTable.prototype.download = function() {
 
     var filename="ardockResults.pdb";
-    console.log(this.pdbRef.dump());
+    //console.log(this.pdbRef.dump());
 
     var blob = new Blob([this.pdbRef.dump()], { type: 'text/csv;charset=utf-8;' });
     if (navigator.msSaveBlob) { // IE 10+
@@ -154,8 +153,9 @@ arDockTable.prototype.download = function() {
 }
 
 arDockTable.prototype.exportToCsv = function (){
-    console.log("CSV exporter");
+  /*  console.log("CSV exporter");
     console.dir(this);
+    */
     var filename = "ardock_results.csv";
     var csvContent = this.data.map(function(e){
         return e.join(',');
@@ -265,7 +265,7 @@ arDockTable.prototype.display = function(opt) {
             tr = '<tr><td>' + tr + '</td></tr>';
             $tBody.append(tr);
         });
-        console.log($(cNode).find("table"));
+        //console.log($(cNode).find("table"));
 
         var drawButtonDL = function (cNode){
             // if ($(cNode).find('.dataTables_wrapper.no-footer .xlDL').length >0) return
@@ -293,8 +293,8 @@ arDockTable.prototype.display = function(opt) {
                     .find('tbody tr').on('click', function(e) {
                             e.stopPropagation();
                             e.preventDefault();
-                            console.log(e.target);
-                            console.log(e.originalEvent);
+                            /*console.log(e.target);
+                            console.log(e.originalEvent);*/
                             var idx = self.dtObj
                                 .row( this )
                                 .index();
@@ -329,8 +329,8 @@ arDockTable.prototype.display = function(opt) {
     var bNode = this.getButtonNode();
     $(bNode).addClass("ardockDTcBut");
     if (nArgs.hasOwnProperty('position')) {
-        console.log('putting at w/');
-        console.dir(nArgs);
+        /*console.log('putting at w/');
+        console.dir(nArgs);*/
 
         var param = {};
         if (nArgs.hasOwnProperty('absPosSpecs'))
@@ -347,8 +347,8 @@ arDockTable.prototype.display = function(opt) {
         this.putAt(param);
         $(bNode).css('height', '');
     }
-    console.log("display Out");
-    console.dir(this);
+    /*console.log("display Out");
+    console.dir(this);*/
 
     if (nArgs.hasOwnProperty('draggable')) {
         $(self.getContentNode()).prepend('<div style="height:1.5em;cursor:crosshair" class="dragTarget"></div>')
@@ -362,7 +362,7 @@ arDockTable.prototype.display = function(opt) {
             self.fire('onDragClick');*/
         },
         onDragEnd:function() {
-            console.log("drag ended");
+            //console.log("drag ended");
             /*self.fire('onDragEnd');*/
         }
 
