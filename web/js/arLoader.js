@@ -13,8 +13,8 @@ var Loader = function(opt) {
     this.radius = Math.min(this.width, this.height) / 2.0;
     this.svg = null;
 
-    console.log('Loader Container is');
-    console.log(this.container);
+    //console.log('Loader Container is');
+    //console.log(this.container);
     this.bInitialDisplay = true;
 
 }
@@ -22,7 +22,7 @@ Loader.prototype = Object.create(Core.prototype);
 Loader.prototype.constructor = Loader;
 
 Loader.prototype.display = function(data) {
-    console.log(data);
+    //console.log(data);
     var shapeLock = {},
     colorLock = {};
 
@@ -169,7 +169,7 @@ Loader.prototype.display = function(data) {
                     .attr('transform','rotate(225)');
             var _r = 1.5 * Math.PI
             var pulsePath = drawArcLine(self.radius - thickness/2, _r , g);
-            console.log("R = " + _r)
+            //console.log("R = " + _r)
             pulsePath.style('stroke', 'red')
                 .style('fill', 'none')
                 .style('stroke-width', '0px');
@@ -179,13 +179,13 @@ Loader.prototype.display = function(data) {
             g.append("circle").attr("r", thickness/2)
                 .attr('class', 'startCorner')
                 .style('fill', function(){
-                    console.log("numeric is " + self.numeric);
+                    //console.log("numeric is " + self.numeric);
                     if (self.numeric === 0) {
-                        console.log("ITS grey !!")
+                        //console.log("ITS grey !!")
                         return self.svg.selectAll('g.arc path').last().style('fill');
                     }
-                    console.log('it is not grey');
-                    console.log(self.svg.selectAll('g.arc path').first().style('fill'));
+                    //console.log('it is not grey');
+                    //console.log(self.svg.selectAll('g.arc path').first().style('fill'));
                     return self.svg.selectAll('g.arc path').first().style('fill');
             })
             .attr("transform", "translate(" + startPoint + ")");
@@ -236,7 +236,7 @@ Loader.prototype.display = function(data) {
     }
 
     if ( data.hasOwnProperty('pulse') ){
-        console.log("Pulsing");
+        //console.log("Pulsing");
         _pulse();
     };
 /*        function shapeChange(path, duration) {
