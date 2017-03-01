@@ -15,6 +15,6 @@ rsaFile=$fileName".rsa"
 cp $WORKDIR/$rsaFile ./
 
 # parse & get results
-echo `echo "{\"listRES\" : [" ;grep "^RES" $rsaFile | awk '{print "[\"" $2 "\",\"" $3 "\"," $4 "," $5 "],"}' | head --bytes -2; echo "]}"`
+echo `echo "{\"listRES\" : [" ;grep "^RES" $rsaFile | awk 'BEGIN{FS="";OFS=""}{print "[\"" $5$6$7 "\",\"" $9 "\"," $10$11$12$13 "," $15$16$17$18$19$20$21$22 "],"}' | head --bytes -2; echo "]}"`
 
 
