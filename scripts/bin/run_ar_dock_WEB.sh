@@ -70,7 +70,7 @@ exit" > input.mac
 
 #echo "/data/software/mobi/hex/8.0.0/exe/hex8.0.0.x64 $hexFlags -noexec < input.mac > hex.log" > $SOURCEDIR/titi.log
 #echo 'titi' > $SOURCEDIR/titi.log
-/data/software/mobi/hex/8.0.0/exe/hex8.0.0.x64 $hexFlags -noexec < input.mac > hex.log
+$hexScript $hexFlags -noexec < input.mac > hex.log
 #ls *.pdb
 cp hex.log $SOURCEDIR/
 

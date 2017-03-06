@@ -65,7 +65,7 @@ save_range 1 10 ./results/ pose_$probeTag pdb
 #save_matrix matrix.dat
 exit" > inputs/$probeTag.mac
 
-	hex -nice 0 -noexec < inputs/$probeTag.mac > logs/$probeTag.log &
+	 $hexScript -nice 0 -noexec < inputs/$probeTag.mac > logs/$probeTag.log &
 done
 
 # waiting for the end of all jobs

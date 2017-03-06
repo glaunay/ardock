@@ -10,7 +10,8 @@ var bHttp = false;
 var bSlurm = false;
 var bPdb = false;
 var configFile;
-var bean, fPdb;
+var bean;
+var fPdb = null;
 var pdbChainList = [];
 var key;
 var probeMax = 20;
@@ -23,7 +24,8 @@ var HTTP_Lib = require('./HTTP_Lib');
 var HPC_Lib = require('./HPC_Lib');
 var PDB_Lib = require('./middleware_Lib');
 var ardockFunc = PDB_Lib.arDock;
-
+var fPdbList = null;
+var pdbFileList = [];
 
 /* Last update : GL 2016-02-18
 
@@ -195,6 +197,12 @@ process.argv.forEach(function (val, index, array){
             throw("usage : ");
         fPdb = array[index + 1];
     }
+    if (val === '-l'){
+        if (! array[index + 1])
+            throw("usage : ");
+        fPdbList = array[index + 1];
+         console.log("fPdbList ==> " + fPdbList);
+    }
     if (val === '-c'){
         if (! array[index + 1])
             throw("usage : ");
@@ -220,6 +228,17 @@ process.argv.forEach(function (val, index, array){
         key = array[index + 1];
     }
 });
+
+// Parsing command-line pdb files
+if (fPdbList && fPdb) {
+    throw 'Specify a single pdb file locations or a file-listed pdb file locations'
+}
+
+if (fPdbList)
+    pdbFileList = fs.readFileSync(fPdbList).toString().split("\n").filter(function(e){ return e !== "";});
+else if (fPdb)
+    pdbFileList.push(fPdb);
+//////
 
 if (!bean) {
     throw 'No config file detected\n';
@@ -247,28 +266,29 @@ if (bHttp || bIo || bRest) {
 } else if (bSlurm) { // No http asked test case or HPC only run for a particular pdb file
     HPC_Lib.slurmStart(bLocal, forceCache).on('ready', function(){
         if (bPdb) {
-            PDB_Lib.pdbLoad(bTest, {'file' : fPdb, 'chain' : pdbChainList}).on('pdbLoad', function (pdbObj) {
-                pdbObj.model(1).bFactor(0);
-                if(!bTest)
-                    PDB_Lib.process_naccess(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}).on('finished', function () {
+            pdbFileList.forEach(function(currPdbFile) { // Pdb custom source loop
+                console.log("opening at " + currPdbFile);
+                PDB_Lib.pdbLoad(bTest, {'file' : currPdbFile, 'chain' : pdbChainList}).on('pdbLoad', function (pdbObj) {
+                    pdbObj.model(1).bFactor(0);
+                    if(!bTest)
+                        PDB_Lib.process_naccess(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}).on('finished', function () {
                         //console.log(pdbObj.model(1).dump());
-                    ardockFunc(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}).on('jobCompletion', function(res) {
-            //GL_mod
-                    //PDB_Lib.arDock(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}).on('jobCompletion', function(res) { 
-           		console.log("Results of a slurm and pdb custom");
-                            PDB_Lib.bFactorUpdate(pdbObj, res);
-                            console.log(pdbObj.model(1).dump()); // to write the results (PDB)
+                            ardockFunc(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}).on('jobCompletion', function(res) {
+                                console.log("Results of a slurm and pdb custom");
+                                PDB_Lib.bFactorUpdate(pdbObj, res);
+                                console.log(pdbObj.model(1).dump()); // to write the results (PDB)
+                            });
                         });
-                    });
-                else
-                    HPC_Lib.slurmTest()
-                        .on('jobCompletion', function(res) {
-                            console.log("Results of a slurm and pdb test");
+                    else
+                        HPC_Lib.slurmTest()
+                            .on('jobCompletion', function(res) {
+                                console.log("Results of a slurm and pdb test");
                             //console.log(res);
-                            PDB_Lib.bFactorUpdate(pdbObj, res);
+                                PDB_Lib.bFactorUpdate(pdbObj, res);
                             //console.log(pdbObj.model(1).dump()); // to write the results (PDB)
-                    });
-            });
+                        });
+                });
+            });// Pdb custom source loop-end
         } else {
             HPC_Lib.slurmTest()
             .on('jobCompletion', function(res) {
