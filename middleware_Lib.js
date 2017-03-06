@@ -72,12 +72,14 @@ var pdbLoad = function(bTest, opt) {
 */ 
 var configJob = function (mode) {
     jobOpt = {
-        'tWall' : '0-00:15',
-        'gid' : 'ws_users',
-        'uid' : 'ws_ardock'
+        'tWall' : '0-00:15'/*,
+        'gid' : null, //ws_users on arwen-dev
+        'uid' : null // ws_ardock*/
     };
+    if ('uid' in bean.managerSettings) jobOpt['uid'] = bean.managerSettings.uid;
+    if ('gid' in bean.managerSettings) jobOpt['gid'] = bean.managerSettings.gid;
     if (mode === "gpu") {
-        jobOpt['partition'] = 'gpu',
+        jobOpt['partition'] = 'gpu_dp',
         jobOpt['qos'] = 'gpu';
         jobOpt['nCores'] = 1;
         jobOpt['modules'] = ['hex_gpu', 'naccess', 'cuda/5.0'];
@@ -131,7 +133,8 @@ var arDock = function (jobManager, opt) {
             var exportVar = {
                     probePdbFile : probePdbFile,
                     targetPdbFile : pdbFilePath,
-                    hexFlags : jobOpt.hexFlags // defined in the jconfigJob() function
+                    hexFlags : jobOpt.hexFlags, // defined in the jconfigJob() function
+		    hexScript : bean.scriptVariables.HEX_CPU
             };
             jobOpt['exportVar'] = exportVar; // add in jobOpt
             delete jobOpt['hexFlags']; // and then remove because it's already defined in exportVar
@@ -194,7 +197,7 @@ var naccess = function (jobManager, opt) {
         jobOpt['id'] = jName;
         jobOpt['script'] = scriptFile;
         jobOpt['exportVar'] = exportVar;
-
+        jobOpt['nCores'] = 1; // GL add
         var nac = jobManager.push(jobOpt);
         nac.on('completed', function (stdout, stderr, jobObject) {
             if(stderr) {
@@ -274,7 +277,8 @@ var arDock_gpu = function (jobManager, opt) {
             targetPdbFile : pdbFilePath,
             probeDir : probeDir,
             nProbe : probeMax, // the coreScript need the number of probes
-            hexFlags : jobOpt.hexFlags // defined in the jconfigJob() function
+            hexFlags : jobOpt.hexFlags, // defined in the jconfigJob() function
+	    hexScript : bean.scriptVariables.HEX_GPU
         };
 
         // to simulate computations

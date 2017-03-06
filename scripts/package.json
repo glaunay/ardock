@@ -1,17 +1,19 @@
 {
     "author" : "MG",
-    "lastModification" : "09 Feb 2017",
-    "comments" : "Specifications of the arbitrary docking service variables, it is derived from GL webServer.conf",
+    "lastModification" : "1st March 2017",
+    "comments" : "Ardock pipeline limited to server-side capabilities for scientific computations on Arwen",
     "httpVariables" : {
-        "rootDir" : "/data/www_dev/ardock/lib/melanie/ardockGPU_implement",
+        "rootDir" : "/software/mobi/ardock",
         "espritDir" : "/data/dev/ardock/tmp/ESPriptCache",
     "domain" : "ardock-dev.ibcp.fr"
     },
     "scriptVariables" : {
-        "TEST_DIR" : "/data/www_dev/ardock/lib/melanie/ardockGPU_implement/scripts/test",
-        "DATA_DIR" : "/data/dev/ardock/scriptPackage/data/",
-        "BIN_DIR" : "/data/www_dev/ardock/lib/melanie/ardockGPU_implement/scripts/bin/",
-        "probeList" : ["2.10.270",
+        "TEST_DIR" : "/software/mobi/ardock/scripts/test",
+        "DATA_DIR" : "/software/mobi/ardock/scripts/data/",
+        "BIN_DIR" : "/software/mobi/ardock/scripts/bin/",
+	"HEX_CPU" : "/software/mobi/hex/8.0.0/exe/hex8.0.0.x64",
+        "HEX_GPU" : "/software/mobi/hex/8.1.1/exe/hex8.1.1-cuda.x64",
+	"probeList" : ["2.10.270",
                         "2.30.18",
                         "2.30.170",
                         "1.10.750",
@@ -38,12 +40,12 @@
                         "3.90.1070"]
     },
     "managerSettings" : {
-        "cacheDir" : "/data/dev/ardock/tmp",
-        "tcp" : "192.168.117.151",
+	"cacheDir" : "/data/dev/ardock/tmp",
+        "tcp" : "192.168.114.253",
         "port" : "2221",
-        "slurmBinaries" : "/data/www_dev/ardock/bin/slurm/bin/",
-        "partition" : "ws-dev",
-        "qos" : "ws-dev"
+        "slurmBinaries" : "/opt/slurm/bin/",
+        "partition" : "mpi-mobi",
+        "qos" : "mpi-mobi"
     }
 }
 

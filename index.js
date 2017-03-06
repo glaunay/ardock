@@ -22,6 +22,8 @@ var forceCache = null;
 var HTTP_Lib = require('./HTTP_Lib');
 var HPC_Lib = require('./HPC_Lib');
 var PDB_Lib = require('./middleware_Lib');
+var ardockFunc = PDB_Lib.arDock;
+
 
 /* Last update : GL 2016-02-18
 
@@ -187,7 +189,7 @@ process.argv.forEach(function (val, index, array){
     if (val === '--http'){bHttp = true;bRest = true; bIo = true;}
     if (val === '--io') bIo = true;
     if (val === '--rest') bRest = true;
-    if (val === '--gpu') bGpu = true;
+    if (val === '--gpu') ardockFunc = PDB_Lib.arDock_gpu;
     if (val === '-f'){
         if (! array[index + 1])
             throw("usage : ");
@@ -243,15 +245,17 @@ if (bHttp || bIo || bRest) {
         }
     });
 } else if (bSlurm) { // No http asked test case or HPC only run for a particular pdb file
-    HPC_Lib.slurmStart(bLocal).on('ready', function(){
+    HPC_Lib.slurmStart(bLocal, forceCache).on('ready', function(){
         if (bPdb) {
             PDB_Lib.pdbLoad(bTest, {'file' : fPdb, 'chain' : pdbChainList}).on('pdbLoad', function (pdbObj) {
                 pdbObj.model(1).bFactor(0);
                 if(!bTest)
                     PDB_Lib.process_naccess(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}).on('finished', function () {
                         //console.log(pdbObj.model(1).dump());
-                        PDB_Lib.arDock_gpu(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}).on('jobCompletion', function(res) {
-                            console.log("Results of a slurm and pdb custom");
+                    ardockFunc(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}).on('jobCompletion', function(res) {
+            //GL_mod
+                    //PDB_Lib.arDock(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}).on('jobCompletion', function(res) { 
+           		console.log("Results of a slurm and pdb custom");
                             PDB_Lib.bFactorUpdate(pdbObj, res);
                             console.log(pdbObj.model(1).dump()); // to write the results (PDB)
                         });
