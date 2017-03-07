@@ -6,6 +6,26 @@ var bean;
 var uuid = require('node-uuid');
 
 
+var writeResults = function(pdbObj, jobManager, currPdbFile) {
+    var emitter = new events.EventEmitter();
+
+    var resDir = jobManager.cacheDir() + '/ardockResults';
+    console.log("Attempting to create results directory for process at " + resDir);
+    try {
+        fs.mkdirSync(resDir);
+    } catch(e) {
+        if ( e.code != 'EEXIST' ) throw e;
+        //console.log("Cache found already found at " + cacheDir);
+    }
+    var resultFileName = resDir + '/' + currPdbFile.split(/[\\/]/).pop();
+    console.log("writing to " + resultFileName);
+    console.log(pdbObj.model(1).dump());
+    console.log("####\n");
+    pdbLib.fWrite(pdbObj, resultFileName).on('saved', function(){ emitter.emit('pdbWrote');});
+
+    return emitter;
+}
+
 
 var pdbLoad = function(bTest, opt) {
     var emitter = new events.EventEmitter();
@@ -69,7 +89,7 @@ var pdbLoad = function(bTest, opt) {
 * Configure the dictionary to pass to the push function,
 * according to "mode", make a configuration or another
 * "mode" must be "cpu" or "gpu"
-*/ 
+*/
 var configJob = function (mode) {
     jobOpt = {
         'tWall' : '0-00:15'/*,
@@ -115,7 +135,7 @@ var arDock = function (jobManager, opt) {
     pdbLib.fWrite(pdbObj, pdbFilePath)
     .on("saved", function(){
         emitter.emit('go', taskId, probeMax);
-
+        var probeLeft = probeMax;
         // run a "paquet"
         bean.scriptVariables.probeList.forEach(function(probe, i, array) {
             if (i >= probeMax) return;
@@ -159,10 +179,9 @@ var arDock = function (jobManager, opt) {
                     results += buf.toString();
                 });
                 stdout.on('end', function (){
+                    probeLeft--;
                     var jsonRes = JSON.parse(results);
-                    emitter.emit('jobCompletion', jsonRes, jobObject);
-                  //  if(cnt === 0)
-                  //     emitter.emit('allComplete');
+                    emitter.emit('jobCompletion', jsonRes, jobObject, probeLeft);
                 });
             //jobManager.jobsView();
             })
@@ -308,7 +327,7 @@ var arDock_gpu = function (jobManager, opt) {
             })
             .on('end', function (){
                 var jsonRes = JSON.parse(results);
-                emitter.emit('jobCompletion', jsonRes, jobObject);
+                emitter.emit('jobCompletion', jsonRes, jobObject, 0);// emitter.emit('jobCompletion', jsonRes, jobObject, probeLeft);
                 //if(cnt === 0) emitter.emit('allComplete');
             });
         })
@@ -357,7 +376,7 @@ var statusJob_ardock = function (jobStatus, workDir, content) {
             // no .out file > pending status
             jobStatus.pending = jobStatus.pending.concat(content);
             return jobStatus;
-        } else console.log('' + err); // other errors        
+        } else console.log('' + err); // other errors
     }
     // check the size of the .out file
     if (stat.size === 0) {
@@ -400,7 +419,7 @@ var squeue = function () {
 
 /*
 * For each job of jobList, check in the queue if we found them.
-* In the case one (at least) is missing, return false. 
+* In the case one (at least) is missing, return false.
 * Otherwise, return true.
 */
 var checkQueue = function (jobList, squeueRes) {
@@ -538,6 +557,7 @@ module.exports = {
     pdbLoad : pdbLoad,
     keyRequest : keyRequest,
     bFactorUpdate : bFactorUpdate,
+    writeResults : writeResults,
     configure : function(data){ probeMax = data.probeMax; bean = data.bean;}
 };
 

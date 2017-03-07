@@ -26,6 +26,7 @@ var PDB_Lib = require('./middleware_Lib');
 var ardockFunc = PDB_Lib.arDock;
 var fPdbList = null;
 var pdbFileList = [];
+var bKill = false;
 
 /* Last update : GL 2016-02-18
 
@@ -188,6 +189,7 @@ process.argv.forEach(function (val, index, array){
     if (val === '--test') bTest = true;
     if (val === '--pdb') bPdb = true;
     if (val === '--slurm') bSlurm = true;
+    if (val === '--kill') bKill = true;
     if (val === '--http'){bHttp = true;bRest = true; bIo = true;}
     if (val === '--io') bIo = true;
     if (val === '--rest') bRest = true;
@@ -266,6 +268,7 @@ if (bHttp || bIo || bRest) {
 } else if (bSlurm) { // No http asked test case or HPC only run for a particular pdb file
     HPC_Lib.slurmStart(bLocal, forceCache).on('ready', function(){
         if (bPdb) {
+            var queryLeft = pdbFileList.length;
             pdbFileList.forEach(function(currPdbFile) { // Pdb custom source loop
                 console.log("opening at " + currPdbFile);
                 PDB_Lib.pdbLoad(bTest, {'file' : currPdbFile, 'chain' : pdbChainList}).on('pdbLoad', function (pdbObj) {
@@ -273,10 +276,19 @@ if (bHttp || bIo || bRest) {
                     if(!bTest)
                         PDB_Lib.process_naccess(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}).on('finished', function () {
                         //console.log(pdbObj.model(1).dump());
-                            ardockFunc(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}).on('jobCompletion', function(res) {
-                                console.log("Results of a slurm and pdb custom");
+                            ardockFunc(HPC_Lib.jobManager(), {'pdbObj' : pdbObj})
+                            .on('jobCompletion', function(res, job, probeLeft) {
+                                console.log("Results of a slurm and pdb custom probe left is " + probeLeft);
                                 PDB_Lib.bFactorUpdate(pdbObj, res);
-                                console.log(pdbObj.model(1).dump()); // to write the results (PDB)
+                                if (probeLeft === 0) {
+                                    PDB_Lib.writeResults(pdbObj, HPC_Lib.jobManager(), currPdbFile).on('pdbWrote',function(){
+                                    queryLeft--;
+                                    if (bKill && queryLeft === 0){
+                                        console.log("One time pipeline invocation complete, exiting");
+                                        process.exit(0);
+                                    }});
+                                }
+
                             });
                         });
                     else
@@ -296,8 +308,10 @@ if (bHttp || bIo || bRest) {
                     //console.log(pdbObj.model(1).dump()); // to write the results (PDB)
                 });
             console.log("No pdb provided slurm waiting");
-        }
-    });
+        }})
+        .on('done', function(){
+
+        });
 } else if (bPdb) {
     var claimSuccess = function(pdbObj) {
         console.log(pdbObj.dump() + "Successfully parsed " + pdbObj.selecSize() + ' atom record(s)');
