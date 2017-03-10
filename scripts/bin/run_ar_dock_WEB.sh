@@ -41,8 +41,8 @@ docking_fft_type 1
 molecular_axis 1
 display_sidechain 0
 
-receptor_range_angle 45
-ligand_range_angle 45
+receptor_range_angle 180
+ligand_range_angle 180
 
 docking_r12_range 40
 docking_r12_step 0.75
