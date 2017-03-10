@@ -40,8 +40,8 @@ docking_fft_type 1
 molecular_axis 1
 display_sidechain 0
 
-receptor_range_angle 45
-ligand_range_angle 45
+receptor_range_angle 180
+ligand_range_angle 180
 
 docking_r12_range 40
 docking_r12_step 0.75
@@ -65,7 +65,7 @@ save_range 1 10 ./results/ pose_$probeTag pdb
 #save_matrix matrix.dat
 exit" > inputs/$probeTag.mac
 
-	hex -nice 0 -noexec < inputs/$probeTag.mac > logs/$probeTag.log &
+	 $hexScript -nice 0 -noexec < inputs/$probeTag.mac > logs/$probeTag.log &
 done
 
 # waiting for the end of all jobs
