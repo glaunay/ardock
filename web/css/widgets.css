@@ -127,3 +127,36 @@ div.tutorial:hover {
     border : solid rgba(0, 4, 8, 0.67) 1px;
     cursor: pointer;
 }
+
+
+div.fatal {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, 0%);
+    top: 10px;
+    z-index : 9999;
+}
+
+div.fatalHeader {
+    height: 1.2em;
+    margin-top: -0.6em;
+    margin-right: -0.5em;
+}
+
+div.fatalHeader span {
+    font-size: 1.5em;
+    cursor : pointer;
+}
+
+div.jobBlocker {
+    /*position: absolute;
+    left: 50%;
+    transform: translate(-50%, 0%);
+    top: 10px;*/
+    position : absolute;
+    z-index : 9998;
+    width : 100%;
+    height : 100%;
+    background-color: rgba(0,0,0,0.7)
+}
+

@@ -117,24 +117,34 @@ var ioPdbSubmissionCallback = function (data, uuid, socket){
         var taskPatt = null;
         pdbObj.model(1).bFactor(0);
         console.log("Routing to ardock a " + pdbObj.selecSize() + " atoms structure");
-        PDB_Lib.process_naccess(HPC_Lib.jobManager(), {'pdbObj' : pdbObj}).on('finished', function () {
-            PDB_Lib.arDock(HPC_Lib.jobManager(), {'pdbObj' : pdbObj})
-            .on('go', function(taskID, total) {
-                console.log("SOCKET : taskID is " + taskID);
-                taskPatt = new RegExp(taskID);
-                socket.emit("arDockStart", { restoreKey : taskID, total : total, uuid : uuid });
-            }) // test is actually useless arDock emitter is created at every call
-            .on('jobCompletion', function(res, job) {
-                /*console.log('Job Completion pattern checking:');
-                console.log(taskPatt);*/
-                console.log("JobDecount TESTING " + taskPatt + " VS " + job.id);
+        PDB_Lib.process_naccess(HPC_Lib.jobManager(), {'pdbObj' : pdbObj})
+            .on('error', function(msg){
+                console.log("Top-Level nacces error : " + msg);
+                socket.emit("arDockError", { 'type' : 'fatal', 'msg': msg, 'uuid' : uuid });
+            })
+            .on('finished', function () {
+            // For error managment development
+            /*    console.log("GETTING OUT EARLY");
+                socket.emit("arDockError", { 'type' : 'fatal', 'msg': "maxSolvError", 'uuid' : uuid });
+                return;
+*/
+                PDB_Lib.arDock(HPC_Lib.jobManager(), {'pdbObj' : pdbObj})
+                    .on('go', function(taskID, total) {
+                        console.log("SOCKET : taskID is " + taskID);
+                        taskPatt = new RegExp(taskID);
+                        socket.emit("arDockStart", { restoreKey : taskID, total : total, uuid : uuid });
+                    }) // test is actually useless arDock emitter is created at every call
+                    .on('jobCompletion', function(res, job) {
+                        /*console.log('Job Completion pattern checking:');
+                        console.log(taskPatt);*/
+                        console.log("JobDecount TESTING " + taskPatt + " VS " + job.id);
 
-                if (taskPatt.test(job.id)) cnt--; // for CPU
-                PDB_Lib.bFactorUpdate(pdbObj, res);
-                socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'probeMax' : probeMax, 'uuid' : uuid });
+                        if (taskPatt.test(job.id)) cnt--; // for CPU
+                        PDB_Lib.bFactorUpdate(pdbObj, res);
+                        socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'probeMax' : probeMax, 'uuid' : uuid });
+                    });
             });
         });
-    });
 };
 
 // route to handle "ESPript communication"

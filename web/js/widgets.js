@@ -649,8 +649,9 @@ DisplayTabs.prototype.addTab = function(opt){
         if(!el.trim().length){ chainEmpty = true }
     });
     if(!chains.length || chainEmpty){
-        console.warn('PDB file " ' + name + ' "seems incomplete or corrupted !');
-        WidgetsUtils.magnifyError('PDB file " ' + name + ' "seems incomplete or corrupted !', null, $(".dropzone"), {top: "20px", left: "20px", right: "20px"});
+        console.warn('PDB file " ' + name + ' "seems incomplete or corrupted!');
+        message = chainEmpty ? 'PDB file " ' + name + ' "error : empty chain identifier field.' : 'PDB file " ' + name + ' "seems incomplete or corrupted !';
+        WidgetsUtils.magnifyError(message, null, $(".dropzone"), {top: "20px", left: "20px", right: "20px"});
         return false;
     }
 
@@ -921,7 +922,6 @@ var Job = function(opt){
 
     var self = this;
 
-
     this.workspace = opt.node;
     this.nbJob = nArgs.nbJob;
     this.name = opt.name;
@@ -938,6 +938,50 @@ var Job = function(opt){
     this.structureComponent = null;
     this.baseRepresentation = null;
     this.colorScheme = 'base';
+
+
+    this.displayFatal = function(data){
+
+        console.log("FATAL Display<>");
+        // apply mask to worskspace
+        console.dir(data)
+        var mesg = '<strong>Computation Error!</strong>';
+        if (data.hasOwnProperty('msg')) {
+            if (data.msg === "maxSolvError") {
+                mesg += " Your structure is probably too big. If possible, resubmit with a smaller set of protein chains."
+            }
+        }
+
+        this.jobBlocker()
+        $(self.listWidgets["pC"].panel).append('<div class="alert alert-danger fatal">'
+        + '<div class="fatalHeader"><span><i class="fa fa-times-circle fa-pull-right"></i></span></div>'
+        + '<div class="fatalBody">' + mesg + '</div>'
+        + '</div>');
+
+        // reset the pS
+        this.resetProbeTimer();
+        var node = $(self.listWidgets["pC"].panel).find('div.alert')[0];
+        console.log("----->");
+        console.dir(node);
+        $(node).find('div.fatalHeader span')
+        .on('click', function() {
+            console.log("click");
+            $(node).animate({ opacity: 0.1 }, 1000,
+                        function(){ $(node).remove(); self.DelJobBlocker(); });
+
+        })
+        // pesistent uuid may be problematic
+    },
+
+    this.jobBlocker = function () {
+        $(self.listWidgets["pC"].panel).prepend('<div class="jobBlocker"></div>');
+    }
+    this.DelJobBlocker = function () {
+        $(self.listWidgets["pC"].panel).find('div.jobBlocker').remove();
+    }
+    this.destroy = function(){
+        console.log('Removing myself, TO DO ?');
+    }
 
     this.stash = function () {
         WidgetsUtils.socketApp.emit('pdbStashESP', { uuid : self.uuid, data : self.pdbObj.model(1).dump()});
@@ -973,6 +1017,12 @@ var Job = function(opt){
                                         pulse : true }
                                         );
     };
+    this.resetProbeTimer = function () {
+        var node = $(this.listWidgets["pS"].getNode());
+        this.listWidgets['ardockTimer'].destroy();
+        $(node).find('.submitChains,.border').show();
+        WidgetsUtils.tabNGLComponents[this.uuid].probeStart = false;
+    }
     this.hideProbeTimer = function () {
         var node = $(this.listWidgets["pS"].getNode());
         this.listWidgets['ardockTimer'].destroy();
@@ -1132,6 +1182,7 @@ var Magnify = function(opt) {
     Core.call(this,nArgs);
 
     var self = this;
+    console.log("--> Creating a magnify component");
 
     //DOM
     var initMagnify = function() {
@@ -1150,7 +1201,7 @@ var Magnify = function(opt) {
 
     $.when(initMagnify()).done(function(){
         //$(self.magnify).appendTo(document.body);
-        $(document.body).append(self.magny);
+        $(document.body).append(self.magnify);
         $(self.magnify).hide();
 
         //Handle click for remove magnify
@@ -1448,12 +1499,16 @@ PdbSummary.prototype.setNavigationRules = function() {
     $(this.node).find(".submitChains")
         .find(".overlay")
         .click(function() {
+            console.log('overlay click SUBMISSION');
             var chains = [];
             var $chainSeparatorChecked = [];
             var timeFadeOut = 1000;
             var $inputUnchecked = [];
 
             $(self.node).find('input[type=checkbox]').each(function(i, el){//input[name=chainBox]:checked
+
+                console.log('Browsing checkboxes');
+
                         //Fill array unchecked chain(s)
                 if(!($(this).prop("checked"))){ $inputUnchecked.push($(this)) }
                 else{
@@ -1508,6 +1563,8 @@ PdbSummary.prototype.setNavigationRules = function() {
                             //Clear self PdbObj chains after a pull
                         self.pdbObj.model(1).listChainID();
 
+                        console.log("emitting w/ ");
+                        console.log(pdbObj);
                         self.emiter.emit('submit', pdbObj);
 
                     },110 * $inputUnchecked.length);
@@ -1515,7 +1572,7 @@ PdbSummary.prototype.setNavigationRules = function() {
 
 
                 }else{
-                    alert("Neither chain selected !");
+                    alert("No chain selected !");
                     return false;
                 }
 
@@ -1842,8 +1899,6 @@ var PdbThreeD = function(opt){
     var self = this;
     createAndRegister(self, nArgs);
 
-
-
     this.stage = null;
     this.canvas = null;
     this.stageViewer = null;
@@ -1879,12 +1934,15 @@ var PdbThreeD = function(opt){
     };
 
     var createCanvas = function(args){
+        console.log("Creating canvs");
         //Clear PdbObj chains after a pull on an other operation
         self.pdbObj.model(1).listChainID();
-
         var stringBlob = null;
-        if(self.pdbObj !== null){
-            stringBlob = new Blob( [ self.pdbObj.model(1).naturalAminoAcidOnly().dump() ], { type: 'text/plain'} );
+        if(self.pdbObj !== null){ // we ignore everything past column 66
+            stringBlob = new Blob( [ self.pdbObj.model(1).naturalAminoAcidOnly().dump(66) ], { type: 'text/plain'} );
+
+            //console.log("Filtered PDB content :\n" + self.pdbObj.model(1).naturalAminoAcidOnly().dump(66));
+
             //stringBlob = new Blob( [ self.pdbText ], { type: 'text/plain'} );
         }else{
             console.log("PdbThreeD create canvas : PdbObj = null");
@@ -2275,6 +2333,7 @@ WidgetsUtils = {
 
         var $magnifyError = null;
 
+        console.log("ERRORRR");
 
         var flushPosition = function(){
             $magnifyError.css({top: "", bottom: "", left:"", right: ""})
@@ -2282,12 +2341,17 @@ WidgetsUtils = {
 
         //Get just one MagnifyError Object
         if(!($(document.body).find(".magnify-error").length)){
+            console.log("Ihave no previous magnify-error");
+
             var magnifyError = new Magnify({class: "magnify-error"});
+
+            console.dir(magnifyError);
 
             $magnifyError = $(document.body).find(".magnify-error")
                 .css({"width": "auto", "height": "auto", "padding-right": "10px", "margin": "0 auto" })
                 .addClass("alert alert-danger");
         }else{
+            console.log("I have previous magnified error");
             $magnifyError = $(document.body).find(".magnify-error");
             flushPosition();
         }
@@ -2401,6 +2465,9 @@ WidgetsUtils = {
             var write = function(line, para, time){ setTimeout(function(){ $(para).text(line) },300 + time); }
 
             tabAtoms.forEach(function(el,i){
+                // Dont write full atom informations
+                if (i>0) return;
+
                 var $para = $('<span style="display: block; margin:0; padding:0; height: ' + atomSpanHeight + 'px;pointer-events:none;"></span>');
                 var line = "";
 
@@ -2780,7 +2847,7 @@ WidgetsUtils = {
     *
     */
     setNGLHoveredFunction : function(uuid){
-
+        return; // Disable for now, for styling reasons
         var nglComponent = WidgetsUtils.tabNGLComponents[uuid];
 
         nglComponent.stage.signals.hovered.removeAll();
@@ -3167,6 +3234,25 @@ WidgetsUtils = {
     */
     jobOperations: {
 
+        onArdockError : function(data) {
+            console.log("this is a ardock Error packet");
+            console.dir(data);
+            if (WidgetsUtils.tabJobs.hasOwnProperty(data.uuid)) {
+                var job = WidgetsUtils.tabJobs[data.uuid];
+                if (data.hasOwnProperty('type')) {
+                    console.log('Type is ' + data['type']);
+                    if(data.hasOwnProperty('msg')) {
+                        if(data['msg'] === 'maxSolvError'){
+                            job.displayFatal(data);
+                        }
+
+                    }
+                }
+            }
+
+
+
+        },
         onArdockStart : function(data) {
 
             var job = WidgetsUtils.tabJobs[data.uuid];

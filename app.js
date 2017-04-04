@@ -72,6 +72,18 @@ socket.on("arDockStart", function (data) {
     WidgetsUtils.jobOperations.onArdockStart(data);
 });
 
+
+socket.on("arDockError", function(data) {
+    //console.log("Got an ardock Error; packet is:");
+    //console.dir(data);
+    // Insert Error in appropriate tab as persistent
+    //WidgetsUtils.magnifyError(message, null, $(".dropzone"), {top: "20px", left: "20px", right: "20px"});
+
+    WidgetsUtils.jobOperations.onArdockError(data)
+
+
+});
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //$('body').append('<div class="btn btn-primary">PUSH me JS</div>\n');
@@ -81,6 +93,8 @@ socket.on("arDockStart", function (data) {
 
 
 $(function () {
+
+    console.log("vY");
 
 
     var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0 || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || safari.pushNotification);
@@ -143,6 +157,8 @@ $(function () {
                                     pdbObj:  pdbObjInp.model(1).naturalAminoAcidOnly().pull(),
                                     pdbText: reader.result
                                 };
+                                //var x = pdbObjInp.model(1).naturalAminoAcidOnly().pull();
+                                //console.log("---><----"+ x.model(1).dump());
 
                                 //Slide the header description once
                                 if( displayTabs.nbTabs === 1 && !WidgetsUtils.header.slided ){ header.slide() }

@@ -114,6 +114,7 @@ var configJob = function (mode) {
         jobOpt['nCores'] = 16;
         jobOpt['modules'] = ['hex', 'naccess'];
         jobOpt['hexFlags'] = "\" -nocuda -ncpu " + jobOpt.nCores + " \"";
+        //jobOpt['hexFlags'] = "\" -ncpu " + jobOpt.nCores + " \"";
         // no gres option on CPU
     } else {
         console.log("ERROR in configJob : mode not recognized. It must be \"cpu\" or \"gpu\" !");
@@ -200,12 +201,37 @@ var arDock = function (jobManager, opt) {
 /*
 * config and run a naccess job
 * can be used in any context
+
+
+ if (buf.toString().search("STOP SOLVA_ERROR: max") > 0) {
+                        emitter.emit('maxSolvError');
+
+
 */
 var naccess = function (jobManager, opt) {
+
+
+
     var emitter = new events.EventEmitter();
     var taskId = 'naccessTask_' + uuid.v4();
     var pdbFilePath = jobManager.cacheDir() + '/' + taskId + '.pdb';
     var pdbObj = opt.pdbObj;
+
+
+    function _dataGlob(stream) {
+        var emitter = new events.EventEmitter();
+        var results = '';
+        stream.on('data', function(buf){
+                results += buf.toString();
+        })
+        .on('end', function(){
+            var jsonRes = JSON.parse(results);
+            emitter.emit('globed', jsonRes);
+        });
+        return emitter;
+    }
+
+
     pdbLib.fWrite(pdbObj, pdbFilePath)
     .on("saved", function(){
         var jName = taskId + '_nac';
@@ -223,22 +249,35 @@ var naccess = function (jobManager, opt) {
         var nac = jobManager.push(jobOpt);
         nac.on('completed', function (stdout, stderr, jobObject) {
             if(stderr) {
+                var fatalErrorBool = false;
                 stderr.on('data', function(buf){
+                    if (buf.toString().search("STOP SOLVA_ERROR: max") >= 0) {
+                        emitter.emit('maxSolvError');
+                        console.log("klong" + buf.toString());
+                        fatalErrorBool = true;
+                        return;
+                    }
+                })
+                .on('end', function (){
+                    if (fatalErrorBool) {
+                       /*
+                        console.log("====> GOING UP");
+                        emitter.emit('maxSolvError');
+                        */
+                        return
+                    }
+                    // Error not fatal, we dont bubble up error
                     console.log("stderr content:");
                     console.log(buf.toString());
+                    _dataGlob(stdout).on('globed', function(jsonRes){
+                        emitter.emit('jobCompletion', jsonRes, jobObject);
+                    });
+                });
+            } else { // No Stderr to check proceed
+                _dataGlob(stdout).on('globed', function(jsonRes){
+                    emitter.emit('jobCompletion', jsonRes, jobObject);
                 });
             }
-            var results = '';
-            stdout.on('data', function(buf){
-                results += buf.toString();
-            })
-            .on('end', function (){
-                var jsonRes = JSON.parse(results);
-                emitter.emit('jobCompletion', jsonRes, jobObject);
-                //if(cnt === 0) emitter.emit('allComplete');
-            });
-
-
         })
         .on('error', function (e,j) {
             console.log("job " + j.id + " : " + e);
@@ -253,7 +292,15 @@ var naccess = function (jobManager, opt) {
 */
 var process_naccess = function (jobManager, opt) {
     var emitter = new events.EventEmitter();
-    naccess(jobManager, opt).on('jobCompletion', function (jsonRes, jobObject) {
+    naccess(jobManager, opt)
+    .on('maxSolvError', function(){
+        emitter.emit('error', "maxSolvError");
+    })
+    .on('jobCompletion', function (jsonRes, jobObject) {
+
+        //jobbject.on('completed', function(stdout, stderr, jobObject){
+
+
         //console.log(opt.pdbObj.dump());
         jsonRes.listRES.forEach(function (resiTab, i, array) {
             var resi = resiTab[0]; // residue name

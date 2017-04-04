@@ -12,6 +12,8 @@
 export HEX_FIRST_GPU=${CUDA_VISIBLE_DEVICES}
 #ldd /software/mobi/hex/8.0.0//exe/hex8.0.0-cuda.x64
 
+hexScript="/data/software/mobi/hex/8.0.0/exe/hex8.0.0.x64"
+
 SOURCEDIR=`pwd`
 cd $WORKDIR/
 
@@ -67,6 +69,8 @@ save_range 1 10 ./  pose_ pdb
 exit" > input.mac
 
 #run docking
+
+echo "$hexScript $hexFlags -noexec < input.mac > hex.log"  > $SOURCEDIR/toto.log
 
 #echo "/data/software/mobi/hex/8.0.0/exe/hex8.0.0.x64 $hexFlags -noexec < input.mac > hex.log" > $SOURCEDIR/titi.log
 #echo 'titi' > $SOURCEDIR/titi.log
