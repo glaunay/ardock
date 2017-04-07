@@ -1509,7 +1509,6 @@ PdbSummary.prototype.setNavigationRules = function() {
     $(this.node).find(".submitChains")
         .find(".overlay")
         .click(function() {
-            console.log('overlay click SUBMISSION');
             var chains = [];
             var $chainSeparatorChecked = [];
             var timeFadeOut = 1000;
@@ -1570,8 +1569,6 @@ PdbSummary.prototype.setNavigationRules = function() {
                             //Clear self PdbObj chains after a pull
                         self.pdbObj.model(1).listChainID();
 
-                        console.log("emitting w/ ");
-                        console.log(pdbObj);
                         self.emiter.emit('submit', pdbObj);
 
                     },110 * $inputUnchecked.length);
