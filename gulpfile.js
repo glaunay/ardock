@@ -101,7 +101,7 @@ gulp.task('compress', function() {
 
 gulp.task('server', function (cb) {
     //spawn('node', ['index.js', '--conf', '../default.conf', '--http','--slurm','-p','3'], { stdio: 'inherit' })
-    spawn('node', ['index.js', '--conf', '../webServer.conf', '--http','--slurm','-p','3','-d', '/data/dev/ardock/tmp/persistantNslurmCache_dvl'], { stdio: 'inherit' })
+    spawn('node', ['index.js', '--conf', '../webServer.conf', '--http','--slurm','-p','25','-d', '/data/dev/ardock/tmp/persistantNslurmCache_dvl'], { stdio: 'inherit' })
 
  /*
  exec('node index.js --conf ../default.conf --http', function (err, stdout, stderr) {

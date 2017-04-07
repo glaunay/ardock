@@ -133,3 +133,8 @@ div.ardockDT div.datatableW .dataTables_filter {
 div.ardockDT div.datatableW label input {
     width: 110px;
 }
+
+div.ardockDT div.datatableW tbody tr.predicted {
+    color: green;
+    font-weight: bolder;
+}

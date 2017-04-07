@@ -191,6 +191,10 @@ var arDock = function (jobManager, opt) {
             })
             .on('error',function(e, j){
                 console.log("job " + j.id + " : " + e);
+            })
+            .on('lostJob',function(e, j){
+                console.log("ardock CPU " + j.id + " Job Lost " + e);
+                emitter.emit('error', 'nSlurmError :: ardock CPU lost', j.id);
             });
         });
     });
@@ -281,6 +285,10 @@ var naccess = function (jobManager, opt) {
         })
         .on('error', function (e,j) {
             console.log("job " + j.id + " : " + e);
+        })
+        .on('lostJob',function(e, j){
+            console.log("Nacces " + j.id + " Job Lost " + e);
+            emitter.emit('error', 'nSlurmError :: naccess lost', j.id);
         });
     });
     return emitter;
@@ -382,6 +390,10 @@ var arDock_gpu = function (jobManager, opt) {
         })
         .on('error', function (e,j) {
             console.log("job " + j.id + " : " + e);
+        })
+        .on('lostJob',function(e, j){
+            console.log("ardock GPU " + j.id + " Job Lost " + e);
+            emitter.emit('error', 'nSlurmError :: ardock GPU lost', j.id);
         });
     });
     return emitter;

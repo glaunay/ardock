@@ -122,28 +122,59 @@ var ioPdbSubmissionCallback = function (data, uuid, socket){
                 console.log("Top-Level nacces error : " + msg);
                 socket.emit("arDockError", { 'type' : 'fatal', 'msg': msg, 'uuid' : uuid });
             })
+            .on('lostJob', function(msg){
+                console.log("Top-Level nacces error : " + msg);
+                socket.emit("arDockError", { 'type' : 'fatal', 'msg': msg, 'uuid' : uuid });
+            })
             .on('finished', function () {
             // For error managment development
             /*    console.log("GETTING OUT EARLY");
                 socket.emit("arDockError", { 'type' : 'fatal', 'msg': "maxSolvError", 'uuid' : uuid });
                 return;
 */
-                PDB_Lib.arDock(HPC_Lib.jobManager(), {'pdbObj' : pdbObj})
+
+                HPC_Lib.slurmGpuCpuRatio()
+                .on('error',function () {
+                    socket.emit("arDockError", { 'type' : 'fatal', 'msg': 'squeueError', 'uuid' : uuid });
+                })
+                .on('data', function (cpuCount, gpuCount) {
+                    var GpuMode=true;
+
+                    console.log("CPU GPU ratio : " + cpuCount +  '/' +  gpuCount);
+                    if (gpuCount > 4) GpuMode = false;
+                    //if (cpuCount / 25)
+                    var ardockProcess = GpuMode ? PDB_Lib.arDock_gpu : PDB_Lib.arDock;
+
+                    var errorState = false;
+
+                    ardockProcess(HPC_Lib.jobManager(), {'pdbObj' : pdbObj})
                     .on('go', function(taskID, total) {
                         console.log("SOCKET : taskID is " + taskID);
                         taskPatt = new RegExp(taskID);
-                        socket.emit("arDockStart", { restoreKey : taskID, total : total, uuid : uuid });
+                        var typeComp = GpuMode ? 'gpu' : 'cpu';
+                        socket.emit("arDockStart", { restoreKey : taskID, total : total, uuid : uuid, typeComp : typeComp });
                     }) // test is actually useless arDock emitter is created at every call
                     .on('jobCompletion', function(res, job) {
-                        /*console.log('Job Completion pattern checking:');
-                        console.log(taskPatt);*/
-                        console.log("JobDecount TESTING " + taskPatt + " VS " + job.id);
+                        if (errorState) return;
+                    /*console.log('Job Completion pattern checking:');
+                    console.log(taskPatt);*/
+                    //console.log("JobDecount TESTING " + taskPatt + " VS " + job.id);
 
                         if (taskPatt.test(job.id)) cnt--; // for CPU
+
+                        if (GpuMode) cnt = 0;
+
                         PDB_Lib.bFactorUpdate(pdbObj, res);
                         socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'probeMax' : probeMax, 'uuid' : uuid });
+                    })
+                    .on('error', function(msg){
+                        console.log("Top-Level ardock error : " + msg);
+                        errorState = true;
+                        socket.emit("arDockError", { 'type' : 'fatal', 'msg': msg, 'uuid' : uuid });
+                    //socket.disconnect(0);
                     });
-            });
+                });
+            })
         });
 };
 

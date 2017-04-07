@@ -95,6 +95,7 @@ arDockTable.prototype.read = function(dataArray) {
                 mapper['Score'](e) ];
     });*/
     this.normalize();
+    this.patchAssign();
     this.header = ['residue Name', 'residue Number', 'chain ID', 'Score', 'Norm'];
     this.emiter.emit('parsed', this.data);
 
@@ -103,7 +104,6 @@ arDockTable.prototype.read = function(dataArray) {
 // Perform score standardization
 arDockTable.prototype.normalize = function() {
     //console.log("Normalizing");
-
     var mean = 0,
         sigma = 0,
         N = this.data.length;
@@ -123,6 +123,31 @@ arDockTable.prototype.normalize = function() {
         var x = (e[3] - mean) / sigma;
         e.push(Math.round(x * 100) / 100);
     });
+}
+
+arDockTable.prototype.patchAssign = function (){
+
+
+
+    var trace = this.pdbRef.model(1).name('CA').asArray();
+    var popSize = trace.length - 1;
+
+    //console.log("Assigning patches over " + popSize + 'residue');
+
+    this.pdbRef.model(1);
+
+    var pFrac = 6.11 * Math.pow(popSize,-0.75)
+
+    this.maxRank = Math.round(pFrac * popSize +0.5);
+
+    var i = this.data[0].length - 1;
+   // console.log("I is " + i);
+    var sorted = this.data.sort(function(a,b){
+        return parseFloat(b[i]) - parseFloat(a[i]);
+    });
+    this.data = sorted;
+    /*console.log(this.data);
+    console.log(">><<" + this.maxRank);*/
 }
 
 
@@ -260,9 +285,15 @@ arDockTable.prototype.display = function(opt) {
                                       '<tr><th>name</th><th>number</th><th>chain</th><th>raw</th><th>norm</th></tr></thead><tbody></tbody>');
 
         $tBody = $(cNode).find("table tbody");
-        this.data.forEach(function(e) {
+        this.data.forEach(function(e,i ) {
             var tr = e.join('</td><td>');
-            tr = '<tr><td>' + tr + '</td></tr>';
+            var _trOpen = '<tr><td>';
+            if (i <= self.maxRank) {
+                if (parseFloat(e[4]) > 0.0)
+                    _trOpen = '<tr class="predicted"><td>';
+            }
+
+            tr = _trOpen + tr + '</td></tr>';
             $tBody.append(tr);
         });
         //console.log($(cNode).find("table"));

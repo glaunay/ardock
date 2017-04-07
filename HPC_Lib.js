@@ -1,4 +1,4 @@
-var jobManager = require('nslurm');
+var jobManager = require('./nSlurmLegacy');
 var events = require('events');
 var Random = require("random-js")
 var bean, probeMax;
@@ -93,11 +93,27 @@ var slurmStart = function(bLocal, forceCache) {
     return emitter;
 }
 
+var slurmGpuCpuRatio = function() {
+    var emitter = new events.EventEmitter();
+    jobManager.squeueReport()
+    .on('end', function(squeueInterface) {
+       // console.log(squeueInterface);
+        gpuCount = squeueInterface.matchPartition("gpu")['id'].length;
+        cpuCount = squeueInterface.matchPartition("ws-")['id'].length;
+        emitter.emit('data', cpuCount, gpuCount);
+    })
+    .on('errSqueue', function(){
+        emitter.emit('error');
+    });
+
+    return emitter;
+}
 
 module.exports = {
     slurmTest : slurmTest,
     slurmStart : slurmStart,
     slurmStop : slurmStop,
+    slurmGpuCpuRatio : slurmGpuCpuRatio,
     jobManager : function() {return jobManager;},
     configure : function (data) { probeMax = data.probeMax; bean = data.bean;}
 };

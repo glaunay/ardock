@@ -950,6 +950,16 @@ var Job = function(opt){
             if (data.msg === "maxSolvError") {
                 mesg += " Your structure is probably too big. If possible, resubmit with a smaller set of protein chains."
             }
+            if (data.msg === "nSlurmError") {
+                  mesg += ' There has been an error with the server. Please try again later.'
+                        + ' If the problem persists <a href="mailto:ardock-support@ibcp.fr">contact us</href>.'
+            }
+
+            if (data.msg.match('nSlurmError')) {
+                mesg += ' There has been an error with the server! Please try again later.'
+                     + ' If the problem persists <a href="mailto:ardock-support@ibcp.fr">contact us</href>.'
+
+            }
         }
 
         this.jobBlocker()
@@ -1506,10 +1516,7 @@ PdbSummary.prototype.setNavigationRules = function() {
             var $inputUnchecked = [];
 
             $(self.node).find('input[type=checkbox]').each(function(i, el){//input[name=chainBox]:checked
-
-                console.log('Browsing checkboxes');
-
-                        //Fill array unchecked chain(s)
+                //Fill array unchecked chain(s)
                 if(!($(this).prop("checked"))){ $inputUnchecked.push($(this)) }
                 else{
                             //Fill chain(s) checked
@@ -3245,7 +3252,9 @@ WidgetsUtils = {
                         if(data['msg'] === 'maxSolvError'){
                             job.displayFatal(data);
                         }
-
+                        if(data['msg'].match('nSlurmError')){
+                            job.displayFatal(data);
+                        }
                     }
                 }
             }
@@ -3258,7 +3267,11 @@ WidgetsUtils = {
             var job = WidgetsUtils.tabJobs[data.uuid];
             job.restoreKey = data.restoreKey;
             job.colorScheme = 'arbitraryDocking';
+            console.log(data);
             WidgetsUtils.bookmarkDisplay({job : job, components :["DL"]});
+            if (data.typeComp === 'gpu'){
+                job.listWidgets['ardockTimer'].setWait();
+            }
         },
         /*Change the color of residues depending of bfactor
         *

@@ -21,6 +21,21 @@ var Loader = function(opt) {
 Loader.prototype = Object.create(Core.prototype);
 Loader.prototype.constructor = Loader;
 
+
+// Hot fix to change rendering when gpu back-end runs
+
+Loader.prototype.setWait = function () {
+    var self = this;
+    this.svg.selectAll("text")
+            .attr("x", function(d){ return 0;return parseInt(self.width / 2)})
+            .attr("y", function(d){ return parseInt(self.height * 0.1)})
+            .attr("text-anchor", "middle")
+            .attr("font-familly", "verdana")
+            .style('fill', '#3c5061')
+            .style("font-size", function(d){ return parseInt(self.radius / 1.75) + 'px' })
+            .text('Wait');
+}
+
 Loader.prototype.display = function(data) {
     //console.log(data);
     var shapeLock = {},
