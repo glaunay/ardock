@@ -155,7 +155,10 @@ var ioPdbSubmissionCallback = function (data, uuid, socket){
                         socket.emit("arDockStart", { restoreKey : taskID, total : total, uuid : uuid, typeComp : typeComp });
                     }) // test is actually useless arDock emitter is created at every call
                     .on('jobCompletion', function(res, job) {
-                        if (errorState) return;
+                        if (errorState) {
+                            console.log(job.id + ' is in error state. Skipping socket emission');
+                            return;
+                        }
                     /*console.log('Job Completion pattern checking:');
                     console.log(taskPatt);*/
                     //console.log("JobDecount TESTING " + taskPatt + " VS " + job.id);

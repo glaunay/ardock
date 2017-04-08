@@ -941,19 +941,24 @@ var Job = function(opt){
 
 
     this.displayFatal = function(data){
+        var self = this;
+        this.listWidgets["bookmarkDL"].destroy();
+        this.listWidgets['bookmarkDL'] = externalCreateAndRegister(arDockDL.new, {root: this.listWidgets["pC"].panel, /*UUID: self.uuid, */ pdbObj: this.pdbObj});
+        this.listWidgets['bookmarkDL'].on('END_click',function(){
+            self.stash();
+        });
 
-        console.log("FATAL Display<>");
         // apply mask to worskspace
-        console.dir(data)
+//        console.dir(data)
         var mesg = '<strong>Computation Error!</strong>';
         if (data.hasOwnProperty('msg')) {
             if (data.msg === "maxSolvError") {
                 mesg += " Your structure is probably too big. If possible, resubmit with a smaller set of protein chains."
             }
-            if (data.msg === "nSlurmError") {
+           /* if (data.msg === "nSlurmError") {
                   mesg += ' There has been an error with the server. Please try again later.'
                         + ' If the problem persists <a href="mailto:ardock-support@ibcp.fr">contact us</href>.'
-            }
+            }*/
 
             if (data.msg.match('nSlurmError')) {
                 mesg += ' There has been an error with the server! Please try again later.'
@@ -962,7 +967,7 @@ var Job = function(opt){
             }
         }
 
-        this.jobBlocker()
+        this.jobBlocker();
         $(self.listWidgets["pC"].panel).append('<div class="alert alert-danger fatal">'
         + '<div class="fatalHeader"><span><i class="fa fa-times-circle fa-pull-right"></i></span></div>'
         + '<div class="fatalBody">' + mesg + '</div>'
@@ -971,11 +976,10 @@ var Job = function(opt){
         // reset the pS
         this.resetProbeTimer();
         var node = $(self.listWidgets["pC"].panel).find('div.alert')[0];
-        console.log("----->");
-        console.dir(node);
+        /*console.log("----->");
+        console.dir(node);*/
         $(node).find('div.fatalHeader span')
         .on('click', function() {
-            console.log("click");
             $(node).animate({ opacity: 0.1 }, 1000,
                         function(){ $(node).remove(); self.DelJobBlocker(); });
 
@@ -1313,9 +1317,6 @@ PdbSummary.prototype.collapse = function () {
 PdbSummary.prototype.expand = function () {
     $(this.node).css({'max-height' : 'none', 'overflow-y': 'visible'});
 }
-
-
-
 
 
 PdbSummary.prototype.setNavigationRules = function() {
@@ -3239,8 +3240,8 @@ WidgetsUtils = {
     jobOperations: {
 
         onArdockError : function(data) {
-            console.log("this is a ardock Error packet");
-            console.dir(data);
+            /*console.log("this is a ardock Error packet");
+            console.dir(data);*/
             if (WidgetsUtils.tabJobs.hasOwnProperty(data.uuid)) {
                 var job = WidgetsUtils.tabJobs[data.uuid];
                 if (data.hasOwnProperty('type')) {
@@ -3264,7 +3265,6 @@ WidgetsUtils = {
             var job = WidgetsUtils.tabJobs[data.uuid];
             job.restoreKey = data.restoreKey;
             job.colorScheme = 'arbitraryDocking';
-            console.log(data);
             WidgetsUtils.bookmarkDisplay({job : job, components :["DL"]});
             if (data.typeComp === 'gpu'){
                 job.listWidgets['ardockTimer'].setWait();

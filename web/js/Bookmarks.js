@@ -11,7 +11,6 @@ var Bookmarkable = function(opt) {
 Bookmarkable.prototype = Object.create(Core.prototype);
 Bookmarkable.prototype.constructor = Bookmarkable;
 
-
 Bookmarkable.prototype.display = function(opt) {
 
     // Check construction precedence and exit TO DO
