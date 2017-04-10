@@ -285,7 +285,7 @@ arDockTable.prototype.display = function(opt) {
 
         $tBody = $(cNode).find("table tbody");
 
-        var minScore = -20;
+        var minScore = -20.0;
 
         this.data.forEach(function(e,i ) {
             var tr = e.join('</td><td>');
@@ -295,7 +295,7 @@ arDockTable.prototype.display = function(opt) {
                     _trOpen = '<tr class="predicted"><td>';
                     minScore = parseFloat(e[4]);
                 }
-            } else if(parseFloat(e[4] === minScore)) { // We class as predicted residue w/ identical normalized score as long as one of them is part of patch population
+            } else if(parseFloat(e[4]) === minScore) { // We class as predicted residue w/ identical normalized score as long as one of them is part of patch population
                 _trOpen = '<tr class="predicted"><td>';
             }
 
