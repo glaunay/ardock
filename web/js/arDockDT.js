@@ -128,7 +128,6 @@ arDockTable.prototype.normalize = function() {
 arDockTable.prototype.patchAssign = function (){
 
 
-
     var trace = this.pdbRef.model(1).name('CA').asArray();
     var popSize = trace.length - 1;
 
@@ -285,12 +284,19 @@ arDockTable.prototype.display = function(opt) {
                                       '<tr><th>name</th><th>number</th><th>chain</th><th>raw</th><th>norm</th></tr></thead><tbody></tbody>');
 
         $tBody = $(cNode).find("table tbody");
+
+        var minScore = -20;
+
         this.data.forEach(function(e,i ) {
             var tr = e.join('</td><td>');
             var _trOpen = '<tr><td>';
             if (i <= self.maxRank) {
-                if (parseFloat(e[4]) > 0.0)
+                if (parseFloat(e[4]) > 0.0) {
                     _trOpen = '<tr class="predicted"><td>';
+                    minScore = parseFloat(e[4]);
+                }
+            } else if(parseFloat(e[4] === minScore)) { // We class as predicted residue w/ identical normalized score as long as one of them is part of patch population
+                _trOpen = '<tr class="predicted"><td>';
             }
 
             tr = _trOpen + tr + '</td></tr>';
