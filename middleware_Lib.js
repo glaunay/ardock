@@ -4,7 +4,7 @@ var jsonfile = require('jsonfile');
 var events = require('events');
 var bean;
 var uuid = require('node-uuid');
-
+var safejson = require('safejson');
 
 var pdbLoad = function(bTest, opt) {
     var emitter = new events.EventEmitter();
@@ -95,7 +95,7 @@ var pdbWrite = function (key, pdbStream) {
 */
 var configJob = function (mode) {
     jobOpt = {
-        'tWall' : '0-00:15',
+        'tWall' : '0-00:45',
         'gid' : 'ws_users',
         'uid' : 'ws_ardock'
     };
@@ -182,8 +182,24 @@ var arDock = function (jobManager, opt) {
                     results += buf.toString();
                 });
                 stdout.on('end', function (){
-                    var jsonRes = JSON.parse(results);
-                    emitter.emit('jobCompletion', jsonRes, jobObject);
+                    // var jsonRes = JSON.parse(results);
+                    safejson.parse(results, function(err, json) {
+                    // err is null if no error would have occured due to valid input
+                    // json is a valid JSON object
+                        if (err === null) {
+                            emitter.emit('jobCompletion', json, jobObject);
+                        } else {
+                            console.log("JOB ardock JSON result parsing error");
+                            console.log(jobObject);
+                            emitter.emit('error', 'InvalidResult :: JSON format error', jobObject.id);
+                            //emitter.emit('jobCompletion', json, jobObject);
+                        }
+                    });
+
+
+
+
+
                   //  if(cnt === 0)
                   //     emitter.emit('allComplete');
                 });

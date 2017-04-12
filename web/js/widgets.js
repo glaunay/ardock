@@ -963,7 +963,11 @@ var Job = function(opt){
             if (data.msg.match('nSlurmError')) {
                 mesg += ' There has been an error with the server! Please try again later.'
                      + ' If the problem persists <a href="mailto:ardock-support@ibcp.fr">contact us</href>.'
+            }
 
+            if (data.msg.match('InvalidResult')) {
+                mesg += ' There has been an error with the server! Please try again later.'
+                     + ' If the problem persists <a href="mailto:ardock-support@ibcp.fr">contact us</href>.'
             }
         }
 
@@ -3251,6 +3255,9 @@ WidgetsUtils = {
                             job.displayFatal(data);
                         }
                         if(data['msg'].match('nSlurmError')){
+                            job.displayFatal(data);
+                        }
+                        if(data['msg'].match('InvalidResult')){
                             job.displayFatal(data);
                         }
                     }

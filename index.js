@@ -141,7 +141,7 @@ var ioPdbSubmissionCallback = function (data, uuid, socket){
                     var GpuMode=true;
 
                     console.log("CPU GPU ratio : " + cpuCount +  '/' +  gpuCount);
-                    if (gpuCount > 4) GpuMode = false;
+                    if (gpuCount > -1) GpuMode = false;
                     //if (cpuCount / 25)
                     var ardockProcess = GpuMode ? PDB_Lib.arDock_gpu : PDB_Lib.arDock;
 

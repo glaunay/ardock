@@ -70,8 +70,8 @@ save_range 1 10 ./  pose_ pdb
 exit" > input.mac
 
 #run docking
-
-echo "$hexScript $hexFlags -noexec < input.mac > hex.log"  > $SOURCEDIR/toto.log
+echo "Using $probePdbFile ..." > $SOURCEDIR/process.log
+echo "$hexScript $hexFlags -noexec < input.mac > hex.log"  >> $SOURCEDIR/process.log
 
 #echo "/data/software/mobi/hex/8.0.0/exe/hex8.0.0.x64 $hexFlags -noexec < input.mac > hex.log" > $SOURCEDIR/titi.log
 #echo 'titi' > $SOURCEDIR/titi.log
@@ -114,3 +114,4 @@ else
 ## inliner perl to produce json file out of raw count
     cat $SOURCEDIR/interface_index.temp | perl -ne 'BEGIN {print "{ \"rawCounts\":[\n"; $all =[] } @tmp = $_ =~ /^(.)(.{4})(.)$/g;$tmp[2] = $tmp[2] eq " " ? "null" : "\"$tmp[2]\"";  push @{$all}, "{\"chain\" : \"" . $tmp[0] . "\" , \"resSeq\" : \"" . $tmp[1] . "\" , \"AChar\" : " . $tmp[2] . "}"; END{ print join(",", @{$all}) . "\n]}\n"}'
 fi
+
