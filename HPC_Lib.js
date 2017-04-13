@@ -1,4 +1,4 @@
-var jobManager = require('./nSlurmLegacy');
+var jobManager = require('nslurmardocklegacy');
 var events = require('events');
 var Random = require("random-js")
 var bean, probeMax;
