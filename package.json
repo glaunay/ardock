@@ -21,7 +21,7 @@
     "ngl": "^0.10.0-dev.3",
     "nglview-js": "^0.5.3-dev.0",
     "node-uuid": "^1.4.7",
-    "nslurm": "^0.6.0",
+    "nslurmardocklegacy": "^1.0.0",
     "pdb-lib": "^2.0.5",
     "random-js": "^1.0.8",
     "safejson": "^1.0.1",
