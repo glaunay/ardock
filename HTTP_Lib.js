@@ -6,6 +6,7 @@ app.use(favicon(__dirname + '/favicon.ico'));
 
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var port = 3000;
 
 //var socket = require('socket.io-client')('http://localhost');
 
@@ -57,11 +58,11 @@ var ioESPriptRoute = function (key, pdbStream, socket) {
     console.log('test ioESPriptRoute ' + key);
 }
 
-var httpStart = function(bean, bIo, bTest, bRest) {
+var httpStart = function(ardockSett, bIo, bTest, bRest) {
 
     var emitter = new events.EventEmitter();
     if (bIo) ioActivate();
-    var staticPath = bean.httpVariables.rootDir;
+    var staticPath = ardockSett.httpVar.rootDir;
     console.log("Configuring route end points");
     console.log("Serving at " + staticPath);
 
@@ -72,8 +73,8 @@ var httpStart = function(bean, bIo, bTest, bRest) {
 
 
     // ESPRIPT CACHE SERVING
-    publicESPriptDir = bean.httpVariables.domain + "/ESPript";
-    staticPath = bean.httpVariables.espritDir;
+    publicESPriptDir = ardockSett.httpVar.domain + "/ESPript";
+    staticPath = ardockSett.httpVar.espritDir;
     console.log("Serving ENDscript cache at " + staticPath);
     app.use("/ESPript", express.static(staticPath));
     app.get('/tutorial', function(req, res) {
@@ -113,7 +114,7 @@ var httpStart = function(bean, bIo, bTest, bRest) {
     function haltOnTimedout(req, res, next){
         if (!req.timedout) next();
     }
-    http.listen(3000, function(){
+    http.listen(port, function(){
         emitter.emit('listening');
         console.log('HTTP Server listening on *:3000');
     });
@@ -266,7 +267,10 @@ var restRoute = function(req, res) {
 
 
 module.exports = {
-    setRestCallBack : function (fn) { restCallBack = fn;},
+    setRestCallBack : function (fn) {
+        console.log('WARNING : the functionnality of restCallBack is not implemented yet');
+        //restCallBack = fn;
+    },
     setIoPdbSubmissionCallback : function (fn_io) { ioPdbSubmissionRoute = fn_io;},
     setIoKeySubmissionCallback : function (fn_io) { ioKeySubmissionRoute = fn_io;},
     setIoESPriptSubmissionCallback : function (fn_io) { ioESPriptRoute = fn_io;},

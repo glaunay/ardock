@@ -10,7 +10,7 @@ var bHttp = false;
 var bSlurm = false;
 var bPdb = false;
 var configFile;
-var bean, fPdb;
+var bean, ardockSett, fPdb;
 var pdbChainList = [];
 var key;
 var probeMax = 20;
@@ -22,6 +22,7 @@ var forceCache = null;
 var HTTP_Lib = require('./HTTP_Lib');
 var HPC_Lib = require('./HPC_Lib');
 var PDB_Lib = require('./middleware_Lib');
+var arP = require ('./ardockPipeline');
 
 /* Last update : GL 2016-02-18
 
@@ -68,6 +69,7 @@ See result at http://ardock.ibcp.fr/test
 */
 
 
+/*
 var restCallBack = function (ans, data) {
     // Process data -> pdbLoad-> slurm -> return content through ans
 
@@ -104,82 +106,63 @@ var restCallBack = function (ans, data) {
             //console.log(data);
         });
 };
-
-
-//* arDockPdbSubmit has to receive { data : pdbString, uuid:uuid}
-// socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'uuid' : uuid });
-
-var ioPdbSubmissionCallback = function (data, uuid, socket){
-    console.log('received ' + uuid);
-    var cnt = probeMax; // for CPU
-    PDB_Lib.pdbLoad(bTest, {'ioSocketStream' : data, 'chain' : pdbChainList})
-    .on('pdbLoad', function (pdbObj) {
-        var taskPatt = null;
-        pdbObj.model(1).bFactor(0);
-        console.log("Routing to ardock a " + pdbObj.selecSize() + " atoms structure");
-        PDB_Lib.process_naccess(HPC_Lib.jobManager(), {'pdbObj' : pdbObj})
-            .on('error', function(msg){
-                console.log("Top-Level nacces error : " + msg);
-                socket.emit("arDockError", { 'type' : 'fatal', 'msg': msg, 'uuid' : uuid });
-            })
-            .on('lostJob', function(msg){
-                console.log("Top-Level nacces error : " + msg);
-                socket.emit("arDockError", { 'type' : 'fatal', 'msg': msg, 'uuid' : uuid });
-            })
-            .on('finished', function () {
-            // For error managment development
-            /*    console.log("GETTING OUT EARLY");
-                socket.emit("arDockError", { 'type' : 'fatal', 'msg': "maxSolvError", 'uuid' : uuid });
-                return;
 */
 
-                HPC_Lib.slurmGpuCpuRatio()
-                .on('error',function () {
-                    socket.emit("arDockError", { 'type' : 'fatal', 'msg': 'squeueError', 'uuid' : uuid });
-                })
-                .on('data', function (cpuCount, gpuCount) {
-                    var GpuMode=true;
 
-                    console.log("CPU GPU ratio : " + cpuCount +  '/' +  gpuCount);
-                    if (gpuCount > -1) GpuMode = false;
-                    //if (cpuCount / 25)
-                    var ardockProcess = GpuMode ? PDB_Lib.arDock_gpu : PDB_Lib.arDock;
+/*
+* Run the ardock pipeline with Task implementations, in a non persistent version. Adapted for web services.
+* @data must be a JSON containing a key 'ioSocketStream' which references a stream containing the PDB.
+* @uuid_pdbCli [string] is a unique ID only used by the @socket (one socket can have multiple PDB submissions).
+*/
+// socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'uuid' : uuid_pdbCli });
 
-                    var errorState = false;
+var ioPdbSubmissionCallback_task = function (data, uuid_pdbCli, socket){
+    console.log('received ' + uuid_pdbCli);
+    let ncpu = 16;
+    let cnt = probeMax;
+    PDB_Lib.pdbLoad(bTest, {'ioSocketStream' : data, 'chain' : pdbChainList})
+    .on('pdbLoad', (pdbObj) => {
+        let management = {
+            'naccess' : {
+                'jobManager' : HPC_Lib.jobManager(), 'jobProfile' : 'arwen-dev_cpu'
+            },
+            'hex' : {
+                'jobManager' : HPC_Lib.jobManager(), 'jobProfile' : 'arwen-dev_hex_' + ncpu + 'cpu',
+                'nprobe' : probeMax, 'lprobes' : ardockSett.scriptVar.probeList, 'ncpu' : ncpu
+            }
+        }
 
-                    ardockProcess(HPC_Lib.jobManager(), {'pdbObj' : pdbObj})
-                    .on('go', function(taskID, total) {
-                        console.log("SOCKET : taskID is " + taskID);
-                        taskPatt = new RegExp(taskID);
-                        var typeComp = GpuMode ? 'gpu' : 'cpu';
-                        socket.emit("arDockStart", { restoreKey : taskID, total : total, uuid : uuid, typeComp : typeComp });
-                    }) // test is actually useless arDock emitter is created at every call
-                    .on('jobCompletion', function(res, job) {
-                        if (errorState) {
-                            console.log(job.id + ' is in error state. Skipping socket emission');
-                            return;
-                        }
-                    /*console.log('Job Completion pattern checking:');
-                    console.log(taskPatt);*/
-                    //console.log("JobDecount TESTING " + taskPatt + " VS " + job.id);
+        let naccessTest = false;
+        let hexTest = false;
+        let myPipeline = new arP(management, naccessTest, hexTest);
 
-                        if (taskPatt.test(job.id)) cnt--; // for CPU
+        myPipeline.push({'pdbObj' : pdbObj})
+        .on('go', (namespace, probeTot) => {
+            console.log("SOCKET : namespace is " + namespace);
+            taskPatt = new RegExp(namespace);
+            socket.emit("arDockStart", { 'restoreKey' : namespace, 'total' : probeTot, 'uuid' : uuid_pdbCli, 'typeComp' : 'cpu' });
+        })
+        .on('naccessEnd', () => {
+            console.log("Naccess ends without any error");
+        })
+        .on('naccessErr', (msg) => {
+            console.log("Top-Level naccess error : " + msg);
+            socket.emit("arDockError", { 'type' : 'fatal', 'msg': msg, 'uuid' : uuid_pdbCli });
+        })
 
-                        if (GpuMode) cnt = 0;
-
-                        PDB_Lib.bFactorUpdate(pdbObj, res);
-                        socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'probeMax' : probeMax, 'uuid' : uuid });
-                    })
-                    .on('error', function(msg){
-                        console.log("Top-Level ardock error : " + msg);
-                        errorState = true;
-                        socket.emit("arDockError", { 'type' : 'fatal', 'msg': msg, 'uuid' : uuid });
-                    //socket.disconnect(0);
-                    });
-                });
-            })
+        .on('oneProbe', (data) => {
+            data['uuid'] = uuid_pdbCli;
+            socket.emit('arDockChunck', data);
+        })
+        .on('allProbes', () => {
+            console.log('All hex jobs end without any error');
+        })
+        .on('hexErr', (msg) => {
+            console.log("Top-Level hex error : " + msg);
+            socket.emit("arDockError", { 'type' : 'fatal', 'msg': msg, 'uuid' : uuid_pdbCli });
         });
-};
+    });
+}
 
 // route to handle "ESPript communication"
 var ioESPriptSubmissionCallback = function (key, pdbStream, socket) {
@@ -202,7 +185,7 @@ var ioKeySubmissionCallback = function (key, socket) {
         console.log('All jobs are completed');
         socket.emit("arDockRestore", { 'obj' : pdb.model(1).dump(), 'left' : 0, 'uuid' : key, 'probeMax' : nProbes });
     })
-    .on('errJob', function () {
+    .on('errJobs', function () {
         console.log('Error during calculations');
         socket.emit('arDockRestoreError', { 'uuid' : key });
     })
@@ -219,8 +202,11 @@ var ioKeySubmissionCallback = function (key, socket) {
 
 
 var parseConfig = function (fileName){
-    var obj = jsonfile.readFileSync(fileName);
-    return obj;
+    try {
+        var obj = jsonfile.readFileSync(fileName);
+        return obj;
+    }
+    catch (err) { console.log('ERROR while parsing the JSON file ' + fileName); }
 };
 
 process.argv.forEach(function (val, index, array){
@@ -252,6 +238,11 @@ process.argv.forEach(function (val, index, array){
             throw("usage : ");
         bean = parseConfig(array[index + 1]);
     }
+    if (val === '--set') {
+        if (! array[index + 1])
+            throw("usage : ");
+        ardockSett = parseConfig(array[index + 1]);
+    }
     if (val === '-p') {
         if (! array[index + 1])
             throw("usage : ");
@@ -266,6 +257,13 @@ process.argv.forEach(function (val, index, array){
 if (!bean) {
     throw 'No config file detected\n';
 }
+if (!ardockSett) {
+    throw 'No ardock settings file detected\n';
+} else {
+    ardockSett.scriptVar.probeList = ardockSett.scriptVar.probeList.map((p) => {
+        return ardockSett.scriptVar.DATA_DIR + '/' + p + '.pdb';
+    });
+}
 HPC_Lib.configure({ probeMax : probeMax, bean : bean });
 PDB_Lib.configure({ probeMax : probeMax, bean : bean });
 
@@ -275,18 +273,20 @@ PDB_Lib.configure({ probeMax : probeMax, bean : bean });
 // if http is asked it is run first
 // then we setup the job manager
 if (bHttp || bIo || bRest) {
-    HTTP_Lib.setRestCallBack(restCallBack);
-    HTTP_Lib.setIoPdbSubmissionCallback(ioPdbSubmissionCallback);
+    //HTTP_Lib.setRestCallBack(restCallBack);
+    HTTP_Lib.setIoPdbSubmissionCallback(ioPdbSubmissionCallback_task);
     HTTP_Lib.setIoKeySubmissionCallback(ioKeySubmissionCallback);
     HTTP_Lib.setIoESPriptSubmissionCallback(ioESPriptSubmissionCallback);
-    HTTP_Lib.httpStart(bean, bIo, bTest, bRest).on('listening', function() {
+    HTTP_Lib.httpStart(ardockSett, bIo, bTest, bRest).on('listening', function() {
         if (bSlurm) {
             HPC_Lib.slurmStart(bLocal, forceCache).on('ready', function(){
-
+                //
             });
         }
     });
 } else if (bSlurm) { // No http asked test case or HPC only run for a particular pdb file
+    console.log("WARNING : You choose --slurm option but it is not implemented yet with the tasks -> not available for now");
+    /*
     HPC_Lib.slurmStart(bLocal).on('ready', function(){
         if (bPdb) {
             PDB_Lib.pdbLoad(bTest, {'file' : fPdb, 'chain' : pdbChainList}).on('pdbLoad', function (pdbObj) {
@@ -318,6 +318,7 @@ if (bHttp || bIo || bRest) {
             console.log("No pdb provided slurm waiting");
         }
     });
+    */
 } else if (bPdb) {
     var claimSuccess = function(pdbObj) {
         console.log(pdbObj.dump() + "Successfully parsed " + pdbObj.selecSize() + ' atom record(s)');

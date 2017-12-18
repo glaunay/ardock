@@ -1,12 +1,7 @@
-var jobManager = require('nslurmardocklegacy');
+var jobManager = require('nslurm');
 var events = require('events');
 var Random = require("random-js")
 var bean, probeMax;
-
-
-
-
-
 
 
 var slurmTest = function () {
@@ -59,13 +54,10 @@ var slurmStop = function() {
     .on('cleanExit', function (){
         emitter.emit('cleanExit');
     })
-    .on('exit', function (){
-        emitter.emit('exit');
-    })
-    .on('errScancel', function () {
+    .on('cancelError', function () {
         emitter.emit('errScancel');
     })
-    .on('errSqueue', function () {
+    .on('listError', function () {
         emitter.emit('errSqueue');
     });
 
@@ -78,11 +70,23 @@ var slurmStart = function(bLocal, forceCache) {
     var emitter = new events.EventEmitter();
     if (forceCache) {
         console.log ("You provided a predefined cache path for scheduler as " + forceCache);
-        bean.managerSettings["forceCache"] = forceCache;
+        bean.cacheDir = forceCache;
     }
-    jobManager.start(bean.managerSettings);
+
+    //jobManager.debugOn(); // for tests
+
+    jobManager.index(null); // no indexation (so no resurrection)
+    jobManager.configure({"engine" : bean.engineType, "binaries" : bean.binaries });
+
+    jobManager.start({
+        'cacheDir' : bean.cacheDir,
+        'tcp' : bean.tcp,
+        'port' : bean.port
+    });
+
     if(bLocal)
         jobManager.emulate();
+    
     jobManager.on('exhausted', function(){
         emitter.emit("done");
         console.log("All jobs processed");

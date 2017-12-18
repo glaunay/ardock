@@ -3,8 +3,6 @@ var fs = require('fs');
 var jsonfile = require('jsonfile');
 var events = require('events');
 var bean;
-var uuid = require('node-uuid');
-var safejson = require('safejson');
 
 var pdbLoad = function(bTest, opt) {
     var emitter = new events.EventEmitter();
@@ -88,333 +86,6 @@ var pdbWrite = function (key, pdbStream) {
 }
 
 
-/*
-* Configure the dictionary to pass to the push function,
-* according to "mode", make a configuration or another
-* "mode" must be "cpu" or "gpu"
-*/
-var configJob = function (mode) {
-    jobOpt = {
-        'tWall' : '0-00:45',
-        'gid' : 'ws_users',
-        'uid' : 'ws_ardock'
-    };
-    if (mode === "gpu") {
-        jobOpt['partition'] = 'gpu',
-        jobOpt['qos'] = 'gpu';
-        jobOpt['nCores'] = 1;
-        jobOpt['modules'] = ['hex_gpu', 'naccess', 'cuda/5.0'];
-        jobOpt['hexFlags'] = "";
-        jobOpt['gres'] = "gpu:1";
-    } else if (mode === "cpu") {
-        if ('partition' in bean.managerSettings) jobOpt['partition'] = bean.managerSettings.partition;
-        else jobOpt['partition'] = 'ws-dev';
-        if ('qos' in bean.managerSettings) jobOpt['qos'] = bean.managerSettings.qos;
-        else jobOpt['qos'] = 'ws-dev';
-        jobOpt['nCores'] = 16;
-        jobOpt['modules'] = ['hex', 'naccess'];
-        jobOpt['hexFlags'] = "\" -nocuda -ncpu " + jobOpt.nCores + " \"";
-        //jobOpt['hexFlags'] = "\" -ncpu " + jobOpt.nCores + " \"";
-        // no gres option on CPU
-    } else {
-        console.log("ERROR in configJob : mode not recognized. It must be \"cpu\" or \"gpu\" !");
-    }
-
-    return jobOpt;
-}
-
-
-/*
-* config and run ardock on CPU
-*/
-var arDock = function (jobManager, opt) {
-    var emitter = new events.EventEmitter();
-    var taskId = 'ardockTask_' + uuid.v4();
-    console.dir(jobManager);
-    console.dir(jobManager.cacheDir());
-    var pdbFilePath = jobManager.cacheDir() + '/' + taskId + '.pdb';
-
-    var pdbObj = opt.pdbObj; // implement iosocket interface
-
-    pdbLib.fWrite(pdbObj, pdbFilePath)
-    .on("saved", function(){
-        emitter.emit('go', taskId, probeMax);
-
-        // run a "paquet"
-        bean.scriptVariables.probeList.forEach(function(probe, i, array) {
-            if (i >= probeMax) return;
-
-            var probePdbFile = bean.scriptVariables.DATA_DIR + '/' + probe + '.pdb';
-            var jName = taskId + '_hex_' + (i + 1);
-            var scriptFile = bean.scriptVariables.BIN_DIR + '/run_ar_dock_WEB.sh';
-
-            // dictionary for the push function
-            jobOpt = configJob("cpu");
-            jobOpt['id'] = jName;
-            jobOpt['script'] = scriptFile;
-
-            // List of variables which will be exported in the sbatch
-            var exportVar = {
-                    probePdbFile : probePdbFile,
-                    targetPdbFile : pdbFilePath,
-                    hexFlags : jobOpt.hexFlags // defined in the jconfigJob() function
-            };
-            jobOpt['exportVar'] = exportVar; // add in jobOpt
-            delete jobOpt['hexFlags']; // and then remove because it's already defined in exportVar
-
-            if(jobManager.isEmulated()) {
-                jName = taskId + '_emul_' + (i + 1);
-                exportVars = { 'residueHitsDir' : bean.scriptVariables.TEST_DIR + '/residue_hits' };
-                scriptFile = bean.scriptVariables.BIN_DIR + '/run_ar_dock_EMUL.sh';
-            }
-            //console.log(jobOpt);
-
-            var j = jobManager.push(jobOpt); // creation of a job and setUp (creation of its sbatch file & submition)
-            j.on('completed', function(stdout, stderr, jobObject){
-                if(stderr) {
-                    stderr.on('data', function(buf){
-                        console.log("stderr content:");
-                        console.log(buf.toString());
-                    });
-                }
-                var results = '';
-                stdout.on('data', function(buf){
-                    results += buf.toString();
-                });
-                stdout.on('end', function (){
-                    // var jsonRes = JSON.parse(results);
-                    safejson.parse(results, function(err, json) {
-                    // err is null if no error would have occured due to valid input
-                    // json is a valid JSON object
-                        if (err === null) {
-                            emitter.emit('jobCompletion', json, jobObject);
-                        } else {
-                            console.log("JOB ardock JSON result parsing error");
-                            console.log(jobObject);
-                            emitter.emit('error', 'InvalidResult :: JSON format error', jobObject.id);
-                            //emitter.emit('jobCompletion', json, jobObject);
-                        }
-                    });
-
-
-
-
-
-                  //  if(cnt === 0)
-                  //     emitter.emit('allComplete');
-                });
-            //jobManager.jobsView();
-            })
-            .on('error',function(e, j){
-                console.log("job " + j.id + " : " + e);
-            })
-            .on('lostJob',function(e, j){
-                console.log("ardock CPU " + j.id + " Job Lost " + e);
-                emitter.emit('error', 'nSlurmError :: ardock CPU lost', j.id);
-            });
-        });
-    });
-    return emitter;
-}
-
-
-/*
-* config and run a naccess job
-* can be used in any context
-
-
- if (buf.toString().search("STOP SOLVA_ERROR: max") > 0) {
-                        emitter.emit('maxSolvError');
-
-
-*/
-var naccess = function (jobManager, opt) {
-
-
-
-    var emitter = new events.EventEmitter();
-    var taskId = 'naccessTask_' + uuid.v4();
-    var pdbFilePath = jobManager.cacheDir() + '/' + taskId + '.pdb';
-    var pdbObj = opt.pdbObj;
-
-
-    function _dataGlob(stream) {
-        var emitter = new events.EventEmitter();
-        var results = '';
-        stream.on('data', function(buf){
-                results += buf.toString();
-        })
-        .on('end', function(){
-            var jsonRes = JSON.parse(results);
-            emitter.emit('globed', jsonRes);
-        });
-        return emitter;
-    }
-
-
-    pdbLib.fWrite(pdbObj, pdbFilePath)
-    .on("saved", function(){
-        var jName = taskId + '_nac';
-        var scriptFile = bean.scriptVariables.BIN_DIR + '/run_naccess_CPU.sh';
-        var jobOpt = configJob("cpu"); // on CPU
-
-        var exportVar = {
-            targetPdbFile : pdbFilePath,
-        };
-        // add to dictionary
-        jobOpt['id'] = jName;
-        jobOpt['script'] = scriptFile;
-        jobOpt['exportVar'] = exportVar;
-
-        var nac = jobManager.push(jobOpt);
-        nac.on('completed', function (stdout, stderr, jobObject) {
-            if(stderr) {
-                var fatalErrorBool = false;
-                stderr.on('data', function(buf){
-                    if (buf.toString().search("STOP SOLVA_ERROR: max") >= 0) {
-                        emitter.emit('maxSolvError');
-                        console.log("klong" + buf.toString());
-                        fatalErrorBool = true;
-                        return;
-                    }
-                })
-                .on('end', function (){
-                    if (fatalErrorBool) {
-                       /*
-                        console.log("====> GOING UP");
-                        emitter.emit('maxSolvError');
-                        */
-                        return
-                    }
-                    // Error not fatal, we dont bubble up error
-                    console.log("stderr content:");
-                    console.log(buf.toString());
-                    _dataGlob(stdout).on('globed', function(jsonRes){
-                        emitter.emit('jobCompletion', jsonRes, jobObject);
-                    });
-                });
-            } else { // No Stderr to check proceed
-                _dataGlob(stdout).on('globed', function(jsonRes){
-                    emitter.emit('jobCompletion', jsonRes, jobObject);
-                });
-            }
-        })
-        .on('error', function (e,j) {
-            console.log("job " + j.id + " : " + e);
-        })
-        .on('lostJob',function(e, j){
-            console.log("Nacces " + j.id + " Job Lost " + e);
-            emitter.emit('error', 'nSlurmError :: naccess lost', j.id);
-        });
-    });
-    return emitter;
-}
-
-
-/*
-* call naccess method & change the bFactors at -1 for accessibility 0
-*/
-var process_naccess = function (jobManager, opt) {
-    var emitter = new events.EventEmitter();
-    naccess(jobManager, opt)
-    .on('maxSolvError', function(){
-        emitter.emit('error', "maxSolvError");
-    })
-    .on('jobCompletion', function (jsonRes, jobObject) {
-
-        //jobbject.on('completed', function(stdout, stderr, jobObject){
-
-
-        //console.log(opt.pdbObj.dump());
-        jsonRes.listRES.forEach(function (resiTab, i, array) {
-            var resi = resiTab[0]; // residue name
-            var chain = resiTab[1]; // chain
-            var num = resiTab[2]; // residue number
-            var access = resiTab[3]; // accessibility
-            //console.log(resi, chain, num, access);
-            if (access === 0) {
-                opt.pdbObj.chain(chain).resName(resi).resSeq(num).bFactor(-1);
-            }
-            opt.pdbObj.model(1); // reinitialize
-        });
-        emitter.emit('finished');
-    });
-    return emitter;
-}
-
-
-/*
-* config and run ardock on GPU (GPU_dp or GPU_sp)
-*/
-var arDock_gpu = function (jobManager, opt) {
-    var emitter = new events.EventEmitter();
-    var taskId = 'ardockTask_' + uuid.v4(); // unique ID
-    //console.dir(jobManager);
-    var pdbFilePath = jobManager.cacheDir() + '/' + taskId + '.pdb';
-
-    var pdbObj = opt.pdbObj; // implement iosocket interface
-
-    pdbLib.fWrite(pdbObj, pdbFilePath) // save the pdb file in the cache directory
-    .on("saved", function(){
-        emitter.emit('go', taskId, probeMax);
-
-        // run only once the coreScript containing the nProbes computations
-        var jName = taskId + '_hex';
-        var probeDir = bean.scriptVariables.DATA_DIR;
-        var scriptFile = bean.scriptVariables.BIN_DIR + '/run_ar_dock_GPU_sp_dp.sh';
-
-        // dictionary for the push function
-        var jobOpt = configJob("gpu"); // on GPU
-        // list of variables which will be exported in the sbatch
-        var exportVar = {
-            targetPdbFile : pdbFilePath,
-            probeDir : probeDir,
-            nProbe : probeMax, // the coreScript need the number of probes
-            hexFlags : jobOpt.hexFlags // defined in the jconfigJob() function
-        };
-
-        // to simulate computations
-        if(jobManager.isEmulated()) {
-            jName = taskId + '_emul';
-            exportVars = { 'residueHitsDir' : bean.scriptVariables.TEST_DIR + '/residue_hits' };
-            scriptFile = bean.scriptVariables.BIN_DIR + '/run_ar_dock_EMUL.sh';
-        }
-
-        // add to dictionary
-        jobOpt['id'] = jName;
-        jobOpt['script'] = scriptFile;
-        jobOpt['exportVar'] = exportVar;
-        delete jobOpt['hexFlags']; // and then remove because it's already defined in exportVar
-
-        var j = jobManager.push(jobOpt); // creation of a job and setUp (creation of its sbatch file & submition)
-        j.on('completed', function(stdout, stderr, jobObject){ // event in nslurm._pull()
-            if(stderr) {
-                stderr.on('data', function(buf){
-                    console.log("stderr content:");
-                    console.log(buf.toString());
-                });
-            }
-            var results = '';
-            stdout.on('data', function(buf){
-                results += buf.toString();
-            })
-            .on('end', function (){
-                var jsonRes = JSON.parse(results);
-                emitter.emit('jobCompletion', jsonRes, jobObject);
-                //if(cnt === 0) emitter.emit('allComplete');
-            });
-        })
-        .on('error', function (e,j) {
-            console.log("job " + j.id + " : " + e);
-        })
-        .on('lostJob',function(e, j){
-            console.log("ardock GPU " + j.id + " Job Lost " + e);
-            emitter.emit('error', 'nSlurmError :: ardock GPU lost', j.id);
-        });
-    });
-    return emitter;
-}
-
 
 // emiting pdb structure update, return emitter
 var bFactorUpdate = function(pdbObj, dataObj) {
@@ -426,32 +97,40 @@ var bFactorUpdate = function(pdbObj, dataObj) {
 };
 
 
-
-
 /*
 * Check the status of an ardock job, by :
-*   - first, checking if content is a directory
-*   - then check if .out file exists in the directory
-*   - then check if .out file is empty or not
-*   - finally check the JSON format of the .out file
+*   (1) first, check if @content is a directory
+*   (2) check if the job is a hex task : looking the jobID.json file and its tagTask
+*   (3) then check if .out file exists in the directory
+*   (4) then check if .out file is empty or not
+*   (5) finally check the JSON format of the .out file
+* This function returns a string defining the status of the job
 */
-var statusJob_ardock = function (jobStatus, workDir, content) {
-    if (! jobStatus) throw 'No jobStatus specified';
-    if (! workDir) throw 'No workDir specified';
+var statusJob = function (nsDir, content) {
+    if (! nsDir) throw 'No nsDir specified';
     if (! content) throw 'No value specified';
-    // check if dir is not a directory
-    var dir = workDir + '/' + content;
-    if (!fs.statSync(dir).isDirectory()) return jobStatus;
 
-    var regKey = /^ardockTask_[-0-9a-zA-Z]{1,}_hex_[0-9]{1,}$/;
-    var outFile = dir + '/' + content + '.out';
+    let dir = nsDir + '/' + content;
+    if (! fs.statSync(dir).isDirectory()) return null; // check if dir is not a directory (1)
 
-    if (! fs.existsSync(outFile)) {
+    // (2)
+    let jobIDfile = dir + '/jobID.json';
+    try { var jif_content = jsonfile.readFileSync(jobIDfile); }
+    catch (err) {
+        var d = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+        console.log("[" + d + "] ardockJobStatus: jobIDfile error : " + jobIDfile + ' : ' + err);
+        // .out file is not a JSON format (writing not finished for example) -> running status
+        return null;
+    }
+    if (jif_content.tagTask !== 'hex') return null;
+
+    let outFile = dir + '/' + content + '.out'; // @content is a uuid used for .out, .err files
+    if (! fs.existsSync(outFile)) { // (3)
         var d = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
         //console.log("[" + d + "] _ardockJobStatus:outputfile not found : " + outFile);
-        jobStatus.pending = jobStatus.pending.concat(content);
-        return jobStatus;
+        return 'pending';
     }
+
     // check the existence of the .out file
     /*
     try { var stat = fs.statSync(outFile); }
@@ -466,33 +145,26 @@ var statusJob_ardock = function (jobStatus, workDir, content) {
 
     }*/
 
-
-
     var stat = fs.statSync(outFile);
-    // check the size of the .out file
-    if (stat.size === 0) {
+    if (stat.size === 0) { // check the size of the .out file (4)
         var d = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
         console.log("[" + d + "] ardockJobStatus:empty File : " + outFile);
-        // .out file is empty > running status
-        jobStatus.running = jobStatus.running.concat(content);
-        return jobStatus;
+        return 'running'; // .out file is empty -> running status
     }
-    // check the good format of the .out file
-    try {
+    
+    try { // check the good format of the .out file (5)
         console.log('Trying to sync read ' + outFile);
         var dict = jsonfile.readFileSync(outFile); }
     catch (e) {
         var d = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
         console.log("[" + d + "] ardockJobStatus:wrong format : " + outFile);
-        // .out file is not a JSON format (writing not finished for ex.) > running status
-        jobStatus.running = jobStatus.running.concat(content);
-        return jobStatus;
+        // .out file is not a JSON format (writing not finished for example) -> running status
+        return 'running';
     }
+
     var d = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
     console.log("[" + d + "] ardockJobStatus:Complete at " + outFile);
-    // else > completed status
-    jobStatus.completed = jobStatus.completed.concat(content);
-    return jobStatus;
+    return 'completed'; // else -> completed status
 }
 
 
@@ -502,7 +174,8 @@ var statusJob_ardock = function (jobStatus, workDir, content) {
 var squeue = function () {
     var emitter = new events.EventEmitter();
     var exec_cmd = require('child_process').exec;
-    var squeuePath = bean.managerSettings['slurmBinaries'] + '/squeue';
+    var squeuePath = bean.binaries.queueBin;
+    console.log("squeuePath : " + squeuePath)
 
     exec_cmd(squeuePath + ' -o \"\%j \%t\"', function (err, stdout, stderr) {
         if (err) {
@@ -547,15 +220,13 @@ var checkQueue = function (jobList, squeueRes) {
 /*
 * Collect the rawCounts data in all the .out files, in a unique variable
 */
-var collectOutFiles = function (workDir, jobsArray) {
-    if (! workDir) throw 'No workDir specified';
-    if (! jobsArray) throw 'No jobsArray specified';
+var collectResults = function (outFiles) {
+    if (! outFiles) throw 'No outFiles specified';
 
     var allProbes = { 'rawCounts' : [] };
-    jobsArray.forEach(function (job) {
-        var outFile = workDir + '/' + job + '/' + job + '.out';
-        var oneProbe = jsonfile.readFileSync(outFile);
-        if (! oneProbe.rawCounts) throw 'No rawCounts key in the file ' + outFile;
+    outFiles.forEach(function (outF) {
+        var oneProbe = jsonfile.readFileSync(outF);
+        if (! oneProbe.rawCounts) throw 'No rawCounts key in the file ' + outF;
         allProbes.rawCounts = allProbes.rawCounts.concat(oneProbe.rawCounts);
     });
     return allProbes;
@@ -564,64 +235,86 @@ var collectOutFiles = function (workDir, jobsArray) {
 
 
 /*
-* Find the node session path of the work associed to key
+* Find the node session path of the work associed to myNamespace
 */
-var findPath = function (key) {
-    if (! key) throw 'No key specified';
-    var workDir;
-    var tmpDir = bean.managerSettings.cacheDir;
-    try { var tmpContent = fs.readdirSync(tmpDir); }
-    catch (err) { throw 'Error during the reading of the tmpDir content :\n' + err; }
+var findPath = function (myNamespace) {
+    if (! myNamespace) throw 'No namespace specified';
+    let nsDir; // namespace directory
+    let cacheDir = bean.cacheDir;
+    let regKey = new RegExp('^' + myNamespace + '$');
+
+    try { var cacheDirContent = fs.readdirSync(cacheDir); }
+    catch (err) { throw 'Error during the reading of the cacheDir content :\n' + err; }
 
     // for each session of node
-    tmpContent.forEach(function (nodeKey) {
-        var nodeDir = tmpDir + '/' + nodeKey;
+    cacheDirContent.forEach(function (nodeUuid) {
+        let nodeDir = cacheDir + '/' + nodeUuid;
         try { var nodeDirContent = fs.readdirSync(nodeDir); }
-        catch (err) { throw 'Error during the reading of the nodeDir content :\n' + err; }
-        // for each files/directories of this node session
-        nodeDirContent.forEach(function (val) {
-            //console.log('>' + val + '<');
-            //console.log(key);
-            var regKey = new RegExp('^' + key + '_hex_[0-9]{1,}$')
-            if (val.match(regKey)) workDir = nodeDir;
+        catch (err) {
+            if (err.code != 'ENOTDIR') throw err;
+            else return; // if nodeDir is a file
+        }
+
+        // for each namespace directories of this node session
+        nodeDirContent.forEach(function (namespaceUuid) {
+            //console.log('>' + namespaceUuid + '<');
+            //console.log(myNamespace);
+            if (namespaceUuid.match(regKey)) nsDir = nodeDir + '/' + myNamespace;
         });
     });
-    return workDir;
+    return nsDir;
 }
 
 
-
 /*
-* On a key request
+* On a key request :
+* (1) find the path to the namespace directory nsDir (thanks to @key = "namespace")
+* (2) make a squeue request to know what are the jobs still running / pending
+* (3) for each element of the nsDir, check its status
+* (4) find the .out file in case the job is completed
+* (5) 
 */
 var keyRequest = function (key) {
     if (! key) throw 'No key specified';
 
-    var emitter = new events.EventEmitter();
-    var jobStatus = { 'completed' : [], 'running' : [], 'pending' : [] };
-    var regPDBfile = /^ardockTask_[-0-9a-zA-Z]{1,}.pdb$/; // for the PDB file
-    var inputName = false; // to know if we found the PDB file
-    var workDir = findPath(key);
+    let emitter = new events.EventEmitter();
+    let jobStatus = { 'completed' : [], 'running' : [], 'pending' : [] };
+    let outFiles = []; // to know if we found the .out file
+    let inputFile = false; // to know if we found the PDB file
+    let nsDir = findPath(key); // (1)
 
-    // squeue command before anyting else
-    squeue().on('end', function (squeueRes) {
-
-        // next line only for tests
-        //sq.results += ' ardockTask_8b29c2ef-d467-40d5-afff-cd42638b96d2_hex_1 2045 F\n';
-
-        if (! workDir) {
+    squeue().on('end', function (squeueRes) { // (2)
+        if (! nsDir) {
             emitter.emit('errKey');
             return;
         }
-        // lists all the files and directories in the workDir directory
-        try { var workDirContent = fs.readdirSync(workDir); }
-        catch (err) { throw 'Error during the reading of the workDir content :\n' + err; }
-        workDirContent.forEach(function (content) {
-            if (content.match(key)) {
-                jobStatus = statusJob_ardock(jobStatus, workDir, content); // update the job status
-                if (content.match(regPDBfile) !== null) inputName = content; // if we find the PDB file
+        
+        // console.log("squeueRes")
+        // console.log(squeueRes)
+        // console.log("nsDir")
+        // console.log(nsDir)
+
+        // lists all the files and directories in the nsDir
+        try { var nsDirContent = fs.readdirSync(nsDir); }
+        catch (err) { throw 'Error during the reading of the nsDir content :\n' + err; }
+
+        // console.log("nsDirContent")
+        // console.log(nsDirContent)
+
+        for (let content of nsDirContent) { // (3)
+            console.log("toto")
+            console.log(content)
+            console.log(jobStatus)
+            content_status = statusJob(nsDir, content); // find the status of @content
+            if (content_status !== null) {
+                jobStatus[content_status].push(content); // add @content to its status into jobStatus
+                if (content_status ==  "completed") { // if the status is completed (4)
+                    outFiles.push(nsDir + '/' + content + '/' + content + '.out');
+                    if (! inputFile) inputFile = nsDir + '/' + content + '/input/targetPdbFile.inp'; // we need only one
+                }
             }
-        });
+            console.log(jobStatus)
+        }
 
         // next 2 lines only for tests
         //jobStatus.running = jobStatus.completed;
@@ -629,10 +322,10 @@ var keyRequest = function (key) {
 
         // if jobs are all completed
         if (jobStatus.running.length === 0 && jobStatus.pending.length === 0) {
-            var dict = collectOutFiles(workDir, jobStatus.completed); // all results in a unique dictionnary
-            if (! inputName) throw 'No PDB file in the working directory'; // check the existence of a PDB file
-            console.log(workDir + '/' + inputName);
-            pdbLib.parse({file : workDir + '/' + inputName}).on('end', function(pdb) { // parse the PDB file
+            var dict = collectResults(outFiles); // all results in a unique dictionnary
+            if (! inputFile) throw 'No input PDB file fount at all'; // check the existence of at least one PDB file
+            console.log(nsDir + '/' + inputFile);
+            pdbLib.parse({file : inputFile}).on('end', function(pdb) { // parse the PDB file
                 bFactorUpdate(pdb, dict);
                 emitter.emit('completed', pdb, jobStatus.completed.length);
             });
@@ -651,13 +344,10 @@ var keyRequest = function (key) {
 
 
 module.exports = {
-    arDock : arDock,
-    arDock_gpu : arDock_gpu,
-    process_naccess : process_naccess,
     pdbLoad : pdbLoad,
     pdbWrite : pdbWrite,
     keyRequest : keyRequest,
     bFactorUpdate : bFactorUpdate,
-    configure : function(data){ probeMax = data.probeMax; bean = data.bean;}
+    configure : function(data){ probeMax = data.probeMax; bean = data.bean }
 };
 
