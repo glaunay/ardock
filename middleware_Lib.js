@@ -3,32 +3,7 @@ var fs = require('fs');
 var jsonfile = require('jsonfile');
 var events = require('events');
 var bean;
-<<<<<<< HEAD
-var uuid = require('node-uuid');
 
-
-var writeResults = function(pdbObj, jobManager, currPdbFile) {
-    var emitter = new events.EventEmitter();
-
-    var resDir = jobManager.cacheDir() + '/ardockResults';
-    console.log("Attempting to create results directory for process at " + resDir);
-    try {
-        fs.mkdirSync(resDir);
-    } catch(e) {
-        if ( e.code != 'EEXIST' ) throw e;
-        //console.log("Cache found already found at " + cacheDir);
-    }
-    var resultFileName = resDir + '/' + currPdbFile.split(/[\\/]/).pop();
-    console.log("writing to " + resultFileName);
-    console.log(pdbObj.model(1).dump());
-    console.log("####\n");
-    pdbLib.fWrite(pdbObj, resultFileName).on('saved', function(){ emitter.emit('pdbWrote');});
-
-    return emitter;
-}
-
-=======
->>>>>>> front-end
 
 var pdbLoad = function(bTest, opt) {
     var emitter = new events.EventEmitter();
@@ -86,148 +61,6 @@ var pdbLoad = function(bTest, opt) {
     return emitter;
 }
 
-<<<<<<< HEAD
-
-
-/*
-* Configure the dictionary to pass to the push function,
-* according to "mode", make a configuration or another
-* "mode" must be "cpu" or "gpu"
-*/
-var configJob = function (mode) {
-    jobOpt = {
-        'tWall' : '0-00:15'/*,
-        'gid' : null, //ws_users on arwen-dev
-        'uid' : null // ws_ardock*/
-    };
-    if ('uid' in bean.managerSettings) jobOpt['uid'] = bean.managerSettings.uid;
-    if ('gid' in bean.managerSettings) jobOpt['gid'] = bean.managerSettings.gid;
-    if (mode === "gpu") {
-        jobOpt['partition'] = 'gpu_dp',
-        jobOpt['qos'] = 'gpu';
-        jobOpt['nCores'] = 1;
-        jobOpt['modules'] = ['hex_gpu', 'naccess', 'cuda/5.0'];
-        jobOpt['hexFlags'] = "";
-        jobOpt['gres'] = "gpu:1";
-    } else if (mode === "cpu") {
-        if ('partition' in bean.managerSettings) jobOpt['partition'] = bean.managerSettings.partition;
-        else jobOpt['partition'] = 'ws-dev';
-        if ('qos' in bean.managerSettings) jobOpt['qos'] = bean.managerSettings.qos;
-        else jobOpt['qos'] = 'ws-dev';
-        jobOpt['nCores'] = 16;
-        jobOpt['modules'] = ['hex', 'naccess'];
-        jobOpt['hexFlags'] = "\" -nocuda -ncpu " + jobOpt.nCores + " \"";
-        // no gres option on CPU
-    } else {
-        console.log("ERROR in configJob : mode not recognized. It must be \"cpu\" or \"gpu\" !");
-    }
-    return jobOpt;
-}
-
-
-/*
-* config and run ardock on CPU
-*/
-var arDock = function (jobManager, opt) {
-    var emitter = new events.EventEmitter();
-    var taskId = 'ardockTask_' + uuid.v4();
-    //console.dir(jobManager);
-    var pdbFilePath = jobManager.cacheDir() + '/' + taskId + '.pdb';
-
-    var pdbObj = opt.pdbObj; // implement iosocket interface
-
-    pdbLib.fWrite(pdbObj, pdbFilePath)
-    .on("saved", function(){
-        emitter.emit('go', taskId, probeMax);
-        var probeLeft = probeMax;
-        // run a "paquet"
-        bean.scriptVariables.probeList.forEach(function(probe, i, array) {
-            if (i >= probeMax) return;
-
-            var probePdbFile = bean.scriptVariables.DATA_DIR + '/' + probe + '.pdb';
-            var jName = taskId + '_hex_' + (i + 1);
-            var scriptFile = bean.scriptVariables.BIN_DIR + '/run_ar_dock_WEB.sh';
-
-            // dictionary for the push function
-            jobOpt = configJob("cpu");
-            jobOpt['id'] = jName;
-            jobOpt['script'] = scriptFile;
-
-            // List of variables which will be exported in the sbatch
-            var exportVar = {
-                    probePdbFile : probePdbFile,
-                    targetPdbFile : pdbFilePath,
-                    hexFlags : jobOpt.hexFlags, // defined in the jconfigJob() function
-		    hexScript : bean.scriptVariables.HEX_CPU
-            };
-            jobOpt['exportVar'] = exportVar; // add in jobOpt
-            delete jobOpt['hexFlags']; // and then remove because it's already defined in exportVar
-
-            if(jobManager.isEmulated()) {
-                jName = taskId + '_emul_' + (i + 1);
-                exportVars = { 'residueHitsDir' : bean.scriptVariables.TEST_DIR + '/residue_hits' };
-                scriptFile = bean.scriptVariables.BIN_DIR + '/run_ar_dock_EMUL.sh';
-            }
-            //console.log(jobOpt);
-
-            var j = jobManager.push(jobOpt); // creation of a job and setUp (creation of its sbatch file & submition)
-            j.on('completed', function(stdout, stderr, jobObject){
-                if(stderr) {
-                    stderr.on('data', function(buf){
-                        console.log("stderr content:");
-                        console.log(buf.toString());
-                    });
-                }
-                var results = '';
-                stdout.on('data', function(buf){
-                    results += buf.toString();
-                });
-                stdout.on('end', function (){
-                    probeLeft--;
-                    var jsonRes = JSON.parse(results);
-                    emitter.emit('jobCompletion', jsonRes, jobObject, probeLeft);
-                });
-            //jobManager.jobsView();
-            })
-            .on('error',function(e, j){
-                console.log("job " + j.id + " : " + e);
-            });
-        });
-    });
-    return emitter;
-}
-
-
-/*
-* config and run a naccess job
-* can be used in any context
-*/
-var naccess = function (jobManager, opt) {
-    var emitter = new events.EventEmitter();
-    var taskId = 'naccessTask_' + uuid.v4();
-    var pdbFilePath = jobManager.cacheDir() + '/' + taskId + '.pdb';
-    var pdbObj = opt.pdbObj;
-    pdbLib.fWrite(pdbObj, pdbFilePath)
-    .on("saved", function(){
-        var jName = taskId + '_nac';
-        var scriptFile = bean.scriptVariables.BIN_DIR + '/run_naccess_CPU.sh';
-        var jobOpt = configJob("cpu"); // on CPU
-
-        var exportVar = {
-            targetPdbFile : pdbFilePath,
-        };
-        // add to dictionary
-        jobOpt['id'] = jName;
-        jobOpt['script'] = scriptFile;
-        jobOpt['exportVar'] = exportVar;
-        jobOpt['nCores'] = 1; // GL add
-        var nac = jobManager.push(jobOpt);
-        nac.on('completed', function (stdout, stderr, jobObject) {
-            if(stderr) {
-                stderr.on('data', function(buf){
-                    console.log("stderr content:");
-                    console.log(buf.toString());
-=======
 var pdbWrite = function (key, pdbStream) {
     var emitter = new events.EventEmitter();
     console.log("attempting to stash pdb content w/ key " + key);
@@ -248,85 +81,12 @@ var pdbWrite = function (key, pdbStream) {
                         }
                         emitter.emit('pdbWrote', basePath, fname);
                     });
->>>>>>> front-end
                 });
 
     return emitter;
 }
 
 
-<<<<<<< HEAD
-/*
-* config and run ardock on GPU (GPU_dp or GPU_sp)
-*/
-var arDock_gpu = function (jobManager, opt) {
-    var emitter = new events.EventEmitter();
-    var taskId = 'ardockTask_' + uuid.v4(); // unique ID
-    //console.dir(jobManager);
-    var pdbFilePath = jobManager.cacheDir() + '/' + taskId + '.pdb';
-
-    var pdbObj = opt.pdbObj; // implement iosocket interface
-
-    pdbLib.fWrite(pdbObj, pdbFilePath) // save the pdb file in the cache directory
-    .on("saved", function(){
-        emitter.emit('go', taskId, probeMax);
-
-        // run only once the coreScript containing the nProbes computations
-        var jName = taskId + '_hex';
-        var probeDir = bean.scriptVariables.DATA_DIR;
-        var scriptFile = bean.scriptVariables.BIN_DIR + '/run_ar_dock_GPU_sp_dp.sh';
-
-        // dictionary for the push function
-        var jobOpt = configJob("gpu"); // on GPU
-        // list of variables which will be exported in the sbatch
-        var exportVar = {
-            targetPdbFile : pdbFilePath,
-            probeDir : probeDir,
-            nProbe : probeMax, // the coreScript need the number of probes
-            hexFlags : jobOpt.hexFlags, // defined in the jconfigJob() function
-	    hexScript : bean.scriptVariables.HEX_GPU
-        };
-
-        // to simulate computations
-        if(jobManager.isEmulated()) {
-            jName = taskId + '_emul';
-            exportVars = { 'residueHitsDir' : bean.scriptVariables.TEST_DIR + '/residue_hits' };
-            scriptFile = bean.scriptVariables.BIN_DIR + '/run_ar_dock_EMUL.sh';
-        }
-
-        // add to dictionary
-        jobOpt['id'] = jName;
-        jobOpt['script'] = scriptFile;
-        jobOpt['exportVar'] = exportVar;
-        delete jobOpt['hexFlags']; // and then remove because it's already defined in exportVar
-
-        var j = jobManager.push(jobOpt); // creation of a job and setUp (creation of its sbatch file & submition)
-        j.on('completed', function(stdout, stderr, jobObject){ // event in nslurm._pull()
-            if(stderr) {
-                stderr.on('data', function(buf){
-                    console.log("stderr content:");
-                    console.log(buf.toString());
-                });
-            }
-            var results = '';
-            stdout.on('data', function(buf){
-                results += buf.toString();
-            })
-            .on('end', function (){
-                var jsonRes = JSON.parse(results);
-                emitter.emit('jobCompletion', jsonRes, jobObject, 0);// emitter.emit('jobCompletion', jsonRes, jobObject, probeLeft);
-                //if(cnt === 0) emitter.emit('allComplete');
-            });
-        })
-        .on('error', function (e,j) {
-            console.log("job " + j.id + " : " + e);
-        });
-    });
-    return emitter;
-}
-
-=======
->>>>>>> front-end
 
 // emiting pdb structure update, return emitter
 var bFactorUpdate = function(pdbObj, dataObj) {
@@ -383,14 +143,6 @@ var statusJob = function (nsDir, content) {
             jobStatus.pending = jobStatus.pending.concat(content);
             return jobStatus;
         } else console.log('' + err); // other errors
-<<<<<<< HEAD
-    }
-    // check the size of the .out file
-    if (stat.size === 0) {
-        // .out file is empty > running status
-        jobStatus.running = jobStatus.running.concat(content);
-        return jobStatus;
-=======
 
     }*/
 
@@ -399,7 +151,6 @@ var statusJob = function (nsDir, content) {
         var d = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
         console.log("[" + d + "] ardockJobStatus:empty File : " + outFile);
         return 'running'; // .out file is empty -> running status
->>>>>>> front-end
     }
     
     try { // check the good format of the .out file (5)
@@ -598,11 +349,7 @@ module.exports = {
     pdbWrite : pdbWrite,
     keyRequest : keyRequest,
     bFactorUpdate : bFactorUpdate,
-<<<<<<< HEAD
     writeResults : writeResults,
     configure : function(data){ probeMax = data.probeMax; bean = data.bean;}
-=======
-    configure : function(data){ probeMax = data.probeMax; bean = data.bean }
->>>>>>> front-end
 };
 
