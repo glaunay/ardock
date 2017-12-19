@@ -1,6 +1,6 @@
 
-var hexT = require("hexTask");
-var nacT = require("naccessTask");
+var hexT = require("hextask");
+var nacT = require("naccesstask");
 
 var events = require('events');
 var fs = require('fs');
