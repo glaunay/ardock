@@ -349,7 +349,6 @@ module.exports = {
     pdbWrite : pdbWrite,
     keyRequest : keyRequest,
     bFactorUpdate : bFactorUpdate,
-    writeResults : writeResults,
     configure : function(data){ probeMax = data.probeMax; bean = data.bean;}
 };
 

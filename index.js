@@ -262,6 +262,7 @@ process.argv.forEach(function (val, index, array){
     }
 });
 
+/*
 // Parsing command-line pdb files
 if (fPdbList && fPdb) {
     throw 'Specify a single pdb file locations or a file-listed pdb file locations'
@@ -272,7 +273,7 @@ if (fPdbList)
 else if (fPdb)
     pdbFileList.push(fPdb);
 //////
-
+*/
 if (!bean) {
     throw 'No config file detected\n';
 }
