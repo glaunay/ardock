@@ -12,6 +12,9 @@
 export HEX_FIRST_GPU=${CUDA_VISIBLE_DEVICES}
 #ldd /software/mobi/hex/8.0.0//exe/hex8.0.0-cuda.x64
 
+#hexScript="/data/software/mobi/hex/8.0.0/exe/hex8.0.0.x64"
+#hexScript="/data/software/mobi/hex/8.1.1-cuda-8.0/exe/hex8.1.1-cuda.x64"
+hexScript=/data/software/mobi/hex/8.1.1-cuda-8.0/exe/hex8.1.1.x64
 SOURCEDIR=`pwd`
 cd $WORKDIR/
 
@@ -67,6 +70,8 @@ save_range 1 10 ./  pose_ pdb
 exit" > input.mac
 
 #run docking
+echo "Using $probePdbFile ..." > $SOURCEDIR/process.log
+echo "$hexScript $hexFlags -noexec < input.mac > hex.log"  >> $SOURCEDIR/process.log
 
 #echo "/data/software/mobi/hex/8.0.0/exe/hex8.0.0.x64 $hexFlags -noexec < input.mac > hex.log" > $SOURCEDIR/titi.log
 #echo 'titi' > $SOURCEDIR/titi.log
@@ -78,6 +83,7 @@ ls *.pdb > /dev/null
 if test $? -ne 0
     then
     echo '{}' # Empty results
+
 else
   # detect interface residues, based on accessibility
     # size of the target accessibility file
@@ -97,15 +103,22 @@ else
     #extract interface: residues with accessiblity change, i.e., differences in the accessibility file
         diff temp.rsa $rsaFree | grep "> RES"  | cut -c 11-16  >> $WORKDIR/interface_index.temp
     done
-    cp *.pdb $SOURCEDIR
-    cp *.asa $SOURCEDIR
-    cp *.rsa $SOURCEDIR
+    #cp *.pdb $SOURCEDIR
+    #cp *.asa $SOURCEDIR
+    #cp *.rsa $SOURCEDIR
+    tar -cjf $SOURCEDIR/pdb.tar.bz *.pdb
+    tar -cjf $SOURCEDIR/asa.tar.bz *.asa
+    tar --remove-files -cjf  $SOURCEDIR/rsa.tar.bz $SOURCEDIR/*.rsa 2> /dev/null
+
+
     cp interface_index.temp $SOURCEDIR
 # count residues
     #cat $WORKDIR/interface_index.temp | sort | uniq -c | awk '{print substr($0,9,6)","substr($0,0,7)}' > $SOURCEDIR/nb_hits.data
 
-
-
 ## inliner perl to produce json file out of raw count
     cat $SOURCEDIR/interface_index.temp | perl -ne 'BEGIN {print "{ \"rawCounts\":[\n"; $all =[] } @tmp = $_ =~ /^(.)(.{4})(.)$/g;$tmp[2] = $tmp[2] eq " " ? "null" : "\"$tmp[2]\"";  push @{$all}, "{\"chain\" : \"" . $tmp[0] . "\" , \"resSeq\" : \"" . $tmp[1] . "\" , \"AChar\" : " . $tmp[2] . "}"; END{ print join(",", @{$all}) . "\n]}\n"}'
+
+    gzip $SOURCEDIR/interface_index.temp
+
 fi
+

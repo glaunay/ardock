@@ -3,6 +3,7 @@ var fs = require('fs');
 var jsonfile = require('jsonfile');
 var events = require('events');
 var bean;
+<<<<<<< HEAD
 var uuid = require('node-uuid');
 
 
@@ -26,6 +27,8 @@ var writeResults = function(pdbObj, jobManager, currPdbFile) {
     return emitter;
 }
 
+=======
+>>>>>>> front-end
 
 var pdbLoad = function(bTest, opt) {
     var emitter = new events.EventEmitter();
@@ -68,7 +71,7 @@ var pdbLoad = function(bTest, opt) {
                         }
                     emitter.emit('pdbLoad', pdbObj);
                 });
-        } else if ('ioSocketStream') {
+        } else if ('ioSocketStream' in opt) {
             // If there are several chainIds we dont care client did all the pre process job
             pdbLib.parse({ 'rStream' : opt.ioSocketStream })
                 .on('end', function (pdbObjInp) {
@@ -83,6 +86,7 @@ var pdbLoad = function(bTest, opt) {
     return emitter;
 }
 
+<<<<<<< HEAD
 
 
 /*
@@ -223,52 +227,35 @@ var naccess = function (jobManager, opt) {
                 stderr.on('data', function(buf){
                     console.log("stderr content:");
                     console.log(buf.toString());
-                });
-            }
-            var results = '';
-            stdout.on('data', function(buf){
-                results += buf.toString();
-            })
-            .on('end', function (){
-                var jsonRes = JSON.parse(results);
-                emitter.emit('jobCompletion', jsonRes, jobObject);
-                //if(cnt === 0) emitter.emit('allComplete');
-            });
-
-
-        })
-        .on('error', function (e,j) {
-            console.log("job " + j.id + " : " + e);
-        });
-    });
-    return emitter;
-}
-
-
-/*
-* call naccess method & change the bFactors at -1 for accessibility 0
-*/
-var process_naccess = function (jobManager, opt) {
+=======
+var pdbWrite = function (key, pdbStream) {
     var emitter = new events.EventEmitter();
-    naccess(jobManager, opt).on('jobCompletion', function (jsonRes, jobObject) {
-        //console.log(opt.pdbObj.dump());
-        jsonRes.listRES.forEach(function (resiTab, i, array) {
-            var resi = resiTab[0]; // residue name
-            var chain = resiTab[1]; // chain
-            var num = resiTab[2]; // residue number
-            var access = resiTab[3]; // accessibility
-            //console.log(resi, chain, num, access);
-            if (access === 0) {
-                opt.pdbObj.chain(chain).resName(resi).resSeq(num).bFactor(-1);
-            }
-            opt.pdbObj.model(1); // reinitialize
-        });
-        emitter.emit('finished');
-    });
+    console.log("attempting to stash pdb content w/ key " + key);
+    /*console.log('pdbWrite input');
+    console.log(pdbStream);
+    */
+    var basePath = bean.httpVariables.espritDir;
+    var fname = key + '.pdb';
+    pdbLib.parse({ 'rStream' : pdbStream })
+                .on('end', function (pdbObjInp) {
+                    var pdbString = "DBREF  ardock_structure  \n"
+                                +   "REMARK    FREE_ESPRIPT MIN= 0 MAX= 9 LIM= 8\n";
+                    pdbString += pdbObjInp.model(1).dump();
+                    fs.writeFile(basePath + "/" + fname, pdbString, function(err) {
+                        if(err) {
+                            emitter.emit('pdbWriteError', pdbString, basePath, fname);
+                            return console.log(err);
+                        }
+                        emitter.emit('pdbWrote', basePath, fname);
+                    });
+>>>>>>> front-end
+                });
+
     return emitter;
 }
 
 
+<<<<<<< HEAD
 /*
 * config and run ardock on GPU (GPU_dp or GPU_sp)
 */
@@ -338,6 +325,8 @@ var arDock_gpu = function (jobManager, opt) {
     return emitter;
 }
 
+=======
+>>>>>>> front-end
 
 // emiting pdb structure update, return emitter
 var bFactorUpdate = function(pdbObj, dataObj) {
@@ -349,51 +338,83 @@ var bFactorUpdate = function(pdbObj, dataObj) {
 };
 
 
-
-
 /*
 * Check the status of an ardock job, by :
-*   - first, checking if content is a directory
-*   - then check if .out file exists in the directory
-*   - then check if .out file is empty or not
-*   - finally check the JSON format of the .out file
+*   (1) first, check if @content is a directory
+*   (2) check if the job is a hex task : looking the jobID.json file and its tagTask
+*   (3) then check if .out file exists in the directory
+*   (4) then check if .out file is empty or not
+*   (5) finally check the JSON format of the .out file
+* This function returns a string defining the status of the job
 */
-var statusJob_ardock = function (jobStatus, workDir, content) {
-    if (! jobStatus) throw 'No jobStatus specified';
-    if (! workDir) throw 'No workDir specified';
+var statusJob = function (nsDir, content) {
+    if (! nsDir) throw 'No nsDir specified';
     if (! content) throw 'No value specified';
 
-    // check if dir is not a directory
-    var dir = workDir + '/' + content;
-    if (!fs.statSync(dir).isDirectory()) return jobStatus;
+    let dir = nsDir + '/' + content;
+    if (! fs.statSync(dir).isDirectory()) return null; // check if dir is not a directory (1)
 
-    var regKey = /^ardockTask_[-0-9a-zA-Z]{1,}_hex_[0-9]{1,}$/;
-    var outFile = dir + '/' + content + '.out';
+    // (2)
+    let jobIDfile = dir + '/jobID.json';
+    try { var jif_content = jsonfile.readFileSync(jobIDfile); }
+    catch (err) {
+        var d = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+        console.log("[" + d + "] ardockJobStatus: jobIDfile error : " + jobIDfile + ' : ' + err);
+        // .out file is not a JSON format (writing not finished for example) -> running status
+        return null;
+    }
+    if (jif_content.tagTask !== 'hex') return null;
+
+    let outFile = dir + '/' + content + '.out'; // @content is a uuid used for .out, .err files
+    if (! fs.existsSync(outFile)) { // (3)
+        var d = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+        //console.log("[" + d + "] _ardockJobStatus:outputfile not found : " + outFile);
+        return 'pending';
+    }
+
     // check the existence of the .out file
+    /*
     try { var stat = fs.statSync(outFile); }
     catch (err) {
         if ((err + '').match('no such file or directory')) {
+            var d = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+            console.log("[" + d + "] ardockJobStatus:outputfile not found : " + outFile);
             // no .out file > pending status
             jobStatus.pending = jobStatus.pending.concat(content);
             return jobStatus;
         } else console.log('' + err); // other errors
+<<<<<<< HEAD
     }
     // check the size of the .out file
     if (stat.size === 0) {
         // .out file is empty > running status
         jobStatus.running = jobStatus.running.concat(content);
         return jobStatus;
+=======
+
+    }*/
+
+    var stat = fs.statSync(outFile);
+    if (stat.size === 0) { // check the size of the .out file (4)
+        var d = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+        console.log("[" + d + "] ardockJobStatus:empty File : " + outFile);
+        return 'running'; // .out file is empty -> running status
+>>>>>>> front-end
     }
-    // check the good format of the .out file
-    try { var dict = jsonfile.readFileSync(outFile); }
+    
+    try { // check the good format of the .out file (5)
+        console.log('Trying to sync read ' + outFile);
+        var dict = jsonfile.readFileSync(outFile); }
     catch (e) {
-        // .out file is not a JSON format (writing not finished for ex.) > running status
-        jobStatus.running = jobStatus.running.concat(content);
-        return jobStatus;
+        var d = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+        console.log("[" + d + "] ardockJobStatus:wrong format : " + outFile);
+        // .out file is not a JSON format (writing not finished for example) -> running status
+        return 'running';
     }
-    // else > completed status
-    jobStatus.completed = jobStatus.completed.concat(content);
-    return jobStatus;
+
+    var d = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+    console.log("[" + d + "] ardockJobStatus:Complete at " + outFile);
+    return 'completed'; // else -> completed status
 }
 
 
@@ -403,7 +424,8 @@ var statusJob_ardock = function (jobStatus, workDir, content) {
 var squeue = function () {
     var emitter = new events.EventEmitter();
     var exec_cmd = require('child_process').exec;
-    var squeuePath = bean.managerSettings['slurmBinaries'] + '/squeue';
+    var squeuePath = bean.binaries.queueBin;
+    console.log("squeuePath : " + squeuePath)
 
     exec_cmd(squeuePath + ' -o \"\%j \%t\"', function (err, stdout, stderr) {
         if (err) {
@@ -429,7 +451,7 @@ var checkQueue = function (jobList, squeueRes) {
 
     // for running jobs
     jobList.forEach(function (job) {
-        console.log(job)
+        //console.log(job)
         var reg = new RegExp(job + ' ([A-Z]{1,2})\n');
         if (! reg.test(squeueRes)) { // the job is not in the queue
             console.log('Error : the job ' + job + ' is not finished AND is not in the queue...');
@@ -448,15 +470,13 @@ var checkQueue = function (jobList, squeueRes) {
 /*
 * Collect the rawCounts data in all the .out files, in a unique variable
 */
-var collectOutFiles = function (workDir, jobsArray) {
-    if (! workDir) throw 'No workDir specified';
-    if (! jobsArray) throw 'No jobsArray specified';
+var collectResults = function (outFiles) {
+    if (! outFiles) throw 'No outFiles specified';
 
     var allProbes = { 'rawCounts' : [] };
-    jobsArray.forEach(function (job) {
-        var outFile = workDir + '/' + job + '/' + job + '.out';
-        var oneProbe = jsonfile.readFileSync(outFile);
-        if (! oneProbe.rawCounts) throw 'No rawCounts key in the file ' + outFile;
+    outFiles.forEach(function (outF) {
+        var oneProbe = jsonfile.readFileSync(outF);
+        if (! oneProbe.rawCounts) throw 'No rawCounts key in the file ' + outF;
         allProbes.rawCounts = allProbes.rawCounts.concat(oneProbe.rawCounts);
     });
     return allProbes;
@@ -465,63 +485,86 @@ var collectOutFiles = function (workDir, jobsArray) {
 
 
 /*
-* Find the node session path of the work associed to key
+* Find the node session path of the work associed to myNamespace
 */
-var findPath = function (key) {
-    if (! key) throw 'No key specified';
-    var workDir;
-    var tmpDir = bean.managerSettings.cacheDir;
-    try { var tmpContent = fs.readdirSync(tmpDir); }
-    catch (err) { throw 'Error during the reading of the tmpDir content :\n' + err; }
+var findPath = function (myNamespace) {
+    if (! myNamespace) throw 'No namespace specified';
+    let nsDir; // namespace directory
+    let cacheDir = bean.cacheDir;
+    let regKey = new RegExp('^' + myNamespace + '$');
+
+    try { var cacheDirContent = fs.readdirSync(cacheDir); }
+    catch (err) { throw 'Error during the reading of the cacheDir content :\n' + err; }
 
     // for each session of node
-    tmpContent.forEach(function (nodeKey) {
-        var nodeDir = tmpDir + '/' + nodeKey;
+    cacheDirContent.forEach(function (nodeUuid) {
+        let nodeDir = cacheDir + '/' + nodeUuid;
         try { var nodeDirContent = fs.readdirSync(nodeDir); }
-        catch (err) { throw 'Error during the reading of the nodeDir content :\n' + err; }
-        // for each files/directories of this node session
-        nodeDirContent.forEach(function (val) {
-            //console.log('>' + val + '<');
-            console.log(key);
-            var regKey = new RegExp('^' + key + '_hex_[0-9]{1,}$')
-            if (val.match(regKey)) workDir = nodeDir;
+        catch (err) {
+            if (err.code != 'ENOTDIR') throw err;
+            else return; // if nodeDir is a file
+        }
+
+        // for each namespace directories of this node session
+        nodeDirContent.forEach(function (namespaceUuid) {
+            //console.log('>' + namespaceUuid + '<');
+            //console.log(myNamespace);
+            if (namespaceUuid.match(regKey)) nsDir = nodeDir + '/' + myNamespace;
         });
     });
-    return workDir;
+    return nsDir;
 }
 
 
-
 /*
-* On a key request
+* On a key request :
+* (1) find the path to the namespace directory nsDir (thanks to @key = "namespace")
+* (2) make a squeue request to know what are the jobs still running / pending
+* (3) for each element of the nsDir, check its status
+* (4) find the .out file in case the job is completed
+* (5) 
 */
 var keyRequest = function (key) {
     if (! key) throw 'No key specified';
 
-    var emitter = new events.EventEmitter();
-    var jobStatus = { 'completed' : [], 'running' : [], 'pending' : [] };
-    var regPDBfile = /^ardockTask_[-0-9a-zA-Z]{1,}.pdb$/; // for the PDB file
-    var inputName = false; // to know if we found the PDB file
-    var workDir = findPath(key);
+    let emitter = new events.EventEmitter();
+    let jobStatus = { 'completed' : [], 'running' : [], 'pending' : [] };
+    let outFiles = []; // to know if we found the .out file
+    let inputFile = false; // to know if we found the PDB file
+    let nsDir = findPath(key); // (1)
 
-    // squeue command before anyting else
-    squeue().on('end', function (squeueRes) {
-        // next line only for tests
-        //sq.results += ' ardockTask_8b29c2ef-d467-40d5-afff-cd42638b96d2_hex_1 2045 F\n';
-
-        if (! workDir) {
+    squeue().on('end', function (squeueRes) { // (2)
+        if (! nsDir) {
             emitter.emit('errKey');
             return;
         }
-        // lists all the files and directories in the workDir directory
-        try { var workDirContent = fs.readdirSync(workDir); }
-        catch (err) { throw 'Error during the reading of the workDir content :\n' + err; }
-        workDirContent.forEach(function (content) {
-            if (content.match(key)) {
-                jobStatus = statusJob_ardock(jobStatus, workDir, content); // update the job status
-                if (content.match(regPDBfile) !== null) inputName = content; // if we find the PDB file
+        
+        // console.log("squeueRes")
+        // console.log(squeueRes)
+        // console.log("nsDir")
+        // console.log(nsDir)
+
+        // lists all the files and directories in the nsDir
+        try { var nsDirContent = fs.readdirSync(nsDir); }
+        catch (err) { throw 'Error during the reading of the nsDir content :\n' + err; }
+
+        // console.log("nsDirContent")
+        // console.log(nsDirContent)
+
+        for (let content of nsDirContent) { // (3)
+            console.log("toto")
+            console.log(content)
+            console.log(jobStatus)
+            content_status = statusJob(nsDir, content); // find the status of @content
+            if (content_status !== null) {
+                jobStatus[content_status].push(content); // add @content to its status into jobStatus
+                if (content_status ==  "completed") { // if the status is completed (4)
+                    outFiles.push(nsDir + '/' + content + '/' + content + '.out');
+                    if (! inputFile) inputFile = nsDir + '/' + content + '/input/targetPdbFile.inp'; // we need only one
+                }
             }
-        });
+            console.log(jobStatus)
+        }
 
         // next 2 lines only for tests
         //jobStatus.running = jobStatus.completed;
@@ -529,10 +572,10 @@ var keyRequest = function (key) {
 
         // if jobs are all completed
         if (jobStatus.running.length === 0 && jobStatus.pending.length === 0) {
-            var dict = collectOutFiles(workDir, jobStatus.completed); // all results in a unique dictionnary
-            if (! inputName) throw 'No PDB file in the working directory'; // check the existence of a PDB file
-            console.log(workDir + '/' + inputName);
-            pdbLib.parse({file : workDir + '/' + inputName}).on('end', function(pdb) { // parse the PDB file
+            var dict = collectResults(outFiles); // all results in a unique dictionnary
+            if (! inputFile) throw 'No input PDB file fount at all'; // check the existence of at least one PDB file
+            console.log(nsDir + '/' + inputFile);
+            pdbLib.parse({file : inputFile}).on('end', function(pdb) { // parse the PDB file
                 bFactorUpdate(pdb, dict);
                 emitter.emit('completed', pdb, jobStatus.completed.length);
             });
@@ -551,13 +594,15 @@ var keyRequest = function (key) {
 
 
 module.exports = {
-    arDock : arDock,
-    arDock_gpu : arDock_gpu,
-    process_naccess : process_naccess,
     pdbLoad : pdbLoad,
+    pdbWrite : pdbWrite,
     keyRequest : keyRequest,
     bFactorUpdate : bFactorUpdate,
+<<<<<<< HEAD
     writeResults : writeResults,
     configure : function(data){ probeMax = data.probeMax; bean = data.bean;}
+=======
+    configure : function(data){ probeMax = data.probeMax; bean = data.bean }
+>>>>>>> front-end
 };
 

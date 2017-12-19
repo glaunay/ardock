@@ -13,6 +13,8 @@
 export HEX_GPUS=1
 export HEX_FIRST_GPU=${CUDA_VISIBLE_DEVICES}
 
+hexScript="/data/software/mobi/hex/8.0.0/exe/hex8.0.0-cuda.x64"
+
 SOURCEDIR=`pwd`
 cd $WORKDIR/
 mkdir results logs inputs

@@ -6,6 +6,7 @@ app.use(favicon(__dirname + '/favicon.ico'));
 
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var port = 3000;
 
 //var socket = require('socket.io-client')('http://localhost');
 
@@ -19,7 +20,7 @@ var wget = require('wget-improved');
 var stream = require('stream');
 var timeout = require('connect-timeout');
 
-
+var publicESPriptDir = null;
 
 // Default rest callback, receives as arguments the http ans object (expresso : "res") and the data to process
 var restCallBack = function (ans, data){
@@ -35,7 +36,7 @@ var restCallBack = function (ans, data){
     //console.log(data);
 };
 
-var ioPdbSubmissionRoute = function (data, socket) {
+var ioPdbSubmissionRoute = function (data, uuid, socket) {
     console.log('Test ioPdbSubmissionRoute');
     return;
     var str = '';
@@ -53,24 +54,34 @@ var ioKeySubmissionRoute = function (key, socket) {
     console.log('test ioKeySubmissionRoute ' + key);
 }
 
+var ioESPriptRoute = function (key, pdbStream, socket) {
+    console.log('test ioESPriptRoute ' + key);
+}
 
-
-var httpStart = function(bean, bIo, bTest, bRest) {
+var httpStart = function(ardockSett, bIo, bTest, bRest) {
 
     var emitter = new events.EventEmitter();
     if (bIo) ioActivate();
-    var staticPath = bean.httpVariables.rootDir;
+    var staticPath = ardockSett.httpVar.rootDir;
     console.log("Configuring route end points");
     console.log("Serving at " + staticPath);
 
     app.use(timeout('120s'));
     app.use(haltOnTimedout);
 
-
-
-
-
     app.use(express.static(staticPath));
+
+
+    // ESPRIPT CACHE SERVING
+    publicESPriptDir = ardockSett.httpVar.domain + "/ESPript";
+    staticPath = ardockSett.httpVar.espritDir;
+    console.log("Serving ENDscript cache at " + staticPath);
+    app.use("/ESPript", express.static(staticPath));
+    app.get('/tutorial', function(req, res) {
+             res.sendFile(__dirname + '/assets/tutorial.html');
+    });
+
+
     if (bTest) {
         app.get('/test', function(req, res){
             var html = testTemplateGenerate();
@@ -80,6 +91,10 @@ var httpStart = function(bean, bIo, bTest, bRest) {
     } else {
         if (bIo) {
             app.get('/io', function(req, res){
+                var html = baseTemplateGenerate();
+                res.send(html);
+            });
+            app.get('/', function(req, res){
                 var html = baseTemplateGenerate();
                 res.send(html);
             });
@@ -99,13 +114,12 @@ var httpStart = function(bean, bIo, bTest, bRest) {
     function haltOnTimedout(req, res, next){
         if (!req.timedout) next();
     }
-    http.listen(3000, function(){
+    http.listen(port, function(){
         emitter.emit('listening');
         console.log('HTTP Server listening on *:3000');
     });
     return emitter;
 };
-
 
 var testTemplateGenerate = function () {
     var header = '<!DOCTYPE html><html class="ocks-org do-not-copy"><meta charset="utf-8">';
@@ -116,7 +130,22 @@ var testTemplateGenerate = function () {
 }
 
 var baseTemplateGenerate = function () {
-    var header = '<!DOCTYPE html><html class="ocks-org do-not-copy"><meta charset="utf-8">';
+    var header = '<!DOCTYPE html><html class="ocks-org do-not-copy"><meta charset="utf-8">'
+                    + '<head>'
+                    + '<title>Arbitrary Docking Server</title>'
+                    + '<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">'
+                    + '<link rel="icon" type="image/png" href="assets/favicon-32x32.png" sizes="32x32">'
+                    + '<link rel="icon" type="image/png" href="assets/favicon-16x16.png" sizes="16x16">'
+                    + '<link rel="manifest" href="assets/manifest.json">'
+                    + '<link rel="mask-icon" href="assets/safari-pinned-tab.svg" color="#5bbad5">'
+                    + '<link rel="shortcut icon" href="assets/favicon.ico">'
+                    + '<meta name="msapplication-config" content="assets/browserconfig.xml">'
+                    + '<meta name="theme-color" content="#ffffff">'
+                    + '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">'
+                    + '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/TweenLite.min.js"></script>'
+                    + '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/utils/Draggable.min.js"></script>'
+                    + '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/plugins/CSSPlugin.min.js"></script>'
+                    + '</head>';
     var body = '<body>'
         + '<script src="js/bundleTest.js"></script>\n'
     var trailer = '</body></html>';
@@ -152,11 +181,21 @@ var ioActivate = function (fn1) {
             var s = stream.Readable();
             s.push(data, 'utf-8');
             s.push(null);
-            ioPdbSubmissionRoute(s, socket);
+            ioPdbSubmissionRoute(s, uuid, socket);
         });
         socket.on('keySubmission', function (key) {
             ioKeySubmissionRoute(key, socket);
         });
+        socket.on('pdbStashESP', function (packet) {
+            var uuid = packet.uuid;
+            var data = packet.data;
+            console.log('received pdbStashESP event');
+            var s = stream.Readable();
+            s.push(data, 'utf-8');
+            s.push(null);
+            ioESPriptRoute(uuid, s, socket);
+        })
+
     });
 }
 
@@ -228,13 +267,18 @@ var restRoute = function(req, res) {
 
 
 module.exports = {
-    setRestCallBack : function (fn) { restCallBack = fn;},
+    setRestCallBack : function (fn) {
+        console.log('WARNING : the functionnality of restCallBack is not implemented yet');
+        //restCallBack = fn;
+    },
     setIoPdbSubmissionCallback : function (fn_io) { ioPdbSubmissionRoute = fn_io;},
     setIoKeySubmissionCallback : function (fn_io) { ioKeySubmissionRoute = fn_io;},
+    setIoESPriptSubmissionCallback : function (fn_io) { ioESPriptRoute = fn_io;},
     //restRoute : restRoute,
     ioActivate : ioActivate,
     baseTemplateGenerate : baseTemplateGenerate,
     httpStart : httpStart,
+    ESPriptDirEndPoint : function(){return publicESPriptDir;}
     /*restCallBack : function(fn) {
         restCallBack = fn;
     },

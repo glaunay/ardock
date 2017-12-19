@@ -4,11 +4,6 @@ var Random = require("random-js")
 var bean, probeMax;
 
 
-
-
-
-
-
 var slurmTest = function () {
     var emitter = new events.EventEmitter();
     var r = new Random(Random.engines.mt19937().seedWithArray([0x12345678, 0x90abcdef]));
@@ -59,13 +54,10 @@ var slurmStop = function() {
     .on('cleanExit', function (){
         emitter.emit('cleanExit');
     })
-    .on('exit', function (){
-        emitter.emit('exit');
-    })
-    .on('errScancel', function () {
+    .on('cancelError', function () {
         emitter.emit('errScancel');
     })
-    .on('errSqueue', function () {
+    .on('listError', function () {
         emitter.emit('errSqueue');
     });
 
@@ -78,11 +70,23 @@ var slurmStart = function(bLocal, forceCache) {
     var emitter = new events.EventEmitter();
     if (forceCache) {
         console.log ("You provided a predefined cache path for scheduler as " + forceCache);
-        bean.managerSettings["forceCache"] = forceCache;
+        bean.cacheDir = forceCache;
     }
-    jobManager.start(bean.managerSettings);
+
+    //jobManager.debugOn(); // for tests
+
+    jobManager.index(null); // no indexation (so no resurrection)
+    jobManager.configure({"engine" : bean.engineType, "binaries" : bean.binaries });
+
+    jobManager.start({
+        'cacheDir' : bean.cacheDir,
+        'tcp' : bean.tcp,
+        'port' : bean.port
+    });
+
     if(bLocal)
         jobManager.emulate();
+    
     jobManager.on('exhausted', function(){
         emitter.emit("done");
         console.log("All jobs processed");
@@ -93,11 +97,27 @@ var slurmStart = function(bLocal, forceCache) {
     return emitter;
 }
 
+var slurmGpuCpuRatio = function() {
+    var emitter = new events.EventEmitter();
+    jobManager.squeueReport()
+    .on('end', function(squeueInterface) {
+       // console.log(squeueInterface);
+        gpuCount = squeueInterface.matchPartition("gpu")['id'].length;
+        cpuCount = squeueInterface.matchPartition("ws-")['id'].length;
+        emitter.emit('data', cpuCount, gpuCount);
+    })
+    .on('errSqueue', function(){
+        emitter.emit('error');
+    });
+
+    return emitter;
+}
 
 module.exports = {
     slurmTest : slurmTest,
     slurmStart : slurmStart,
     slurmStop : slurmStop,
+    slurmGpuCpuRatio : slurmGpuCpuRatio,
     jobManager : function() {return jobManager;},
     configure : function (data) { probeMax = data.probeMax; bean = data.bean;}
 };

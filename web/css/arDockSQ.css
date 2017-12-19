@@ -1,0 +1,13 @@
+@import url("Alignment.css");
+div.arDockSQ {
+    position:absolute;
+    z-index : 7;
+}
+
+div.arDockSQ g.letter {
+    cursor : pointer;
+}
+
+div.arDockSQ {
+    opacity : 0;
+}

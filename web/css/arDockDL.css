@@ -1,0 +1,192 @@
+div.endscript {
+   /* background: url(assets/END_awesome.png);*/
+}
+
+div.ardockDLcontainer.pill {
+    border-radius: 0px 0px 6px 6px;
+    border-left: solid 3px grey;
+    border-right: solid 3px grey;
+    border-bottom: solid 3px grey;
+    padding: 0px 4px 4px 4px;
+
+    /*height : 50px;*/
+}
+
+div.ardockDLcontainer.topCenter {
+  position : absolute;
+  left     : 50%;
+  transform: translate(-50%, 0%);
+}
+div.ardockDLcontainer.pill div.ardockDLctrl {
+    width: auto;
+    background-color : transparent;
+    padding:0px;
+}
+
+div.ardockDLcontainer.pill div.ardockDLctrl .btn {
+    background-color:rgb(0,133,82);
+    border-color:rgb(0,133,82);
+}
+div.ardockDLcontainer.pill div.ardockDLcBut.btn {
+    background-color:#d6d3d3!important; /*175, 195,175*/
+    color:#555!important;
+    cursor : auto;
+}
+div.ardockDLcontainer.pill div.ardockDLctrl .btn.cuPdbDl{
+    padding : 8px 12px 7px 12px;
+    border-left: solid grey 1px;
+}
+div.ardockDLcontainer.pill div.ardockDLctrl .faBtnDL{
+    padding: 4px 15px 3px 15px;
+    border-radius: 0px 0px 4px 0px;
+    border-left: solid grey 1px;
+}
+div.ardockDLcontainer.pill .willSlide.content.ardockDLctrl {
+    padding-left: 0px;
+    padding-top: 0px;
+}
+div.ardockDLcontainer.pill div.ardockDLctrl .cuPEND{
+    border-radius: 0px;
+}
+div.ardockDLcontainer.pill div.btn.willSlide.ardockDLcBut {
+    height: auto;
+    border-radius: 0px 0px 0px 4px;
+    padding-bottom: 7px;
+    padding-top: 7px;
+}
+div.ardockDLcontainer.pill div.btn.willSlide.ardockDLcBut i {
+    font-size: 1.5em;
+}
+
+div.ardockDLcontainer.pill .container.keyContainer {
+    width: 284px;/*60%;*/
+    padding-top: 0px;
+}
+div.ardockDLcontainer.pill .keyPasteForm {
+    display: inline;
+    width: 195px;
+    font-size: 0.5em;
+    padding-top: 10px;
+    height:35px;
+}
+div.ardockDLcontainer.pill .ardockDLctrl span.invit{
+    background-color:#d6d3d3!important;
+}
+div.ardockDLcontainer.pill .ardockDLctrl span.close {
+    /*width : 2.5em;*/
+    opacity: 0.9;
+    border-radius: 0px 8px 8px 0px;
+    /*color:#555;*/
+    color:black;
+    font:normal normal normal 14px/1 FontAwesome;
+    padding-top : 9px;
+    padding-bottom : 11px;
+    background-color:rgb(0,133,82)!important;
+    border-color:rgb(0,133,82)!important;
+   /* background-color:#d6d3d3!important;*/
+    /*padding-left:5px;*/
+}
+
+div.ardockDLcontainer.pill .ardockDLctrl span.close:hover{
+    color:white;
+}
+
+div.ardockDLcontainer.pill div.ardockDLctrl div.keyComment {
+    color: white;
+    font-size: 0.7em;
+    /*padding-left: 10px;
+    padding-top: 0.5em;
+    padding-bottom: 0.85em;*/
+}
+
+/*Default bookmar styling */
+
+div:not(.pill) div.ardockDLctrl {
+    /*width : 300px;*/
+    background-color: whitesmoke;
+    padding-top:4px;
+    padding-bottom:4px;
+    padding-right:4px;
+    /*padding-left: 10px;*/
+}
+
+:not(.pill) div.ardockDLcBut {
+    padding-top: 5%;
+}
+
+:not(.pill) div.faBtnDL {
+    padding : 5px 25px 4px 25px;
+    color: black;
+}
+
+:not(.pill) div.ardockDLctrl div.btn-primary {
+    float :none;
+}
+
+div.ardockDLctrl .keyPaste input {
+    width: 291px;
+    height: 2.5em;
+}
+div.ardockDLctrl .keyPaste {
+    padding-top: 0.25em;
+    padding-left:5px;
+}
+div.ardockDLctrl span.invit {
+    border-radius: 8px 0px 0px 8px;
+}
+div.ardockDLctrl span.close {
+    width : 2.5em;
+    opacity: 0.9;
+    border-radius: 0px 8px 8px 0px;
+    /*padding-left:5px;*/
+
+}
+
+div.ardockDLctrl  div.keyContainer {
+     padding-top: 0.3em;
+}
+
+div.ardockDLctrl span.close:hover {
+    color:white;
+    background-color: grey;
+}
+
+div.ardockDLctrl  div.keyComment {
+    color : steelblue;
+    padding-left: 10px;
+    padding-top: 0.5em;
+    padding-bottom: 0.85em;
+}
+
+div.ardockDLctrl .keyPasteForm {
+    display: inline;
+    width: 80%;
+    font-size: 0.85em;
+}
+
+:not(.pill) div.ardockDLctrl {
+    background-color: #f5f5f5;
+    padding-left : 5px;
+    width:450px;
+}
+
+:not(.pill) div.ardockDLcBut {
+    /*background-color: rgba(204, 204, 204, 0.88)!important;*/
+    background-color: rgb(192, 192, 192);
+}
+
+div.ardockDLctrl div.btn.disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+
+
+/*
+div.ardockDLctrl.content {
+    background-color: rgba(204, 204, 204, 0.88)!important;
+}
+
+*/
+
+

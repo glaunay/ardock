@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Tutorial</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="assets/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="assets/favicon-16x16.png" sizes="16x16">
+    <link rel="manifest" href="assets/manifest.json">
+    <link rel="mask-icon" href="assets/safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="shortcut icon" href="assets/favicon.ico">
+    <meta name="msapplication-config" content="assets/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="assets/tutorial.css" />
+    <meta name="theme-color" content="#ffffff"><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+ </head>
+<body>
+
+<div class="contact"><span class="icon"><i class="fa fa-info-circle" aria-hidden="true"></i></span>
+<span class="content">If you have any question, problem or suggestion please <a href="mailto:ardock-support@ibcp.fr">
+contact us</a></span>
+</div>
+<div class="container main">
+
+<div class="tutorialP">
+  <h1>What is the <span class="AR">AR</span>bitrary <span class="AR">DOCK</span>ing server?</h1>
+  <p><span class="AR">ARDOCK</span> is a web server for the study of protein surfaces. Arbitrary docking can reveal potential interaction sites on the surface of a protein using docking with a set of 25 random protein "probes".
+    We have shown that the random probes interact in a non-random manner at protein surfaces, and that targeted regions are enriched in biological interfaces.</p>
+    <p><span class="AR">ARDOCK</span> is using a PDB structure as input. The web client provides the interactive visualization of protein structures and sequences. The back-end server performs the protein surface study computations. <span class="AR">ARDOCK</span> uses the webGL <a href="https://github.com/arose/ngl"> NGL library</a> for molecular rendering and the <a href="http://hex.loria.fr/">HeX</a> software for fast docking computations.</p>
+</div>
+<div class="tutorialP">
+<h1>Sample input and expected results</h1>
+For the user to check input/output format and try out sample data,
+a typical PDB file can be found <a href="assets/tutorial.pdb">here</a>.
+<ul>
+<li>The corresponding output, in PDB format, can be found <a href="assets/tutorial_results.pdb">here</a>.</li>
+<li>The corresponding output, in CSV format, can be found <a href="assets/tutorial_results.csv">here</a>.</li>
+</ul>
+From the <a href="http://ardock.ibcp.fr/" target="_blank">main page</a>, after clicking on the "Restore Session" icon
+the corresponding job can be recreated with the following key
+<pre>ardockTask_43b4f34f-37fa-4850-bbb7-8922e7b85b14</pre>
+For each surface amino acid, the server will compute a raw score, which is equal to the number of times that the amino acid was found at a protein probe interface.<br>
+A standardized score is also provided.
+</div>
+
+<div class="tutorialP">
+<h1>Submitting and working with protein structures</h1>
+<p> Any file following <a href="http://www.wwpdb.org/documentation/file-format">the PDB standard</a> can be submitted. In its current state, the <span class="AR">ARDOCK</span> server only processes natural amino-acids, any other compound will be discarded.
+</p>
+<p>For multimeric proteins, each combination of chains will give different results because the <span class="AR">ARDOCK</span> method is sensitive to the overall shape of the protein. If the protein you are working on contains several chains, any combination can be constructed by selectively deleting chains. If you press the <span><img src="assets/img/plus.png" style="height: 1em;"><span> tab button, a copy of the current structure will be opened in a new tab, allowing you to work on a different combination.
+</p>
+
+<div class="row">
+  <div class="col-sm-6 col-md-6">
+    <div class="thumbnail">
+      <img src = "assets/img/pdb_tabs_min.png" alt = "Generic placeholder thumbnail">
+      <div class="caption">
+        <p>Each submitted protein structure file is open in a distinct tab allowing different proteins to be processed simultaneously.</p>
+       <!--  <p><a href="#" class="btn btn-primary" role="button">Button</a> <a href="#" class="btn btn-default" role="button">Button</a></p>-->
+      </div>
+
+    </div>
+  </div>
+  <div class="col-sm-6 col-md-6">
+    <div class="thumbnail"><img src = "assets/img/oligomeric.png" alt = "Generic placeholder thumbnail">
+        <div class="caption">
+        <p>For a given multimeric structure, alternative set of protein chains can be analyzed with the second tab-level (red square).
+        Chains view can be toggled on and off using the upper right controller (yellow square). Here the chain B is hidden, and pressing the ban icon will hide the chain D.</p>
+       </div>
+    </div>
+  </div>
+</div>
+</div>
+<div class="tutorialP">
+<h1>Visualizing proteins</h1>
+<p> The upper-right part of the user's interface shows all available protein chains. Clicking on a chain identifier will display a submenu which allows to visualize the corresponding amino-acid sequence in a dedicated window. The menu also makes it possible to remove the chain from the representation, this action can be canceled until you submit the structure to the server for analysis.
+Residues are highlighted on the 3D structure by clicking on the structure itself or by clicking on the corresponding amino-acid letter in the sequence window.
+</p>
+<div class="row">
+    <div class="col-sm-6 col-md-6">
+    <div class="thumbnail">
+    <img src = "assets/img/surface.png" alt = "Generic placeholder thumbnail">
+
+    <div class="caption">
+        The top-right menu (yellow rectangle) controls the molecular rendering. Three representations are currently proposed:  ball-and-stick, cartoon and surface.
+        </div>
+    </div>
+    </div>
+ <div class="col-sm-6 col-md-6">
+ <div class="thumbnail">
+    <img src = "assets/img/fasta.png" alt = "Generic placeholder thumbnail">
+
+    <div class="caption">
+        Another use of the sub-menu (red rectangle) is the display of each chain amino-acid sequence in a draggable window(left rectangle). Here Glutamate 57 has been selected in the sequence window, its molecular representation is colored in red and an additional textual description is displayed (green rectangle)
+    </div>
+</div>
+</div>
+</div>
+
+<div class="tutorialP">
+<h1>Submitting an Arbitrary Docking analysis</h1>
+<div class="row">
+  <div class="col-sm-6 col-md-6">
+    <div class="thumbnail">
+      <img src="assets/img/submission_0.png" alt="...">
+      <div class="caption">
+        <h4>Submit a job to the server</h4>
+        <p>Clicking on the GO button (red square) will send the structure to the <span class="AR">ARDOCK</span> server for computation. The disabled chain will be removed from the structure.</p>
+       <!--  <p><a href="#" class="btn btn-primary" role="button">Button</a> <a href="#" class="btn btn-default" role="button">Button</a></p>-->
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-md-6">
+    <div class="thumbnail">
+      <img src="assets/img/submission_1.png" alt="...">
+      <div class="caption">
+        <h4>Loading time</h4>
+        <p>As the task is submitted a loader is displayed to show information on its progress. Meanwhile a center console dedicated to data save and export appears.</p>
+      <!--  <p><a href="#" class="btn btn-primary" role="button">Button</a> <a href="#" class="btn btn-default" role="button">Button</a></p>-->
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-sm-6 col-md-6">
+    <div class="thumbnail">
+      <img src="assets/img/submission_2.png" alt="...">
+      <div class="caption">
+        <h4>Job restore key</h4>
+        <p>For now, only the right-end button of the center console is enabled. Clicking on it will display a job identification key (yellow rectangle). The purpose of this key is to allow you to access to the job results at any time in the future. If you are forced to quit at this stage, the computations will be carried and remain accessible to you.</div>
+	</div>
+	<span class='warnPeriod'>Data will remain available on the server for a period of 15 days.</span>
+  </div>
+
+  <div class="col-sm-6 col-md-6">
+    <div class="thumbnail">
+      <img src="assets/img/submission_3.png" alt="...">
+      <div class="caption">
+        <h4>Real time display of the computation state</h4>
+        <p>All along the computation, amino acids are incrementally colored by their number of hits. The color scale is updated accordingly. The loader is also progressing.</p>
+        <!--  <p><a href="#" class="btn btn-primary" role="button">Button</a> <a href="#" class="btn btn-default" role="button">Button</a></p>-->
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="tutorialP">
+<h1>Visualizing Results</h1>
+<p>Upon job completion, the arbitrary docking results are displayed in a table. Each row of the table stores the information relative to a single amino-acid. Clicking on an element of the table will highlight it in the molecular structure. The data table can be exported in csv format.</p>
+<div class="row">
+  <div class="col-sm-2 col-md-2"></div>
+ <div class="col-sm-8 col-md-8">
+ <div class="thumbnail">
+    <img src = "assets/img/datatable.png" alt = "Generic placeholder thumbnail">
+
+    <div class="caption">
+    Arbitrary docking data table on the left end of the user's interface (yellow rectangle). The datable can be scrolled and sorted by its columns value. The table footer lays the export to csv button.
+    </div>
+</div>
+</div>
+<div class="col-sm-2 col-md-2"></div>
+</div>
+
+</div>
+
+<div class="tutorialP">
+<h1>Results export and interoperabilty with the endscript server</h1>
+<p>
+Additionally the <span class="AR">ARDOCK</span> server supports the export of its results in PDB format, where the b-factor column stores each amino-acid score. This annotated structure file can also be passed to the <a href="http://espript.ibcp.fr/ESPript/ENDscript/index.php" target="_blank">ENDscript</a> server. When clicking on the SUBMIT button in its top bar, this server will provide you with many additional tools to study protein structures and sequences.
+</p>
+
+<div class="row">
+  <div class="col-sm-2 col-md-2"></div>
+ <div class="col-sm-8 col-md-8">
+ <div class="thumbnail">
+    <img src = "assets/img/export.png" alt = "Generic placeholder thumbnail">
+
+    <div class="caption">
+    The export of the results in PDB format or their communication to the ENDscript server are controlled by the center console (yellow rectangle).
+    </div>
+</div>
+</div>
+<div class="col-sm-2 col-md-2"></div>
+</div>
+
+</div>
+</body>
+</html>

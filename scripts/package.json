@@ -5,7 +5,7 @@
     "httpVariables" : {
         "rootDir" : "/software/mobi/ardock",
         "espritDir" : "/data/dev/ardock/tmp/ESPriptCache",
-    "domain" : "ardock-dev.ibcp.fr"
+        "domain" : "ardock-dev.ibcp.fr"
     },
     "scriptVariables" : {
         "TEST_DIR" : "/software/mobi/ardock/scripts/test",
@@ -40,12 +40,19 @@
                         "3.90.1070"]
     },
     "managerSettings" : {
+<<<<<<< HEAD
 	"cacheDir" : "/data/dev/ardock/tmp",
         "tcp" : "192.168.114.253",
         "port" : "2221",
         "slurmBinaries" : "/opt/slurm/bin/",
         "partition" : "mpi-mobi",
         "qos" : "mpi-mobi"
+=======
+        "cacheDir" : "/data/dev/ardock/tmp",
+        "tcp" : "192.168.117.151",
+        "port" : "2223",
+        "slurmBinaries" : "/data/www_dev/ardock/bin/slurm/bin"
+>>>>>>> front-end
     }
 }
 

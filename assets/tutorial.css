@@ -1,0 +1,56 @@
+body {
+    background-color: steelblue;
+}
+
+span.warnPeriod{
+    font-size: 1.2em;
+    font-weight: 700;
+    color: #a94442;
+}
+span.AR {
+    font-weight: 800;
+    color: steelblue;
+}
+div.main {
+    margin: 10%;
+    padding : 2em 2em 2em 2em;
+    border-radius: 40px;
+    background-color: white;
+    width:80%;
+}
+
+div.contact {
+    border-left : 1px solid white;
+    border-bottom : 1px solid white;
+    border-bottom-left-radius: 5px;
+    padding : 1px 17px 4px 14px;
+    position : absolute;
+    top : 0px;
+    right : 0px;
+}
+
+div.contact a {
+    color : white;
+    font-weight: bold;
+
+}
+
+div.contact span.content{
+    color : white;
+    font-weight:lighter;
+    vertical-align: super;
+}
+
+div.contact span.icon {
+    margin-right: 0.2em;
+    color : white;
+    font-size: 3em;
+}
+
+div.tutorialP {
+    margin-top: 2em;
+}
+
+p {
+    margin-bottom: 1.8em;
+}

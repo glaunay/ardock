@@ -1,0 +1,162 @@
+div.summaryMenu {
+    position : absolute;
+    z-index: 7;
+}
+
+div.summaryMenu div {
+    cursor: pointer;
+}
+div.w_window_header {
+    min-height : 2.5em;
+    background-color : whitesmoke;
+}
+
+div.datatableW {
+    width : 350px;
+}
+
+div.widget.bookmarkable {
+    overflow: hidden;
+    white-space: nowrap;
+    z-index: 7;
+}
+
+div.widget.bookmarkable div.content{
+     display: inline-block;
+     vertical-align:top;
+    /*position:fixed;*/
+    /*height:100%;*/
+    background:#c3e8b1/*rgb(97, 97, 97)*/;
+    /*width:200px;*/
+    /*right:0px;*/
+
+    /*margin-right: -200px;*/
+}
+
+div.widget.bookmarkable div.btn.willSlide{
+ display: inline-block;
+ vertical-align:top;
+/*position: fixed;
+right: 0px;
+*/
+background: rgb(117, 231, 117);
+padding-left: 10px;
+padding-right: 10px;
+padding-top: 2%;
+/*
+top: 300px;
+width: 100px;
+*/
+
+border-radius: 5px 0px 0 5px;
+color: #fff;
+text-align: center;
+/*padding: 40px 0;*/
+cursor:pointer;
+}
+
+div.widget.bookmarkable div.btn.willSlide i.fa{
+    vertical-align: middle;
+}
+.expandedTxt{
+  display:none;
+}
+.btn.expanded .expandedTxt{
+ display:block;
+}
+.btn.expanded .click{
+ display:none;
+}
+
+div.widget.bookmarkable:hover {
+    z-index : 8;
+}
+
+div.keyBox .keyHead i.fa {
+    cursor : pointer;
+    font-size: 1.5em;
+}
+
+div.keyBox .keyJobError {
+    padding-top:2px;
+    padding-bottom:2px;
+}
+div.keyBox .keyJobError .i-warning {
+    position: absolute;
+    right: 30px;
+    top: 50%;
+}
+
+div.browserSupport {
+    position:absolute;
+    right: -13px;
+    bottom: 0px;
+    font-family: antipasto, Helvetica, Arial, sans-serif;
+    color: white;
+    font-size: 1.2vw;
+    width: 150px;
+    text-align: center;
+}
+
+div.tutorial {
+    position: absolute;
+    top: 0.5em;
+    right: 0.5em;
+    border: solid white 1px;
+    border-radius: 4px;
+    padding: 4px 10px 4px 10px;
+    color: white;
+}
+
+div.tutorial a {
+    color: inherit;
+    text-decoration: none;
+}
+
+div.tutorial span {
+    padding-right : 0.7em;
+}
+
+div.tutorial i {
+    font-size : 1.25em;
+}
+
+
+div.tutorial:hover {
+    color : rgba(0, 4, 8, 0.67);
+    border : solid rgba(0, 4, 8, 0.67) 1px;
+    cursor: pointer;
+}
+
+
+div.fatal {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, 0%);
+    top: 10px;
+    z-index : 9999;
+}
+
+div.fatalHeader {
+    height: 1.2em;
+    margin-top: -0.6em;
+    margin-right: -0.5em;
+}
+
+div.fatalHeader span {
+    font-size: 1.5em;
+    cursor : pointer;
+}
+
+div.jobBlocker {
+    /*position: absolute;
+    left: 50%;
+    transform: translate(-50%, 0%);
+    top: 10px;*/
+    position : absolute;
+    z-index : 9998;
+    width : 100%;
+    height : 100%;
+    background-color: rgba(0,0,0,0.7)
+}
+
