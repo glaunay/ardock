@@ -303,9 +303,7 @@ var keyRequest = function (key) {
         // console.log(nsDirContent)
 
         for (let content of nsDirContent) { // (3)
-            console.log("toto")
-            console.log(content)
-            console.log(jobStatus)
+
             content_status = statusJob(nsDir, content); // find the status of @content
             if (content_status !== null) {
                 jobStatus[content_status].push(content); // add @content to its status into jobStatus
@@ -314,7 +312,6 @@ var keyRequest = function (key) {
                     if (! inputFile) inputFile = nsDir + '/' + content + '/input/targetPdbFile.inp'; // we need only one
                 }
             }
-            console.log(jobStatus)
         }
 
         // next 2 lines only for tests
@@ -325,7 +322,7 @@ var keyRequest = function (key) {
         if (jobStatus.running.length === 0 && jobStatus.pending.length === 0) {
             var dict = collectResults(outFiles); // all results in a unique dictionnary
             if (! inputFile) throw 'No input PDB file fount at all'; // check the existence of at least one PDB file
-            console.log(nsDir + '/' + inputFile);
+            //console.log(nsDir + '/' + inputFile);
             pdbLib.parse({file : inputFile}).on('end', function(pdb) { // parse the PDB file
                 bFactorUpdate(pdb, dict);
                 emitter.emit('completed', pdb, jobStatus.completed.length);
