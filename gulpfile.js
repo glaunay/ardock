@@ -23,6 +23,8 @@ const
     minify = require('gulp-minify'),
     concat = require('gulp-concat'),
     uglify = require('gulp-uglify'),
+    babel = require('gulp-babel'),
+
     src = {
         js: ["./app.js"]
     },
@@ -88,16 +90,35 @@ gulp.task('compress', function() {
 */
 
 
-
+/* GL - 2017/12/22
+gulp-uglify Cant handle ES6 arrow function
+We use babel to transpile into ES5
+symbol still remains udenfined, maybe a mangling/whitespace retrieval error,
+WE cant provide minified version yet
+*/
 gulp.task('compress', function() {
     return gulp.src('./js/bundleTest.js')
+            .pipe(babel({
+                presets: ['env']
+            }))
         /*.pipe(concat('./js/scripts.js'))
         .pipe(gulp.dest('./js/scripts-tmp.js'))
         .pipe(rename('scripts.min.js'))*/
-        .pipe(uglify())
+        .pipe(uglify({mangle: false, compress:false}))
         .on('error',  util.log)
         .pipe(gulp.dest('./js/minified'));
 });
+
+/*
+gulp.task('default', () =>
+    gulp.src('src/app.js')
+        .pipe(babel({
+            presets: ['env']
+        }))
+        .pipe(gulp.dest('dist'))
+);
+*/
+
 
 gulp.task('server', function (cb) {
     //spawn('node', ['index.js', '--conf', '../default.conf', '--http','--slurm','-p','3'], { stdio: 'inherit' })

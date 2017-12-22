@@ -3,13 +3,13 @@ var fs = require('fs');
 var jsonfile = require('jsonfile');
 var events = require('events');
 var bean;
-
+let espritDir = null;
 
 var pdbLoad = function(bTest, opt) {
     var emitter = new events.EventEmitter();
     if(bTest) {
         console.log('Running pdb parsing test...');
-        var pdbFile = bean.scriptVariables.TEST_DIR + '/4MOW.pdb';
+        var pdbFile = bean.scriptVar.TEST_DIR + '/4MOW.pdb';
         var pdbParse = pdbLib.parse({ 'file' : pdbFile })
         .on('end', function(pdbObjInp) {
             var pdbObj = pdbObjInp.model(1).chain('D').naturalAminoAcidOnly().pull();
@@ -67,7 +67,7 @@ var pdbWrite = function (key, pdbStream) {
     /*console.log('pdbWrite input');
     console.log(pdbStream);
     */
-    var basePath = bean.httpVariables.espritDir;
+    var basePath = espritDir;
     var fname = key + '.pdb';
     pdbLib.parse({ 'rStream' : pdbStream })
                 .on('end', function (pdbObjInp) {
@@ -152,7 +152,7 @@ var statusJob = function (nsDir, content) {
         console.log("[" + d + "] ardockJobStatus:empty File : " + outFile);
         return 'running'; // .out file is empty -> running status
     }
-    
+
     try { // check the good format of the .out file (5)
         console.log('Trying to sync read ' + outFile);
         var dict = jsonfile.readFileSync(outFile); }
@@ -273,7 +273,7 @@ var findPath = function (myNamespace) {
 * (2) make a squeue request to know what are the jobs still running / pending
 * (3) for each element of the nsDir, check its status
 * (4) find the .out file in case the job is completed
-* (5) 
+* (5)
 */
 var keyRequest = function (key) {
     if (! key) throw 'No key specified';
@@ -289,7 +289,7 @@ var keyRequest = function (key) {
             emitter.emit('errKey');
             return;
         }
-        
+
         // console.log("squeueRes")
         // console.log(squeueRes)
         // console.log("nsDir")
@@ -346,6 +346,7 @@ module.exports = {
     pdbWrite : pdbWrite,
     keyRequest : keyRequest,
     bFactorUpdate : bFactorUpdate,
-    configure : function(data){ probeMax = data.probeMax; bean = data.bean;}
+    configure : function(data){ probeMax = data.probeMax; bean = data.bean; console.log("TOTO");console.dir(bean);},
+    setEspritDir : function(val){ espritDir = val;}
 };
 

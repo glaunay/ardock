@@ -125,10 +125,10 @@ var ioPdbSubmissionCallback_task = function (data, uuid_pdbCli, socket){
     .on('pdbLoad', (pdbObj) => {
         let management = {
             'naccess' : {
-                'jobManager' : HPC_Lib.jobManager(), 'jobProfile' : 'arwen-dev_cpu'
+                'jobManager' : HPC_Lib.jobManager(), 'jobProfile' : 'arwen-prod_cpu'
             },
             'hex' : {
-                'jobManager' : HPC_Lib.jobManager(), 'jobProfile' : 'arwen-dev_hex_' + ncpu + 'cpu',
+                'jobManager' : HPC_Lib.jobManager(), 'jobProfile' : 'arwen-prod_hex_' + ncpu + 'cpu',
                 'nprobe' : probeMax, 'lprobes' : ardockSett.scriptVar.probeList, 'ncpu' : ncpu
             }
         }
@@ -286,7 +286,7 @@ if (!ardockSett) {
 }
 HPC_Lib.configure({ probeMax : probeMax, bean : bean });
 PDB_Lib.configure({ probeMax : probeMax, bean : bean });
-
+PDB_Lib.setEspritDir(ardockSett.httpVar.espritDir);
 //console.dir(bean);
 
 // FLOW-LOGIC HTTP > SLURM > PDB_SUB
