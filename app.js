@@ -3,7 +3,7 @@ window.$ = window.jQuery = require('jquery');
 var Backbone = require('backbone');
 Backbone.$ = $;
 var io = require('socket.io-client/dist/socket.io.js');
-var serverDomain='http://ardock.ibcp.fr'
+var serverDomain='http://ardock-dev.ibcp.fr'
 var socket = io.connect(serverDomain);
 //var socket = io.connect('http://92.222.65.71:3000');
 

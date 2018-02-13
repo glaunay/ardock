@@ -4,6 +4,9 @@ var Random = require("random-js")
 var bean, probeMax;
 
 
+/*
+* Deprecated because bean.scriptVariables.BIN_DIR is not used anymore
+*/
 var slurmTest = function () {
     var emitter = new events.EventEmitter();
     var r = new Random(Random.engines.mt19937().seedWithArray([0x12345678, 0x90abcdef]));
