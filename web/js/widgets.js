@@ -62,7 +62,7 @@ var Header = function(opt){
                                     +'</div>'
                                     +'<div class="col-xs-6 title-site">'
                                         +'<p class="title disable-select">ARBITRARY DOCKING</p>'
-                                        +'<span class="quote disable-select" >"protein-protein docking with arbitrary partners"</span>'
+                                        +'<span class="quote disable-select" >"Detect interaction sites by docking arbitrary proteins"</span>'
                                     +'</div>'
                                     +'<div class="col-xs-3 logo logo-uni-lyon">'
                                         +'<a target="_blank" href="http://www.univ-lyon1.fr/"><img alt="logo Université de Lyon 1" class="pull-right" src="assets/img/logo-uni-lyon.png" /></a>'
@@ -343,7 +343,8 @@ var setUpESPriptConnections = function() {
         //console.log("ESP stash Success at \"" + pdbFileUrl + "\"");
     var hidden_ESPRIT_form =  '<div class="ESP_shadow" style="display:none"><FORM METHOD=POST ACTION=http://endscript.ibcp.fr/ESPript/cgi-bin/ENDscript.cgi TARGET=_blank>'
                             + '<INPUT TYPE=hidden NAME=FRAMES VALUE=yes>'
-                            + '<INPUT TYPE=hidden NAME=alnfile0 VALUE=http://' + pdbFileUrl + '>'
+                            + '<INPUT TYPE=hidden NAME=blcldb0 VALUE=SWISSPROT>'
+			    + '<INPUT TYPE=hidden NAME=alnfile0 VALUE=http://' + pdbFileUrl + '>'
                             + '<INPUT TYPE=submit VALUE="Submit to ENDscript">'
                             + '</FORM></div>';
     $(WidgetsUtils.tabJobs[key].listWidgets["bookmarkDL"].getNode()).append(hidden_ESPRIT_form);
@@ -1002,7 +1003,10 @@ var Job = function(opt){
     }
 
     this.stash = function () {
-        WidgetsUtils.socketApp.emit('pdbStashESP', { uuid : self.uuid, data : self.pdbObj.model(1).dump()});
+        var maxMin = this.listWidgets["bookmarkDT"].getMaxMinScore();
+        var floorScore = this.listWidgets["bookmarkDT"].getPatchFloorScore();
+        WidgetsUtils.socketApp.emit('pdbStashESP', { 'uuid' : self.uuid, 'data' : self.pdbObj.model(1).dump(),
+                                                     'maxScore' : maxMin[0], 'floorScore' :  floorScore });
     };
 
     this.send = function(pdbObj){//Emit after click Submit ('GO')

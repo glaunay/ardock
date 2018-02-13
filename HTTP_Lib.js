@@ -54,7 +54,7 @@ var ioKeySubmissionRoute = function (key, socket) {
     console.log('test ioKeySubmissionRoute ' + key);
 }
 
-var ioESPriptRoute = function (key, pdbStream, socket) {
+var ioESPriptRoute = function (key, pdbStream, socket, max, limit) {
     console.log('test ioESPriptRoute ' + key);
 }
 
@@ -189,11 +189,14 @@ var ioActivate = function (fn1) {
         socket.on('pdbStashESP', function (packet) {
             var uuid = packet.uuid;
             var data = packet.data;
-            console.log('received pdbStashESP event');
+            var max = packet.maxScore;
+            var ESP_limit = packet.floorScore;
+            //console.log('received pdbStashESP event');
+            //console.dir(packet);
             var s = stream.Readable();
             s.push(data, 'utf-8');
             s.push(null);
-            ioESPriptRoute(uuid, s, socket);
+            ioESPriptRoute(uuid, s, socket, max, ESP_limit);
         })
 
     });

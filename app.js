@@ -3,7 +3,7 @@ window.$ = window.jQuery = require('jquery');
 var Backbone = require('backbone');
 Backbone.$ = $;
 var io = require('socket.io-client/dist/socket.io.js');
-var serverDomain='http://ardock-dev.ibcp.fr'
+var serverDomain='http://ardock.ibcp.fr'
 var socket = io.connect(serverDomain);
 //var socket = io.connect('http://92.222.65.71:3000');
 
@@ -93,9 +93,6 @@ socket.on("arDockError", function(data) {
 
 
 $(function () {
-
-    console.log("vY");
-
 
     var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0 || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || safari.pushNotification);
     if (isSafari) {

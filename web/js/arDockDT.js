@@ -33,7 +33,7 @@ var arDockTable = function(opt) {
     Bookmark.call(this, nArgs);
     this.pdbRef = 'pdbObj' in nArgs ? nArgs['pdbObj'] : null;
     this.mode = null;
-
+    this._patchAssigned = false;
     $(this.getNode()).addClass('ardockDT');
     //widgets.Core.call(this, nArgs);
 }
@@ -123,6 +123,7 @@ arDockTable.prototype.normalize = function() {
         var x = (e[3] - mean) / sigma;
         e.push(Math.round(x * 100) / 100);
     });
+
 }
 
 arDockTable.prototype.patchAssign = function (){
@@ -147,8 +148,20 @@ arDockTable.prototype.patchAssign = function (){
     this.data = sorted;
     /*console.log(this.data);
     console.log(">><<" + this.maxRank);*/
+    this._patchAssigned = true;
+
 }
 
+/*
+    Call these functions after patchAssigned
+*/
+arDockTable.prototype.getMaxMinScore = function (){
+    return [ this.data[0][3], this.data[this.data.length - 1][3] ]
+}
+
+arDockTable.prototype.getPatchFloorScore = function (){
+    return this.data[ this.maxRank + 1][3] //  ["LYS", "188", "A", 69, 1.92]
+}
 
 arDockTable.prototype.hook = function(pdbObj) {
     this.pdbRef = pdbObj;

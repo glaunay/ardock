@@ -61,7 +61,7 @@ var pdbLoad = function(bTest, opt) {
     return emitter;
 }
 
-var pdbWrite = function (key, pdbStream) {
+var pdbWrite = function (key, pdbStream, max, limit) {
     var emitter = new events.EventEmitter();
     console.log("attempting to stash pdb content w/ key " + key);
     /*console.log('pdbWrite input');
@@ -72,7 +72,7 @@ var pdbWrite = function (key, pdbStream) {
     pdbLib.parse({ 'rStream' : pdbStream })
                 .on('end', function (pdbObjInp) {
                     var pdbString = "DBREF  ardock_structure  \n"
-                                +   "REMARK    FREE_ESPRIPT MIN= 0 MAX= 9 LIM= 8\n";
+                                +   "REMARK    FREE_ARDOCK MIN= -1 MAX= " + max + " LIM= " + limit + "\n";
                     pdbString += pdbObjInp.model(1).dump();
                     fs.writeFile(basePath + "/" + fname, pdbString, function(err) {
                         if(err) {

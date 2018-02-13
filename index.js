@@ -166,9 +166,9 @@ var ioPdbSubmissionCallback_task = function (data, uuid_pdbCli, socket){
 }
 
 // route to handle "ESPript communication"
-var ioESPriptSubmissionCallback = function (key, pdbStream, socket) {
+var ioESPriptSubmissionCallback = function (key, pdbStream, socket, max, limit) {
 
-    PDB_Lib.pdbWrite(key, pdbStream)
+    PDB_Lib.pdbWrite(key, pdbStream, max, limit)
     .on('pdbWrote', function(fpath, fname){
         socket.emit('ESPriptCached', key, HTTP_Lib.ESPriptDirEndPoint() + '/' + fname);
     })
