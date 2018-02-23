@@ -5,6 +5,9 @@ var bodyParser = require('body-parser');
 
 var fs = require('fs');
 var jsonfile = require('jsonfile');
+let date = require('date-and-time');
+
+
 var bTest = false;
 var bHttp = false;
 var bSlurm = false;
@@ -24,6 +27,13 @@ var HTTP_Lib = require('./HTTP_Lib');
 var HPC_Lib = require('./HPC_Lib');
 var PDB_Lib = require('./middleware_Lib');
 var arP = require ('./ardockPipeline');
+
+
+
+let now = new Date();
+let dateStr = date.format(now, 'ddd MMM DD YYYY HH:mm');
+
+console.log(dateStr + " : ------------- STARTING ARDOCK SERVER -------------");
 
 /* Last update : GL 2016-02-18
 
