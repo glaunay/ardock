@@ -125,10 +125,10 @@ var ioPdbSubmissionCallback_task = function (data, uuid_pdbCli, socket){
     .on('pdbLoad', (pdbObj) => {
         let management = {
             'naccess' : {
-                'jobManager' : HPC_Lib.jobManager(), 'jobProfile' : 'arwen-prod_cpu'
+                'jobManager' : HPC_Lib.jobManager(), 'jobProfile' : ardockSett.engineVar.keyProfile.naccess
             },
             'hex' : {
-                'jobManager' : HPC_Lib.jobManager(), 'jobProfile' : 'arwen-prod_hex_' + ncpu + 'cpu',
+                'jobManager' : HPC_Lib.jobManager(), 'jobProfile' : ardockSett.engineVar.keyProfile.hex,
                 'nprobe' : probeMax, 'lprobes' : ardockSett.scriptVar.probeList, 'ncpu' : ncpu
             }
         }
