@@ -35,7 +35,7 @@ contact us</a></span>
 <div class="tutorialP">
 <h1>Sample input and expected results</h1>
 For the user to check input/output format and try out sample data,
-a typical PDB file can be found <a href="assets/tutorial.pdb">here</a>.
+a typical PDB file can be found vhere</a>.
 <ul>
 <li>The corresponding output, in PDB format, can be found <a href="assets/tutorial_results.pdb">here</a>.</li>
 <li>The corresponding output, in CSV format, can be found <a href="assets/tutorial_results.csv">here</a>.</li>
@@ -77,6 +77,7 @@ A standardized score is also provided.
 </div>
 <div class="tutorialP">
 <h1>Visualizing proteins</h1>
+<p>The structure of an <a href="assets/tutorial.pdb">&alpha;-amylase</a> in complex with its inhibitor (PDB Code : <a href="https://www.rcsb.org/structure/1tmq">1TMQ</a>) will be used for the remainder of this tutorial</p>
 <p> The upper-right part of the user's interface shows all available protein chains. Clicking on a chain identifier will display a submenu which allows to visualize the corresponding amino-acid sequence in a dedicated window. The menu also makes it possible to remove the chain from the representation, this action can be canceled until you submit the structure to the server for analysis.
 Residues are highlighted on the 3D structure by clicking on the structure itself or by clicking on the corresponding amino-acid letter in the sequence window.
 </p>
@@ -110,19 +111,30 @@ Residues are highlighted on the 3D structure by clicking on the structure itself
       <img src="assets/img/submission_0.png" alt="...">
       <div class="caption">
         <h4>Submit a job to the server</h4>
-        <p>Clicking on the GO button (red square) will send the structure to the <span class="AR">ARDOCK</span> server for computation. The disabled chain will be removed from the structure.</p>
-       <!--  <p><a href="#" class="btn btn-primary" role="button">Button</a> <a href="#" class="btn btn-default" role="button">Button</a></p>-->
-      </div>
+        <p>Clicking on the GO button (red square) will send the structure to the <span class="AR">ARDOCK</span> server for computation. Any chain with disabled view will not be passed to the server. The analysis will only be performed on visible protein chain. Be aware that any disabled chain will be permanently removed from the structure.</p>
+    </div>
     </div>
   </div>
 
+
+  <div class="col-sm-6 col-md-6">
+    <div class="thumbnail">
+      <img src="assets/img/submission_3.png" alt="...">
+      <div class="caption">
+        <h4>Loading time</h4>
+        <p>As the task is submitted a loader is displayed (red square) to show information on its progress. Meanwhile a center console dedicated to data save and export appears. For now, only the right-end button (yellow square) of the center console is enabled. Clicking on it will display a job identification key. The purpose of this key is to allow you to access to the job results at any time in the future. If you are forced to quit at this stage, the computations will be carried and remain accessible to you. </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--
   <div class="col-sm-6 col-md-6">
     <div class="thumbnail">
       <img src="assets/img/submission_1.png" alt="...">
       <div class="caption">
         <h4>Loading time</h4>
         <p>As the task is submitted a loader is displayed (red square) to show information on its progress. Meanwhile a center console dedicated to data save and export appears (yellow square).</p>
-      <!--  <p><a href="#" class="btn btn-primary" role="button">Button</a> <a href="#" class="btn btn-default" role="button">Button</a></p>-->
       </div>
     </div>
   </div>
@@ -145,19 +157,19 @@ Residues are highlighted on the 3D structure by clicking on the structure itself
       <div class="caption">
         <h4>Real time display of the computation state</h4>
         <p>All along the computation, amino acids are incrementally colored by their number of hits. The color scale is updated accordingly. The loader is also progressing.</p>
-        <!--  <p><a href="#" class="btn btn-primary" role="button">Button</a> <a href="#" class="btn btn-default" role="button">Button</a></p>-->
       </div>
     </div>
   </div>
 </div>
-
+-->
     <span class='warnPeriod'>Data will remain available on the server for a period of 15 days.</span>
 
 </div>
 
 <div class="tutorialP">
 <h1>Visualizing Results</h1>
-<p>Upon job completion, the arbitrary docking results are displayed in a table. Each row of the table stores the information relative to a single amino-acid. Clicking on an element of the table will highlight it in the molecular structure. The data table can be exported in csv format.</p>
+<p>Upon job completion, the arbitrary docking results are displayed in a table (yellow rectangle). Each row of the table stores the information relative to a single amino-acid. Clicking on an element of the table will highlight it in the molecular structure. The data table can be exported in csv format.
+</p>
 <div class="row">
   <div class="col-sm-2 col-md-2"></div>
  <div class="col-sm-8 col-md-8">
@@ -165,21 +177,26 @@ Residues are highlighted on the 3D structure by clicking on the structure itself
     <img src = "assets/img/datatable.png" alt = "Generic placeholder thumbnail">
 
     <div class="caption">
-    Arbitrary docking data table on the left end of the user's interface (yellow rectangle). The datable can be scrolled and sorted by its columns value. The table footer lays the export to csv button.
+    Arbitrary docking data table on the left end of the user's interface (yellow rectangle). The datable can be scrolled and sorted by its columns value. The table footer lays the export to csv button. The central button of the top-center console lets you download the results in the alternative PDB format.
     </div>
 </div>
 </div>
 <div class="col-sm-2 col-md-2"></div>
 </div>
-
+<p>Additionally the <span class="AR">ARDOCK</span> server supports the export of its results in PDB format, where the b-factor column stores each amino-acid score. This file can be downloaded by clicking on the PDB named button (red rectangle)</p>
 </div>
 
-<div class="tutorialP">
-<h1>Results export and interoperability with the ENDscript server</h1>
-<p>
-Additionally the <span class="AR">ARDOCK</span> server supports the export of its results in PDB format, where the b-factor column stores each amino-acid score. This annotated structure file can also be passed to the <a href="http://espript.ibcp.fr/ESPript/ENDscript/index.php" target="_blank">ENDscript</a> server. When clicking on the SUBMIT button in its top bar, this server will provide you with many additional tools to study protein structures and sequences.
-</p>
 
+<div class=" tutorialW alert alert-danger"><div style='margin-right: 1em;'><i class="fa fa-warning fa-2x"></i> </div> <div>Depending on your browser, you may need to allow pop-up window to operate with the ENDscript server</div></div>
+
+
+
+<div class="tutorialP">
+<h1>Interoperability with the ENDscript server</h1>
+<p>
+The structure processed by the <span class="AR">ARDOCK</span> server can be passed to the <a href="http://espript.ibcp.fr/ESPript/ENDscript/index.php" target="_blank">ENDscript</a> server. When clicking on the SUBMIT button in its top bar, this server will provide you with many additional tools to study protein structures and sequences.
+
+<!--
 <div class="row">
   <div class="col-sm-2 col-md-2"></div>
  <div class="col-sm-8 col-md-8">
@@ -193,8 +210,8 @@ Additionally the <span class="AR">ARDOCK</span> server supports the export of it
 </div>
 <div class="col-sm-2 col-md-2"></div>
 </div>
+-->
 
-<p>
     With the ENDscript server you can notably cross-check the structural and sequence conservation across homologs of the protein under scrutiny with the <span class="AR">ARDOCK</span> predictions.
 </p>
 <div class="row">
@@ -214,7 +231,7 @@ Additionally the <span class="AR">ARDOCK</span> server supports the export of it
 </div>
 
 <p>
-Detailed information on ENDscript settings and capabilities can be found <a hre="http://endscript.ibcp.fr/ESPript/ENDscript/end_userguide.php">here</a>.
+<span style='font-size:1.5em;color:steelblue'><i class="fa fa-hand-o-right" style='font-weight:bold'></i></span> Detailed information on ENDscript settings and capabilities can be found <a href="http://endscript.ibcp.fr/ESPript/ENDscript/end_userguide.php">here</a>.
 </p>
 
 

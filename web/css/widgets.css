@@ -160,3 +160,45 @@ div.jobBlocker {
     background-color: rgba(0,0,0,0.7)
 }
 
+div.END_lW {
+    width : 100%;
+    margin : 0;
+    /*max-width: 80%;
+    font-size : 0.85em;
+    margin-left: 10%;*/
+    display: inline-flex;
+    /*margin-bottom: -1em;
+    margin-top: 1.5em;
+    position: absolute;
+    bottom: 0.5em;
+    right: 0.5em;*/
+    border-radius: 0px;
+    font-size: 1.2em;
+    font-family: antipasto, Helvetica, Arial, sans-serif;
+}
+
+div.END_lW div.END_lW_left {
+    width : 10%;
+    padding-left: 5%;
+}
+
+div.END_lW div.END_lW_body {
+    width : 80%;
+    font-size: 1.15em;
+    padding-top : 0.15em;
+    text-align : center;
+}
+div.END_lW div.END_lW_body span {
+    /*font-weight : bold;*/
+    font-family: antipastobold, Helvetica, Arial, sans-serif;
+}
+div.END_lW .END_lW_right {
+    float : right;
+    width : 10%;
+    /*padding-left: 3%;*/
+    text-align: end;
+}
+
+div.END_lW .END_lW_right i {
+    cursor : pointer;
+}

@@ -55,7 +55,15 @@ var Header = function(opt){
     this.id = "W_" + this.idNum;
     this.slided = false;
 
-    this.scaffold ('<header id="w_' + this.idNum + '" class="container-fluid header widget">'
+    this.scaffold (
+                                           // Hinting for ENDscript usage
+                                    '<div class="END_lW alert alert-warning"><div class="END_lW_left">'
+                                    + '<i class="fa fa-warning fa-2x"></i> </div> <div class="END_lW_body">Depending on your browser configuration, you'
+                                    + ' may need to allow pop-up window to operate with the <span>ENDscript</span> server</div>'
+                                    + '<div class="END_lW_right"><i class="fa fa-times-circle-o fa-2x"></i></div>'
+                                    + '</div>'
+
+         + '<header id="w_' + this.idNum + '" class="container-fluid header widget">'
                                 +'<div class="header-head row" id="headerHead">'
                                     +'<div class="col-xs-3 logo logo-cnrs">'
                                         +'<a target="_blank" href="http://www.cnrs.fr/"><img src="assets/img/logo-cnrs.png" alt="logo CNRS"class="" /></a>'
@@ -69,6 +77,10 @@ var Header = function(opt){
                                     +'</div>'
                                 +'</div>'
 
+
+
+
+
                                 +'<div class="header-core jumbotron" id="headerCore">'
                                     +'<h4>Welcome</h4>'
                                     +'<h2>To the arbitrary docking webserver</h2>'
@@ -76,10 +88,13 @@ var Header = function(opt){
                                     +'<p>We have shown that the random probes interact in a non-random manner on protein surfaces, and that targeted regions are enriched in biological interfaces.</br>Docking is made using the Hex software using spherical polar Fourier Correlations.</p>'
                                     +'<quote>Reference: <span class="text-number">1</span>. Martin J, Lavery R. Arbitrary protein-protein docking targets biologically relevant interfaces. BMC Biophysics <span class="text-number">2012;5(1):7.</span>'
                                     +'</quote>'
-                                    + '<div class="browserSupport">Supported Browsers<img src="assets/browser-icons.png" style="height:2em"></div>'
+                                    + '<div class="browserSupport">Supported Browsers<img src="assets/browser-icons.png" style="height:2em">'
+                                    +'</div>'
                                     + '<div class="tutorial"><a href="tutorial" target="_blank"><span>Tutorial</span><i class="fa fa-graduation-cap" aria-hidden="true"></i></a></div>'
                                     + '<div class="overlay">'
-                                    + '</div>'
+                                                                        + '</div>'
+
+
                                 +'</div>'
 
                                 +'<div class="header-slide">'
@@ -96,7 +111,8 @@ var Header = function(opt){
                         +'</header>');
 
     this.display();
-
+  $('body div.END_lW i.fa-times-circle-o').click(
+        function(){ $("div.END_lW").remove();});
     $('.button-slide').click( function(){ self.slide() });
 }
 Header.prototype = Object.create(Core.prototype);

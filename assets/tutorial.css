@@ -2,6 +2,13 @@ body {
     background-color: steelblue;
 }
 
+div.tutorialW {
+    max-width: 80%;
+    margin-left: 10%;
+    display: inline-flex;
+    margin-bottom: -1em;
+    margin-top: 1.5em;
+}
 span.warnPeriod{
     font-size: 1.2em;
     font-weight: 700;
