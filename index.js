@@ -290,6 +290,8 @@ if (!bean) {
 if (!ardockSett) {
     throw 'No ardock settings file detected\n';
 } else {
+    console.log("Current ardock settings are ");
+    console.dir(ardockSett);
     ardockSett.scriptVar.probeList = ardockSett.scriptVar.probeList.map((p) => {
         return ardockSett.scriptVar.DATA_DIR + '/' + p + '.pdb';
     });
