@@ -346,7 +346,8 @@ module.exports = {
     pdbWrite : pdbWrite,
     keyRequest : keyRequest,
     bFactorUpdate : bFactorUpdate,
-    configure : function(data){ probeMax = data.probeMax; bean = data.bean; console.log("TOTO");console.dir(bean);},
+    configure : function(data){ probeMax = data.probeMax; bean = data.bean;
+        console.log("Configuring middleware with following bean:\n");console.dir(bean);},
     setEspritDir : function(val){ espritDir = val;}
 };
 
