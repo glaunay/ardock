@@ -206,10 +206,11 @@ var ioActivate = function (fn1) {
             var data = packet.data;
             var email = packet.email
             console.log('received ardockPdbSubmit event');
+            console.dir(packet.email);
             var s = stream.Readable();
             s.push(data, 'utf-8');
             s.push(null);
-            ioPdbSubmissionRoute(s, uuid, socket);
+            ioPdbSubmissionRoute(s, uuid, socket, email);
         });
         socket.on('keySubmission', function (key) {
             ioKeySubmissionRoute(key, socket);
@@ -289,7 +290,6 @@ var restRoute = function(req, res) {
             });
             */
         }
-
 
 
 

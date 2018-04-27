@@ -27,8 +27,7 @@ var HTTP_Lib = require('./HTTP_Lib');
 var HPC_Lib = require('./HPC_Lib');
 var PDB_Lib = require('./middleware_Lib');
 var arP = require ('./ardockPipeline');
-
-
+var mailManager = require('./mailManager');
 
 let now = new Date();
 let dateStr = date.format(now, 'ddd MMM DD YYYY HH:mm');
@@ -127,7 +126,7 @@ var restCallBack = function (ans, data) {
 */
 // socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'uuid' : uuid_pdbCli });
 
-var ioPdbSubmissionCallback_task = function (data, uuid_pdbCli, socket){
+var ioPdbSubmissionCallback_task = function (data, uuid_pdbCli, socket, email){
     console.log('received ' + uuid_pdbCli);
     let ncpu = 16;
     let cnt = probeMax;
@@ -152,6 +151,7 @@ var ioPdbSubmissionCallback_task = function (data, uuid_pdbCli, socket){
             console.log("SOCKET : namespace is " + namespace);
             taskPatt = new RegExp(namespace);
             socket.emit("arDockStart", { 'restoreKey' : namespace, 'total' : probeTot, 'uuid' : uuid_pdbCli, 'typeComp' : 'cpu' });
+            if(email) mailManager.test(email);
         })
         .on('naccessEnd', () => {
             console.log("Naccess ends without any error");
