@@ -129,6 +129,29 @@ var testTemplateGenerate = function () {
     return header + body + trailer;
 }
 
+
+var _baseTemplateGenerate = function () {
+return '<!DOCTYPE html>TOTO'
++'<html>'
++'<head>'
++	'<title>jscolor Example</title>'
++'</head>'
++'<body style="text-align:center;">'
++'<script src="assets/jscolor.js"></script>'
++'<h2>Example 1</h2>'
++'Color: <input class="jscolor" value="ab2567">'
++'<h2>Example 2</h2>'
++'<button class="jscolor {valueElement:\'chosen-value\', onFineChange:\'setTextColor(this)\'}">Pick text color</button>'
++'HEX value: <input id="chosen-value" value="000000">'
++'<script>'
++'function setTextColor(picker) {'
++'document.getElementsByTagName(\'body\')[0].style.color = \'#\' + picker.toString()'
++'}'
++	'</script>'
++'	<p style="margin-top:3em;">Check out <a href="http://jscolor.com/examples/">more examples at jscolor.com</a>!</p>'
++'</body>'
++'</html>';
+}
 var baseTemplateGenerate = function () {
     var header = '<!DOCTYPE html><html class="ocks-org do-not-copy"><meta charset="utf-8">'
                     + '<head>'
@@ -145,6 +168,10 @@ var baseTemplateGenerate = function () {
                     + '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/TweenLite.min.js"></script>'
                     + '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/utils/Draggable.min.js"></script>'
                     + '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/plugins/CSSPlugin.min.js"></script>'
+                    + '<script src="assets/jscolor.js"></script>' //    
+                    /*+ '<script src="assets/bootstrap-colorpicker-3.0.0-beta.1/dist/js/bootstrap-colorpicker.js"></script>'
+                    + '<link href="assets/bootstrap-colorpicker-3.0.0-beta.1/dist/css/bootstrap-colorpicker.css" rel="stylesheet">'*/
+                 
                     + '</head>';
     var body = '<body>'
         + '<script src="js/bundleTest.js"></script>\n'
@@ -177,6 +204,7 @@ var ioActivate = function (fn1) {
         socket.on('ardockPdbSubmit', function (packet) {
             var uuid = packet.uuid;
             var data = packet.data;
+            var email = packet.email
             console.log('received ardockPdbSubmit event');
             var s = stream.Readable();
             s.push(data, 'utf-8');

@@ -35,6 +35,37 @@ Core.prototype.setFrame = function (type) {
     }
 }
 
+Core.prototype.getNode__ = function() {
+    if (! this.node) {
+       // console.log("Adding div " + 'div.widget#w_' + this.idNum + " to " + this.nodeRoot);
+        var string = this.scaffold();
+        this.node = $(this.nodeRoot).append(string)[0];
+        //this.node = $('div.widget#w_' + this.idNum)[0];
+    }
+    return this.node;
+}
+
+Core.prototype.display__ = function(event, callback) {
+
+    if (! this.node) {
+        /*
+        this.node = $(this.scaffold());
+        $(this.nodeRoot).append(this.node);
+        this.node = this.node[0];
+        */
+        var string = this.scaffold();
+        $(this.nodeRoot).append(string);
+        this.node = $('div.widget#w_' + this.idNum)[0];
+    }
+
+    /*
+    console.log("i display id num " + this.idNum);
+    console.log(this.scaffold());
+    */
+
+    $(this.node).show();
+};
+
 Core.prototype.getNode = function() {
     if (! this.node) {
        // console.log("Adding div " + 'div.widget#w_' + this.idNum + " to " + this.nodeRoot);
@@ -60,6 +91,7 @@ Core.prototype.display = function(event, callback) {
 
     $(this.node).show();
 };
+
 
 
 Core.prototype.show = function(event, callback) {

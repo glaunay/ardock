@@ -1,0 +1,26 @@
+div.arDockMail {
+    width: 250px;
+    float: right;
+    margin-top: -45px;
+}
+div.arDockMail div.email-input {
+    width : 243 px;
+    padding-top:0.2em;
+    margin-left:-40px   
+}
+div.arDockMail div.email-input .input-group-addon {
+    padding: 3px 10px;
+    background-color: whitesmoke;
+}
+div.arDockMail div.email-input input {
+    font-size: 0.75em;
+}
+
+div.arDockMail div.email-input .submissionHit {
+    cursor : not-allowed;
+}
+
+div.arDockMail div.email-input .submissionHit.submissionOK {
+    background-color : #9ada9a;
+    cursor : pointer;
+}

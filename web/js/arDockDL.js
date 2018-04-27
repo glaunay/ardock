@@ -57,6 +57,10 @@ arDockDownloader.prototype.display = function(opt) {
 
     var cNode = this.getContentNode();
     var bNode = this.getButtonNode();
+
+    console.log(cNode);
+    console.log(bNode);
+    
     $(cNode).addClass("ardockDLctrl");
     $(cNode).append(//$('body').append('<div class="ardockDLctrl">'
                  '<div class="btn-group">'
@@ -65,6 +69,11 @@ arDockDownloader.prototype.display = function(opt) {
                 + '<div class="btn btn-primary faBtnDL" ><i class="fa fa-cloud-upload fa-2x"></i></div>'
                 + '</div>'
                 );
+
+    //let emailFieldWidth = $(bNode).width() + $(cNode).find('.btn-group').width();
+    let emailFieldWidth = 243;
+    $(cNode).find('.email-input').width(emailFieldWidth + 'px');
+            $(cNode).find('.email-input').css('margin-left', '-40px'/*'-' + $(bNode).width() + 'px'*/);
     var self = this;
     $(cNode).find('.cuPdbDl').mouseout(function(){
         if (self.bDisabled) return;
@@ -127,6 +136,7 @@ arDockDownloader.prototype.display = function(opt) {
         }
 
         $(cNode).find('.btn-group').hide();
+        $(cNode).find('.email-input').hide();
 
         $(cNode).append('<div class="container keyContainer">'
                         + '<div class="row"><div class="input-group keyPaste">'
@@ -143,6 +153,7 @@ arDockDownloader.prototype.display = function(opt) {
             $(self.node).css('height', _h);
             $(cNode).find('div.keyContainer').remove();
             $(cNode).find('.btn-group').show();
+            $(cNode).find('.email-input').show();
             $(bNode).show();
             $(self.node).animate({
                 height: h ,
@@ -223,8 +234,8 @@ arDockDownloader.prototype.display = function(opt) {
             }, 250);
         }
     }
-}
 
+}
 
 module.exports = {
     new : function(opt) { var o = new arDockDownloader(opt); return o;}

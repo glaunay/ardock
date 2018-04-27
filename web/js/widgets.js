@@ -10,6 +10,8 @@ var NGL = require('ngl');
 var Core = require('./Core.js').Core;
 var arDockDL = require('./arDockDL.js');
 var arDockDT = require('./arDockDT.js');
+var arDockMail = require('./arDockMail.js');
+
 var fastaWidget = require('./arDockSQ.js');
 var pdbLib = require('pdb-lib');
 var stream = require('stream');
@@ -17,8 +19,9 @@ var events = require('events');
 
 var tLoader = require('./arLoader.js');
 
-
-
+var fileSaver = require('file-saver');
+var ColorPicker = require('simple-color-picker');
+let userEmail = null;
 ///////////////////////////////////////////////////////////////////////////////////////// GLOBAL //////////////////////////////////////////////////////////////
 
 
@@ -634,17 +637,23 @@ var DisplayTabs = function(opt){
                                 '<ul class="nav nav-tabs" id="tabs" style="border: none;">'+
                                     '<li role="presentation" class="active" id="addFile"><a href="#divAddFile">+ Add .pdb</a><div class="mask"></div></li>'+
                                 '</ul>'+
+                                '<div id="arDockMailHost"></div>' +
                                 '<div class="tab-content">'+
                                     '<div class="tab-pane fade in active" id="divAddFile">'+
                                     '</div>'+
                                 '</div>'+
+                                
                             '</div>');
 
 }
 
 DisplayTabs.prototype = Object.create(Core.prototype);
 DisplayTabs.prototype.constructor = DisplayTabs;
+DisplayTabs.prototype.display = function() {
+    Core.prototype.display.call(this);
+    /*console.log( this.getNode() );*/
 
+};
 /*DisplayTabs.prototype.display = function() {
     console.log("trying to display tab");
     console.log('displayTabs registered id is ' + this.idNum);
@@ -779,7 +788,6 @@ var Tab = function(opt){
     this.tabAdd = opt.tabAdd;//tab addTab
     this.container = opt.container;
     this.jobs = [];
-
     var initTab = function(){
     	$(self.tabList).append('<li role="presentation" class="'+ self.name +'"><a href="#' + self.name + '">' + self.name + '</a><i class="remove-tab"></i></li>');
 	    $(self.container).append('<div class="tab-pane fade container-fluid" id="'+ self.name +'">');//container-fluid
@@ -804,10 +812,24 @@ var Tab = function(opt){
             $(window).trigger("resize");
             //Add one job
             self.addJob();
-	    });
+        });
+        
     };
 
     $.when(initTab()).done(function(){
+
+        if( $('.arDockMail').length === 0 ) {
+            console.log('YY');
+
+            let el = $('#arDockMailHost')[0];
+            this.arDockMail = arDockMail.new({root : el});
+            this.arDockMail.display();
+            this.arDockMail.on('newEmail', (adress)=>{
+                console.log(adress); userEmail = adress;
+            });
+        } else {
+            console.log('NN');
+        }
         //Append mask background black for animation
         setTimeout(function(){
            $("#" + self.name).append('<div id="bkJob' + self.name + '" class="background-job"><span></span></div>');
@@ -818,7 +840,7 @@ var Tab = function(opt){
            $(window).trigger("resize");
         }, 2000);
 
-
+    
         //add one job at creation
         var pUUID = opt.hasOwnProperty('pUUID') ? opt.pUUID : null;
     	var curr_job = self.addJob(pUUID);
@@ -928,6 +950,22 @@ Tab.prototype.addJob = function(pUUID){
 
 //////////////////////////////////////////////////////////////////////////////////////////// JOB //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
+
++ '<div class="input-group email-input margin-bottom-sm">'
+//+ '<span class="input-group-addon"><i class="fa fa-envelope-o fa-fw"></i></span>'
++ '<span class="input-group-addon">Submit</span>'
++ '<input class="form-control" type="text" placeholder="Email adress to inform on results">'
++ '<span class="input-group-addon"><i class="fa fa-envelope-o fa-fw"></i></span>'
++ '</div>'
+let checkMail = function(value){
+    if(validator.validate(value))
+        console.log('mail ok');
+        
+}
+
+
+*/
 
 // GL the stash function access the pdbObj in a state where only CA are in current selection
 // TO INVESTIGATE
@@ -956,6 +994,15 @@ var Job = function(opt){
     this.baseRepresentation = null;
     this.colorScheme = 'base';
 
+    this.imageSave = function() {
+        this.stage.makeImage().then((blob)=>{
+            console.log(blob); 
+            fileSaver.saveAs(blob, 'arDockView.png'); 
+        })
+    };
+    this.setBackground = function(color) {
+        this.stage.setParameters({'backgroundColor':color});
+    };
 
     this.displayFatal = function(data){
         var self = this;
@@ -1027,7 +1074,7 @@ var Job = function(opt){
 
     this.send = function(pdbObj){//Emit after click Submit ('GO')
         //console.log("Emiting ardockPdbSubmit w/ " +  self.uuid );
-        WidgetsUtils.socketApp.emit('ardockPdbSubmit', {data : pdbObj.dump(), uuid: self.uuid});
+        WidgetsUtils.socketApp.emit('ardockPdbSubmit', {data : pdbObj.dump(), uuid: self.uuid, email:userEmail});
         //WidgetsUtils.socketApp.emit('ardockPdbSubmit', pdbObj.dump());
     };
 
@@ -1092,7 +1139,10 @@ var Job = function(opt){
         //-->SelectRepresentation
         self.listWidgets['selectRepresentation'] = new SelectRepresentation({root: self.listWidgets["pC"].panel, UUID: self.uuid, pdbObj: self.pdbObj, fileName : opt.name});
         self.listWidgets['selectRepresentation'].display();
-
+        self.listWidgets['selectRepresentation'].on('backgroundColorUpdate', (color)=> {          
+            self.setBackground(color);
+        });
+        self.listWidgets['selectRepresentation'].on('snapshot', ()=>{ self.imageSave(); });
         // RESUME HERE
         //--> add new component here, root value is PAnelControl which ensure that visual of new component will be place relative to canvas
 
@@ -1105,6 +1155,7 @@ var Job = function(opt){
         self.listWidgets['bookmarkDL'].on('END_click',function(){
             self.stash();
         });
+
          //pdbStashESP
 
         //WidgetsUtils.tabTabs[0].jobs[1].listWidgets.bookmarkDL.display({ position : 'br', absPosSpecs : {'top' : '200px'}})
@@ -1819,6 +1870,7 @@ var SelectRepresentation = function(opt) {
 
     WidgetsUtils.tabRepresentationTypeChangeable.forEach(function(el, i){
 
+
         //el.base (Boolean) --> get the representation is diplay first
 
         scaffold += '<div>'
@@ -1832,7 +1884,16 @@ var SelectRepresentation = function(opt) {
                    +'</div></div>'
         ;
     });
+    
+    //scaffold += '<button class="jscolor {valueElement:null,value:66ccff}" style="width:50px; height:20px;"></button>'
 
+    scaffold += '<div class="colorPickerHost">'
+    /*var x = document.createElement("INPUT");
+    x.setAttribute("type", "color");
+    document.body.appendChild(x);*/
+    + '</div><div class="camera"><span class="fa-stack fa-2x">'
+   + '<i class="fa fa-circle fa-stack-2x"></i>'
+   + '<i class="fa fa-camera fa-stack-1x fa-inverse"></i></span></div>';
     scaffold += '</div></div>';
 
     this.scaffold (scaffold);
@@ -1840,6 +1901,35 @@ var SelectRepresentation = function(opt) {
 
 SelectRepresentation.prototype = Object.create(Core.prototype);
 SelectRepresentation.prototype.constructor = SelectRepresentation;
+
+SelectRepresentation.prototype.display = function () {
+    Core.prototype.display.call(this);
+    console.dir(this.getNode());
+    //$(this.getNode()).find('.colorPickerHost').colorpicker();
+    //this.picker = tinycolorpicker(elem);
+    let self = this;
+    /*let colorPickerWrapper = $(this.getNode()).find('.colorPickerHost')[0]; 
+    $(this.getNode()).find('.colorPickerHost input').on('change',(e)=> { 
+        console.dir(e);
+        colorPickerWrapper.style.backgroundColor = e.target.value;    
+        self.emiter.emit('backgroundColorUpdate', e.target.value);
+    });*/
+    function update (e,i) {
+        self.emiter.emit('backgroundColorUpdate', '#'+this.toString());
+    }
+    
+    let host = $(this.getNode()).find('.colorPickerHost')[0];
+    var input = document.createElement('BUTTON')
+    var picker = new jscolor(input, {valueElement:null, onFineChange: update});
+    picker.fromString('000000');
+    picker.onFineChange = update;
+    let picker_ = host.appendChild(input);
+    $(this.getNode()).find('.camera').on('click', ()=> {this.emiter.emit('snapshot');});
+}
+
+SelectRepresentation.prototype.closeColorPicker = function () {
+    //$(this.getNode()).find('.colorPickerHost input').
+};
 
 SelectRepresentation.prototype.setNavigationRules = function() {
 
@@ -2467,18 +2557,25 @@ WidgetsUtils = {
         else{
 
             $magnifyResidue.css({
+                //"background-color": "whitesmoke",
                 "background-color": "transparent",
-                "padding": "10px",
-                "width": "200px",//"auto",
-                "height": "1em",//(WidgetsUtils.getHeightLeft() - heightNotAvailable) + "px",
-                "font-size": "10px",
+                //"padding": "10px",
+                "width": "100%",//"auto",
+                //"height": "1em",//(WidgetsUtils.getHeightLeft() - heightNotAvailable) + "px",
+                //"font-size": "10px",
                 "color": "white",
                 "cursor": "default",
-                "left": "-3px",
+              //  "left": "-3px",
                 "z-index": "15",
                 "pointer-events":"none",
                 "overflow": "hidden",
-                "top": (WidgetsUtils.heightUntilWorkspace() + 79) + "px"
+                "bottom": /*(WidgetsUtils.heightUntilWorkspace()  79) +*/ '10px',
+                'left' : '35%',
+                //'font-size: 20px;
+                //'font-weight': 400,
+                'font-size':'1.75em'//,
+                //'color': '#777'//,
+                //'text-shadow': '0 1px 0 #fff'
             })
             .find(".container-flow").empty().stop(true,true);
 
@@ -2500,7 +2597,8 @@ WidgetsUtils = {
                 var $para = $('<span style="display: block; margin:0; padding:0; height: ' + atomSpanHeight + 'px;pointer-events:none;"></span>');
                 var line = "";
 
-                if(i === 0){ $para.css({"font-size": "12px", "height": chainSpanHeight + "px"}) }
+                //if(i === 0){ $para.css({"font-size": "12px", "height": chainSpanHeight + "px"}) }
+                if(i === 0){ $para.css({"font-size": "1em", "height": "1em"}) }
                 else{
                     $tabSpans.push($para);
                     totalSpanHeight += atomSpanHeight;

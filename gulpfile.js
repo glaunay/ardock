@@ -122,9 +122,8 @@ gulp.task('default', () =>
 
 gulp.task('server', function (cb) {
     //spawn('node', ['index.js', '--conf', '../default.conf', '--http','--slurm','-p','3'], { stdio: 'inherit' })
-    spawn('node', ['index.js', '--conf', '../webServer.conf', '--http','--slurm','-p','25','-d', '/data/dev/ardock/tmp/persistantNslurmCache_dvl'], { stdio: 'inherit' })
-
- /*
+    spawn('node', ['index.js', '--conf', './node_modules/nslurm/config/arwen-dev_ardockConf.json', '--set', '../webServer.conf', '--http','--slurm','-p','1','-d', '/data/dev/ardock/tmp/persistantNslurmCache_dvl'], { stdio: 'inherit' })
+     /*
  exec('node index.js --conf ../default.conf --http', function (err, stdout, stderr) {
     console.log(stdout);
     console.log(stderr);

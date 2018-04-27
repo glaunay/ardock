@@ -181,7 +181,17 @@ div.ardockDLctrl div.btn.disabled {
 }
 
 
-
+div.ardockDLctrl div.email-input {
+    width : 243 px;
+    padding-top:0.2em;
+    margin-left:-40px   
+}
+div.ardockDLctrl div.email-input .input-group-addon {
+    padding: 3px 10px;
+}
+div.ardockDLctrl div.email-input input {
+    font-size: 0.75em;
+}
 /*
 div.ardockDLctrl.content {
     background-color: rgba(204, 204, 204, 0.88)!important;

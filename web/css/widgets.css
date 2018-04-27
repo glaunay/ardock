@@ -3,6 +3,37 @@ div.summaryMenu {
     z-index: 7;
 }
 
+div.widget.selectRepresentation .camera {
+    color: #34f399d4;
+    /*border: grey solid 3px;*/
+    /*padding: 0.5em;*/
+    vertical-align: top;
+    font-size: 1.1em;
+    cursor: pointer;
+    margin-top: -4px;
+    margin-left : -4px;
+    /*border-radius: 2em;*/
+} 
+
+div.widget.selectRepresentation .colorPickerHost {
+    /*border-radius: 50%;*/
+    /*border : solid 3px grey;*/
+   /* height: 50px;
+    width: 50px;*/
+    vertical-align: top;
+    outline: none;
+}
+
+div.widget.selectRepresentation .colorPickerHost button {
+    /*opacity:0;*/
+    cursor: pointer;
+    height: 50px;
+    width: 50px;
+    border : solid 3px grey;
+    border-radius: 50%;
+    outline: none;
+}
+
 div.summaryMenu div {
     cursor: pointer;
 }
