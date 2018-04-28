@@ -109,7 +109,7 @@ $(function () {
 
     //Upload Change
     var upload = function (input, widget) {
-
+        
         var file,
             lCount = 0;
         var res;

@@ -11,18 +11,19 @@ let sendTest = function(adress) {
 
     let email = new Email({
       message: {
-        from: 'niftylettuce@gmail.com'
+        from: 'guillaume.launay@ibcp.fr'
       },
       // uncomment below to send emails in development/test env:
-      // send: true
+      send: true,
       transport: {
         jsonTransport: true
-      }
+      }/*,
+      textOnly: true*/
     });
     
     email
       .send({
-        template: 'tests',
+        template: 'test',
         message: {
           to: adress
         },
@@ -30,8 +31,14 @@ let sendTest = function(adress) {
           name: 'Elon'
         }
       })
-      .then(console.log)
-      .catch(console.error);
+      .then((e)=>{
+        console.log("success sending");
+        console.log(e); 
+      })
+      .catch((e)=>{
+          console.log("error sending!!!");
+          console.error(e);
+        });
 
 }
 

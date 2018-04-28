@@ -211,7 +211,10 @@ var UploadBox = function (opt) {
 
     this.input = $(this.node).find('input')[0];
 
-    $(this.input).on('change', function(){ self.emiter.emit('change', self.input, self); });
+    $(this.input).on('change', function(){         
+        self.emiter.emit('change', self.input, self); 
+        $(self.input).prop("value", "");
+    });
 
     $(this.node).find('div.browse').on('click', function(){
         //Handle compatibility browser
@@ -2921,10 +2924,12 @@ WidgetsUtils = {
         var schemeId = null;
         var tabAtoms = [];
 
+        
         nglComponent.stage.signals.clicked.removeAll();
 
         nglComponent.stage.signals.clicked.add(function(pd) {
             tabAtoms = [];
+            console.log("-->Clicked");
 
             if (pd.atom) {
 
@@ -2974,7 +2979,7 @@ WidgetsUtils = {
     *
     */
     setNGLHoveredFunction : function(uuid){
-        return; // Disable for now, for styling reasons
+        //return; // Disable for now, for styling reasons
         var nglComponent = WidgetsUtils.tabNGLComponents[uuid];
 
         nglComponent.stage.signals.hovered.removeAll();
@@ -2986,25 +2991,25 @@ WidgetsUtils = {
 
                 $magnify
                     .css("background-color", "rgba(255,255,255,0.8)")
-                    .css("padding", "10px")
+                    .css("padding", "4px")
                     .css("width", "auto")
-                    .css("height", "1em")
-                    .css("border-radius", "15px")
+                    .css("height", "2em")
+                    //.css("border-radius", "15px")
                     .css("font-size", "14px")
                     .css("color", "black")
                     .css("left", (WidgetsUtils.mousePagePosition.x + 1) + "px")
                     .css("top", (WidgetsUtils.mousePagePosition.y + 1) + "px")
-                    .text("Atom: " + pd.atom.qualifiedName())
+                    .text(pd.atom.qualifiedName())
                     .stop(true,true)
                     .show()
-                    .fadeOut(6000)
+                    //.fadeOut(1500)
                 ;
-
-                if(nglComponent.objectAtoms()){ // This test is deprecated now
+                return;
+                /*if(nglComponent.objectAtoms()){ // This test is deprecated now
                     if(nglComponent.objectAtoms()[pd.atom.serial]){
                         $magnify.append('<p>Bfactor : ' + nglComponent.objectAtoms()[pd.atom.serial].tempFactor + '</p>');
                     }
-                }
+                }*/
 
                 var widthBody = document.body.clientWidth;
                 var heightBody = document.body.clientHeight;
@@ -3289,7 +3294,7 @@ WidgetsUtils = {
         var schemeId = null;
         var tabAtoms = [];
 
-
+        console.log('UII');
 
         var job = WidgetsUtils.tabJobs[uuid];
 
@@ -3337,7 +3342,7 @@ WidgetsUtils = {
         //DVL
         if(afterProbe){
             //console.log("on screen Repr is " + nglComponent.baseRepresentation.name);
-            nglComponent.removeArdockPicker();
+            //nglComponent.removeArdockPicker();
             if (nglComponent.baseRepresentation.name === "ball+stick") {
             //console.log("on screen Repr is " + nglComponent.baseRepresentation.name);
 
