@@ -36,6 +36,7 @@ let sendTest = function(adress) {
     },
     // uncomment below to send emails in development/test env:
     send: true,
+    
     transport: ibcpTransporter/* {
       jsonTransport: true
     }*//*,
@@ -94,8 +95,8 @@ let sendStart = function(adress, jobKey) {
         }
       })
       .then((e)=>{
-        console.log("success sending");
-        console.log(e); 
+       /* console.log("success sending");
+        console.log(e); */
       })
       .catch((e)=>{
           console.log("error sending!!!");
@@ -111,6 +112,7 @@ let sendEnd = function(adress, jobKey) {
     },
     // uncomment below to send emails in development/test env:
     send: true,
+    textOnly: true,
     transport: ibcpTransporter/* {
       jsonTransport: true
     }*//*,
@@ -128,8 +130,8 @@ let sendEnd = function(adress, jobKey) {
       }
     })
     .then((e)=>{
-      console.log("success sending");
-      console.log(e); 
+     /* console.log("success sending");
+      console.log(e); */
     })
     .catch((e)=>{
         console.log("error sending!!!");
