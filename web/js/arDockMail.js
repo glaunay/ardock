@@ -34,9 +34,7 @@ arDockMail.prototype.display = function(opt) {
     let self = this;
     input.addEventListener('input', function()
     {
-        console.log('input changed to: ', input.value);
         self.checkMail(input.value);
-
     });
 };
 
@@ -45,23 +43,28 @@ arDockMail.prototype.checkMail = function(value){
     $(this.getNode()).find('.submissionHit').off('click');
     $(this.getNode()).find('.submissionHit').html('Submit');
     if(validator.validate(value)) {
-        console.log('mail ok');
         this.email = value;
         let self = this;
-        $(this.getNode()).find('.submissionHit').addClass('submissionOK');
+        $(this.getNode()).find('.submissionHit').addClass('submissionPunchMe');
+        //.submissionPunchMe
         $(this.getNode()).find('.submissionHit').on('click', () => {
             self.emiter.emit('newEmail', self.email);
-            $(this.getNode()).find('.submissionHit').html('<i class="fa fa-check" aria-hidden="true"></i>');
+            $(this.getNode()).find('.submissionHit')
+            .removeClass('submissionPunchMe').addClass('submissionOK')
+            .html('<i class="fa fa-check" aria-hidden="true"></i>');
         });
     } else {
-        $(this.getNode()).find('.submissionHit').removeClass('submissionOK');
+        $(this.getNode()).find('.submissionHit').removeClass('submissionOK').removeClass('submissionPunchMe');
        
     }
     
 }
 
 
-
+arDockMail.prototype.lock = function() {
+    $(this.getNode()).find('input').prop('readonly', true);
+    $(this.getNode()).find('.submissionHit.submissionOK').html('<i class="fa fa-lock" aria-hidden="true"></i>');
+}
 
 
 module.exports = {

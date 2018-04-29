@@ -822,12 +822,12 @@ var Tab = function(opt){
     $.when(initTab()).done(function(){
 
         if( $('.arDockMail').length === 0 ) {
-            console.log('YY');
+            console.log('HOHO');
 
             let el = $('#arDockMailHost')[0];
-            this.arDockMail = arDockMail.new({root : el});
-            this.arDockMail.display();
-            this.arDockMail.on('newEmail', (adress)=>{
+            WidgetsUtils.arDockMail = arDockMail.new({root : el});
+            WidgetsUtils.arDockMail.display();
+            WidgetsUtils.arDockMail.on('newEmail', (adress)=>{
                 console.log(adress); userEmail = adress;
             });
         } else {
@@ -1208,6 +1208,7 @@ var Job = function(opt){
             self.closeViews();
             self.showProbeTimer();
             self.send(pdbObj);
+            WidgetsUtils.arDockMail.lock();
         });
 
         self.listWidgets['selectRepresentation'].setNavigationRules();
@@ -1924,9 +1925,14 @@ SelectRepresentation.prototype.display = function () {
     let host = $(this.getNode()).find('.colorPickerHost')[0];
     var input = document.createElement('BUTTON')
     var picker = new jscolor(input, {valueElement:null, onFineChange: update});
+ 
     picker.fromString('000000');
     picker.onFineChange = update;
     let picker_ = host.appendChild(input);
+    let i = $('<i class="fa fa-adjust fa-4x" aria-hidden="true"></i>');
+    $(picker_).append(i);
+    $(i).on('click', ()=>{ picker.show(); });
+ 
     $(this.getNode()).find('.camera').on('click', ()=> {this.emiter.emit('snapshot');});
 }
 
@@ -2633,8 +2639,11 @@ WidgetsUtils = {
             if(totalSpanHeight > $magnifyResidue.height()){ scroll() }
 
             //Handle resize
+            // Now disable b/c magnified is placed in neutral bottom position
             $(window).resize(function(){
-                $magnifyResidue.css( {"height": (WidgetsUtils.getHeightLeft() - heightNotAvailable), "top": WidgetsUtils.heightUntilWorkspace() + 83 });
+                return;
+                $magnifyResidue.css( {"height": (WidgetsUtils.getHeightLeft() - heightNotAvailable), 
+                                      "top": WidgetsUtils.heightUntilWorkspace() + 83 });
 
                 //Scroll if if some span(s) hidden and animate is not already launch
                 if(totalSpanHeight > $magnifyResidue.height() && animate){ scroll() }

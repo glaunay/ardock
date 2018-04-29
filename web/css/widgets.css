@@ -32,6 +32,13 @@ div.widget.selectRepresentation .colorPickerHost button {
     border : solid 3px grey;
     border-radius: 50%;
     outline: none;
+    font-size :1.1em;
+}
+div.widget.selectRepresentation .colorPickerHost button i {
+    vertical-align: top;
+    margin-top: -7px;
+    margin-left: -5px;
+    color:grey;
 }
 
 div.summaryMenu div {

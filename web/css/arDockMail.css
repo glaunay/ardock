@@ -22,5 +22,26 @@ div.arDockMail div.email-input .submissionHit {
 
 div.arDockMail div.email-input .submissionHit.submissionOK {
     background-color : #9ada9a;
-    cursor : pointer;
+    cursor:default;
 }
+
+div.arDockMail div.email-input .submissionPunchMe {
+    /*width: 50px;
+    height: 50px;*/
+    cursor : pointer;
+    -webkit-animation: HIT-ME 1s infinite;  /* Safari 4+ */
+    -moz-animation: HIT-ME 1s infinite;  /* Fx 5+ */
+    -o-animation: HIT-ME 1s infinite;  /* Opera 12+ */
+    animation: HIT-ME 1s infinite;  /* IE 10+, Fx 29+ */
+  }
+  
+  @-webkit-keyframes HIT-ME {
+    0%, 49% {
+      background-color: #9ada9a;
+      border: 3px solid whitesmoke;
+    }
+    50%, 100% {
+      background-color:whitesmoke;
+      border: 3px solid #9ada9a;
+    }
+  }
