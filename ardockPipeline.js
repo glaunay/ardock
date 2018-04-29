@@ -76,9 +76,9 @@ class ardockPipeline {
                         });
                         if (counter == 0) { // if all the probes have been processed
                             if (! hexError) { // if no error from all Hex jobs
-                                self.emitter.emit('allProbes');
+                                self.emitter.emit('allProbes', namespace);
                             } else {
-                                self.emitter.emit('hexErr');
+                                self.emitter.emit('hexErr', namespace);
                             }
                         }
                     }

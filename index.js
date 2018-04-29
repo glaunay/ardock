@@ -151,7 +151,7 @@ var ioPdbSubmissionCallback_task = function (data, uuid_pdbCli, socket, email){
             console.log("SOCKET : namespace is " + namespace);
             taskPatt = new RegExp(namespace);
             socket.emit("arDockStart", { 'restoreKey' : namespace, 'total' : probeTot, 'uuid' : uuid_pdbCli, 'typeComp' : 'cpu' });
-            if(email) mailManager.test(email);
+            if(email) mailManager.start(email, namespace);
         })
         .on('naccessEnd', () => {
             console.log("Naccess ends without any error");
@@ -165,11 +165,13 @@ var ioPdbSubmissionCallback_task = function (data, uuid_pdbCli, socket, email){
             data['uuid'] = uuid_pdbCli;
             socket.emit('arDockChunck', data);
         })
-        .on('allProbes', () => {
+        .on('allProbes', (namespace) => {
             console.log('All hex jobs end without any error');
+            if(email) mailManager.end(email, namespace);
         })
-        .on('hexErr', (msg) => {
+        .on('hexErr', (msg, namespace) => {
             console.log("Top-Level hex error : " + msg);
+            //if(email) mailManager.error(email, namespace);
             socket.emit("arDockError", { 'type' : 'fatal', 'msg': msg, 'uuid' : uuid_pdbCli });
         });
     });
@@ -298,6 +300,7 @@ if (!ardockSett) {
 }
 HPC_Lib.configure({ probeMax : probeMax, bean : bean });
 PDB_Lib.configure({ probeMax : probeMax, bean : bean });
+mailManager.configure(ardockSett.mail);
 PDB_Lib.setEspritDir(ardockSett.httpVar.espritDir);
 //console.dir(bean);
 
