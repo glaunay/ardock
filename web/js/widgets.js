@@ -2938,7 +2938,7 @@ WidgetsUtils = {
 
         nglComponent.stage.signals.clicked.add(function(pd) {
             tabAtoms = [];
-            console.log("-->Clicked");
+            //console.log("-->Clicked");
 
             if (pd.atom) {
 
@@ -3303,8 +3303,7 @@ WidgetsUtils = {
         var schemeId = null;
         var tabAtoms = [];
 
-        console.log('UII');
-
+       
         var job = WidgetsUtils.tabJobs[uuid];
 
         //console.log('--->' + job.colorScheme);
@@ -3432,7 +3431,9 @@ WidgetsUtils = {
             //var tabchains = data.pdbObj.model(1).listChainID();
             var nglComponent = WidgetsUtils.tabNGLComponents[data.uuid];
 
+            // Unbind here ::: ICI
             nglComponent.stage.signals.clicked.removeAll();
+            
             nglComponent.probeMax = data.hasOwnProperty('probeMax') ? data['probeMax'] : 3 ;
             nglComponent.probeStart = true;
             nglComponent.probe++;

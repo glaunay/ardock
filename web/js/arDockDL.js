@@ -57,9 +57,6 @@ arDockDownloader.prototype.display = function(opt) {
 
     var cNode = this.getContentNode();
     var bNode = this.getButtonNode();
-
-    console.log(cNode);
-    console.log(bNode);
     
     $(cNode).addClass("ardockDLctrl");
     $(cNode).append(//$('body').append('<div class="ardockDLctrl">'
