@@ -195,20 +195,20 @@ var ioKeySubmissionCallback = function (key, socket) {
     PDB_Lib.keyRequest(key)
     .on('completed', function (pdb, nProbes) {
         //console.log(pdb.model(1).dump());
-        console.log('All jobs are completed');
+        console.log('Key request ' + key + ' , all jobs are completed');
         socket.emit("arDockRestore", { 'obj' : pdb.model(1).dump(), 'left' : 0, 'uuid' : key, 'probeMax' : nProbes });
     })
     .on('errJobs', function () {
-        console.log('Error during calculations');
+        console.log('Key request ' + key + ' , Error during calculations');
         socket.emit('arDockRestoreError', { 'uuid' : key });
     })
     .on('notFinished', function (jobStatus) {
         //console.log(jobStatus);
-        console.log('Some jobs are not finished');
+        console.log('Key request ' + key + ' , Some jobs are not finished');
         socket.emit('arDockRestoreBusy', { 'uuid' : key, 'status' : jobStatus});
     })
     .on('errKey', function () {
-        console.log('This key does not exist');
+        console.log('Key request ' + key + ' , this key does not exist');
         socket.emit('arDockRestoreUnknown', {'uuid' : key});
     });
 }

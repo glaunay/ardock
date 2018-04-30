@@ -386,7 +386,7 @@ var setUpRestoreConnections = function (){
 // we want to register the uuid too
     WidgetsUtils.socketApp.on("arDockRestore", function(data){
     // { 'obj' : pdb.model(1).dump(), 'left' : 0, 'uuid' : key }
-        /*console.log("arDockRestore packet");
+       /* console.log("arDockRestore packet");
         console.dir(data);*/
         var displayTabs = WidgetsUtils.displayTabs;
         var s = stream.Readable();
@@ -822,7 +822,6 @@ var Tab = function(opt){
     $.when(initTab()).done(function(){
 
         if( $('.arDockMail').length === 0 ) {
-            console.log('HOHO');
 
             let el = $('#arDockMailHost')[0];
             WidgetsUtils.arDockMail = arDockMail.new({root : el});
@@ -830,9 +829,8 @@ var Tab = function(opt){
             WidgetsUtils.arDockMail.on('newEmail', (adress)=>{
                 console.log(adress); userEmail = adress;
             });
-        } else {
-            console.log('NN');
         }
+        
         //Append mask background black for animation
         setTimeout(function(){
            $("#" + self.name).append('<div id="bkJob' + self.name + '" class="background-job"><span></span></div>');
@@ -2062,7 +2060,7 @@ var PdbThreeD = function(opt){
     };
 
     var createCanvas = function(args){
-        console.log("Creating canvs");
+        //console.log("Creating canvs");
         //Clear PdbObj chains after a pull on an other operation
         self.pdbObj.model(1).listChainID();
         var stringBlob = null;
