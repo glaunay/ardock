@@ -1,6 +1,8 @@
 var express = require('express');
 var favicon = require('serve-favicon');
 
+var mailManager = require('./mailManager');
+
 var app = express();
 app.use(favicon(__dirname + '/favicon.ico'));
 
@@ -81,6 +83,11 @@ var httpStart = function(ardockSett, bIo, bTest, bRest) {
              res.sendFile(__dirname + '/assets/tutorial.html');
     });
 
+    app.get('/mail', function(req, res) {
+        mailManager.start('pitooon@gmail.com', 'tesUUID');
+        mailManager.end('pitooon@gmail.com', 'tesUUID');
+        
+    });
 
     if (bTest) {
         app.get('/test', function(req, res){

@@ -300,7 +300,7 @@ if (!ardockSett) {
 }
 HPC_Lib.configure({ probeMax : probeMax, bean : bean });
 PDB_Lib.configure({ probeMax : probeMax, bean : bean });
-mailManager.configure(ardockSett.mail);
+mailManager.configure(/*ardockSett.mail*/);
 PDB_Lib.setEspritDir(ardockSett.httpVar.espritDir);
 //console.dir(bean);
 
