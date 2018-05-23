@@ -235,6 +235,11 @@ var ioActivate = function (fn1) {
             ioESPriptRoute(uuid, s, socket, max, ESP_limit);
         })
 
+        socket.on('disconnect', function () {
+            let cDate = new Date(Date.now()).toLocaleString();
+            console.log( cDate +  ' ========> Client disconnect');
+        });
+
     });
 }
 

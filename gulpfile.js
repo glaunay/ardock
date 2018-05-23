@@ -122,7 +122,7 @@ gulp.task('default', () =>
 
 gulp.task('server', function (cb) {
     //spawn('node', ['index.js', '--conf', '../default.conf', '--http','--slurm','-p','3'], { stdio: 'inherit' })
-    spawn('node', ['index.js', '--conf', './node_modules/nslurm/config/arwen-dev_ardockConf.json', '--set', '../webServer.conf', '--http','--slurm','-p','1','-d', '/data/dev/ardock/tmp/persistantNslurmCache_dvl'], { stdio: 'inherit' })
+    spawn('node', ['index.js', '--conf', './node_modules/nslurm/config/arwen-dev_ardockConf.json', '--set', '../webServer.conf', '--http','--slurm','-p','5','-d', '/data/dev/ardock/tmp/persistantNslurmCache_dvl'], { stdio: 'inherit' })
      /*
  exec('node index.js --conf ../default.conf --http', function (err, stdout, stderr) {
     console.log(stdout);
@@ -134,3 +134,14 @@ gulp.task('server', function (cb) {
 
 gulp.task("compile", ["watch","js"]);
 gulp.task("default", ["watch", "js", "server"]);
+
+
+/* Restore a 5 probes job w/ key -> Error in calc
+ 45d41555-fbe5-4e31-9a33-d02d6b5254ca
+ */
+
+
+ /* Restore a 5 probes job w/ key => OK
+    45d41555-fbe5-4e31-9a33-d02d6b5254ca
+
+ */

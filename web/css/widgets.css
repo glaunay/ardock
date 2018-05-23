@@ -240,3 +240,14 @@ div.END_lW .END_lW_right {
 div.END_lW .END_lW_right i {
     cursor : pointer;
 }
+
+div.throwBox {
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20%;   
+}
+div.throwBox .head {
+    text-align: center;
+    padding-bottom: 10px;
+}

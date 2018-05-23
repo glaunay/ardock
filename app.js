@@ -3,7 +3,7 @@ window.$ = window.jQuery = require('jquery');
 var Backbone = require('backbone');
 Backbone.$ = $;
 var io = require('socket.io-client/dist/socket.io.js');
-var serverDomain='http://ardock-dev.ibcp.fr'
+var serverDomain='http://ardock-dev.ibcp.fr:80'
 var socket = io.connect(serverDomain);
 //var socket = io.connect('http://92.222.65.71:3000');
 
@@ -33,11 +33,18 @@ socket.on('news', function (data) {
     });
 });
 socket.on('connect', function () {
-    console.log('Opening socket w/ ' + serverDomain);
+   /* console.log('Opening socket w/ ' + serverDomain);
+    console.dir(socket);*/
 })
 
+socket.on('disconnect', () => {
+    //console.log("Disonnected");
+    widgets.disconnectionThrow(); // THROW USER :((
+    //socket.connect();
+});
+
 socket.on('greetings', function () {
-    console.log('connected!');
+   // console.log('connected!');
     socket.emit('ardock openStream', {
         "Client Request": navigator.userAgent
     });
@@ -220,7 +227,7 @@ $(function () {
         })
     ;
 
-
+   
     //Upload Display
     var uploadBox = widgets.uploadBox({
         root: $('#divAddFile')

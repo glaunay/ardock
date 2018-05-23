@@ -427,7 +427,7 @@ var setUpRestoreConnections = function (){
             });
     });
 
-    WidgetsUtils.socketApp.on('errJob', function (data) {
+    WidgetsUtils.socketApp.on('arDockRestoreError', function (data) {
     //{ 'uuid' : key }
         WidgetsUtils.blocker.displayJobError();
         console.log('Error during calculations');
@@ -443,15 +443,16 @@ var setUpRestoreConnections = function (){
         var key = data.uuid;
         var n = data.status.completed.length,
             t = data.status.completed.length + data.status.pending.length + data.status.running.length;
-        console.log('Some jobs are not finished');
+       /* console.log('Some jobs are not finished');
+        console.dir(data);*/
 
         WidgetsUtils.blocker.displayProgress({ num : n, div : t });
 
         setTimeout(function(){
-            console.log("resending key");
+          //  console.log("resending key");
             restore(key);
             }
-            ,2000);
+            ,10000);
     });
 
     WidgetsUtils.socketApp.on('arDockRestoreUnknown', function () {
@@ -827,7 +828,8 @@ var Tab = function(opt){
             WidgetsUtils.arDockMail = arDockMail.new({root : el});
             WidgetsUtils.arDockMail.display();
             WidgetsUtils.arDockMail.on('newEmail', (adress)=>{
-                console.log(adress); userEmail = adress;
+                //console.log(adress); 
+                userEmail = adress;
             });
         }
         
@@ -839,7 +841,7 @@ var Tab = function(opt){
                $("#bkJob" + self.name).css({"top": $("#" + self.name).outerHeight(), "height": $("#bkJob" + self.name).parent().find("canvas").height()});//WidgetsUtils.getHeightLeft()
            });
            $(window).trigger("resize");
-        }, 2000);
+        }, 10000);
 
     
         //add one job at creation
@@ -1906,7 +1908,7 @@ SelectRepresentation.prototype.constructor = SelectRepresentation;
 
 SelectRepresentation.prototype.display = function () {
     Core.prototype.display.call(this);
-    console.dir(this.getNode());
+    //console.dir(this.getNode());
     //$(this.getNode()).find('.colorPickerHost').colorpicker();
     //this.picker = tinycolorpicker(elem);
     let self = this;
@@ -3517,6 +3519,31 @@ WidgetsUtils = {
 
 }
 
+let disconnectionThrow = function () {
+    let availableKeys = [];
+    let availableKeysHTML = '';
+    for (let jid in WidgetsUtils.tabJobs) {
+        if ( WidgetsUtils.tabJobs[jid].hasOwnProperty('restoreKey') )
+            availableKeys.push(WidgetsUtils.tabJobs[jid].restoreKey);
+    }
+    if(availableKeys.length > 0)
+        availableKeysHTML = '<div>The following job(s) could be restored:<ul class="fa-ul"><li><i class="fa-li fa fa-square"></i>' + availableKeys.join('</li><li><i class="fa-li fa fa-square"></i>') + '</li></ul></div>';
+    $('body').prepend( '<div class="blocker throwBackground">'
+                    + '<div class="alert alert-danger throwBox">'
+                    + '<div class="head"><span><span class="fa-stack fa-lg">'
+                    + '<i class="fa fa-circle fa-stack-2x"></i>'
+                    + '<i class="fa fa-bolt fa-stack-1x fa-inverse"></i>'
+                    // + '<i class="fa fa-bolt fa-stack-1x"></i>'
+                   // + '<i class="fa fa-ban fa-stack-2x"></i>'
+                    + '</span></span>'
+                    + '<strong>Disconnected from the server.</strong> Current session must terminate.</div>'
+                    + availableKeysHTML
+                    + '<div>We apologize for the inconvenience. If the problem persists please <strong><a href="mailto:ardock-support@ibcp.fr">contact us.</a></strong></div>'
+                    + '</div>'
+                  + '</div>');
+
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // WidgetsUtils.W_counts++;
 ////////////////////////////////////////////////////////////////////////////////// MODULES EXPORT /////////////////////////////////////////////////////////////////////////////////////////
@@ -3526,6 +3553,7 @@ module.exports = {
     loader : function(opt){ var obj = new Loader(opt);return obj; },
     pdbSummary : function(opt){ var obj = new PdbSummary(opt);return obj; },
     displayTabs : function(opt){ var obj = new DisplayTabs(opt);return obj; },
-    uploadBox : function(opt){ var obj = new UploadBox(opt);return obj; }
+    uploadBox : function(opt){ var obj = new UploadBox(opt);return obj; },
+    disconnectionThrow : disconnectionThrow
 };
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

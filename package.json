@@ -4,6 +4,7 @@
   "description": "Node, browserify implementation of the Arbitrary Docking Server",
   "main": "index.js",
   "dependencies": {
+    "ardock-fork-async-restore": "^1.0.4",
     "backbone": "^1.2.3",
     "body-parser": "^1.15.0",
     "bootstrap": "^3.3.6",

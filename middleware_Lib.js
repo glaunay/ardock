@@ -5,6 +5,8 @@ var events = require('events');
 var bean;
 let espritDir = null;
 
+let keyRestoreLib = require('ardock-fork-async-restore');
+
 var pdbLoad = function(bTest, opt) {
     var emitter = new events.EventEmitter();
     if(bTest) {
@@ -267,6 +269,10 @@ var findPath = function (myNamespace) {
 }
 
 
+
+
+
+
 /*
 * On a key request :
 * (1) find the path to the namespace directory nsDir (thanks to @key = "namespace")
@@ -275,7 +281,7 @@ var findPath = function (myNamespace) {
 * (4) find the .out file in case the job is completed
 * (5)
 */
-var keyRequest = function (key) {
+var keyRequest_old = function (key) {
     if (! key) throw 'No key specified';
 
     let emitter = new events.EventEmitter();
@@ -339,12 +345,16 @@ var keyRequest = function (key) {
 
 
 
-
+//let asyncKeyRequest = require("./globKeyRequestPrototype/index.js");
 
 module.exports = {
     pdbLoad : pdbLoad,
     pdbWrite : pdbWrite,
-    keyRequest : keyRequest,
+    //keyRequest : keyRequest,
+    keyRequest : function(keyID){
+        //return asyncKeyRequest.restore(keyID, bean.cacheDir, bean.binaries.queueBin);
+        return keyRestoreLib.restore(keyID, bean.cacheDir, bean.binaries.queueBin, probeMax);
+    },
     bFactorUpdate : bFactorUpdate,
     configure : function(data){ probeMax = data.probeMax; bean = data.bean;
         console.log("Configuring middleware with following bean:\n");console.dir(bean);},

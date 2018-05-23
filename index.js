@@ -34,6 +34,16 @@ let dateStr = date.format(now, 'ddd MMM DD YYYY HH:mm');
 
 console.log(dateStr + " : ------------- STARTING ARDOCK SERVER -------------");
 
+
+
+/*
+    Submission key valid for 5 probes
+
+    b74aed10-5c2c-46d8-9a3f-f9abf8fa220e
+*/
+
+
+
 /* Last update : GL 2016-02-18
 
 
@@ -127,6 +137,10 @@ var restCallBack = function (ans, data) {
 // socket.emit("arDockChunck", { 'obj' : pdbObj.model(1).dump(), 'left' : cnt, 'uuid' : uuid_pdbCli });
 
 var ioPdbSubmissionCallback_task = function (data, uuid_pdbCli, socket, email){
+    
+   // Simulate server disconnection
+   // setTimeout(()=>{ socket.disconnect();},20000);
+    
     console.log('received ' + uuid_pdbCli);
     let ncpu = 16;
     let cnt = probeMax;
@@ -195,7 +209,7 @@ var ioKeySubmissionCallback = function (key, socket) {
     PDB_Lib.keyRequest(key)
     .on('completed', function (pdb, nProbes) {
         //console.log(pdb.model(1).dump());
-        console.log('Key request ' + key + ' , all jobs are completed');
+        console.log(`Key request ${key}, all jobs (${nProbes}) are completed`);
         socket.emit("arDockRestore", { 'obj' : pdb.model(1).dump(), 'left' : 0, 'uuid' : key, 'probeMax' : nProbes });
     })
     .on('errJobs', function () {
