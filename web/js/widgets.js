@@ -212,8 +212,9 @@ var UploadBox = function (opt) {
     this.display();
 
     this.input = $(this.node).find('input')[0];
-
-    $(this.input).on('change', function(){         
+    
+    
+    $(this.input).on('change', function(){     
         self.emiter.emit('change', self.input, self); 
         $(self.input).prop("value", "");
     });
@@ -221,6 +222,7 @@ var UploadBox = function (opt) {
     $(this.node).find('div.browse').on('click', function(){
         //Handle compatibility browser
         if(!WidgetsUtils.getBrowserCompatibility()){
+            console.warn('Sorry, your browser is not compatible with some WEBGL features. Please change to an updated version of "Chrome" or "Firefox" !');
             $(".info").text('Sorry, your browser is not compatible with some WEBGL features. Please change to an updated version of "Chrome" or "Firefox" !');
             return false;
         }
@@ -259,12 +261,15 @@ var UploadBox = function (opt) {
 
     $(".key-submiter").click(function(e){
         //Handle compatibility browser
+        console.log("OUHPUH");
         if(!WidgetsUtils.getBrowserCompatibility()){
             $(".info").text('Sorry, your browser is not compatible with some WEBGL features. Please change to an updated version of "Chrome" or "Firefox" !');
             return false;
         }
+
         WidgetsUtils.blocker = new keySubmitBox();
         WidgetsUtils.blocker.display();
+        console.log("TWIX")
         //setTimeout(function(){  WidgetsUtils.blocker.remove(); }, 1000 * 1);
     });
 
@@ -2361,7 +2366,7 @@ WidgetsUtils = {
             // Edge 20+
         var isEdge = !isIE && !!window.StyleMedia;
             // Chrome 1+
-        var isChrome = !!window.chrome && !!window.chrome.webstore;
+        var isChrome = !!window.chrome; //&& !!window.chrome.webstore;
             // Blink engine detection
         var isBlink = (isChrome || isOpera) && !!window.CSS;
 
